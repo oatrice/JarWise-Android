@@ -10,11 +10,10 @@
     - **EDU** (Education): 10%
     - **LTSS** (Long Term Saving): 10%
     - **GIVE** (Give): 5%
-2.  **Stack**:
-    - Web: React + Vite + Tailwind v4
-    - Mobile: Flutter
-    - Android: Jetpack Compose
-    - iOS: SwiftUI
+2.  **Tech Stack**:
+    - **Framework**: Native Android (Jetpack Compose)
+    - **Language**: Kotlin
+    - **Architecture**: MVVM + Clean Architecture
 3.  **Design**: Modern Dark Mode, Neon Glows, Premium UX.
 
 ## Guidelines
