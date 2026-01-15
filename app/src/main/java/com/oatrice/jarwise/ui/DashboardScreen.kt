@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -35,6 +36,18 @@ import com.oatrice.jarwise.ui.components.JarCard
 import com.oatrice.jarwise.ui.components.TransactionCard
 import com.oatrice.jarwise.ui.theme.*
 
+/**
+ * The primary dashboard screen of the JarWise application.
+ *
+ * This composable serves as the main landing page for users, featuring:
+ * - A personalized header with the user's avatar and greeting.
+ * - Quick actions for searching and notifications.
+ * - A summary of the total balance across all jars.
+ * - An engagement streak indicator.
+ * - A scrollable list of savings "Jars" (using [JarCard]).
+ * - A list of recent financial activities (using [TransactionCard]).
+ * - A Floating Action Button (FAB) to create new jars or entries.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
@@ -232,5 +245,13 @@ fun DashboardScreen() {
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun DashboardPreview() {
+    JarWiseTheme {
+        DashboardScreen()
     }
 }

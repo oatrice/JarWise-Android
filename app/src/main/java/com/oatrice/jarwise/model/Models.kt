@@ -22,5 +22,6 @@ data class Transaction(
     val date: String,
     val amount: Double,
     val icon: ImageVector,
-    val color: Color // Icon background tint
+    val color: Color, // Icon background tint
+    val iconTint: Color // Icon foreground color
 )

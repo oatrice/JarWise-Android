@@ -52,7 +52,7 @@ fun TransactionCard(transaction: Transaction) {
                     imageVector = transaction.icon,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp),
-                    tint = Color.Black // Assuming light background for icon container
+                    tint = transaction.iconTint
                 )
             }
 
