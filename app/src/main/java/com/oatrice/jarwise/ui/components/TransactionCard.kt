@@ -23,6 +23,7 @@ import com.oatrice.jarwise.ui.theme.Gray700
 import com.oatrice.jarwise.ui.theme.Gray800
 import com.oatrice.jarwise.ui.theme.Gray900
 import com.oatrice.jarwise.utils.getJarDetails
+import com.oatrice.jarwise.utils.TransactionDisplayUtils
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
@@ -72,9 +73,11 @@ fun TransactionCard(transaction: Transaction) {
             }
 
             // Details
+            val (displayTitle, displaySubtitle) = TransactionDisplayUtils.getDisplayDetails(jar.name, transaction.note)
+            
             Column {
                 Text(
-                    text = transaction.note.ifBlank { "Transaction" },
+                    text = displayTitle,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
@@ -84,16 +87,18 @@ fun TransactionCard(transaction: Transaction) {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = jar.name,
-                        style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .size(4.dp)
-                            .clip(CircleShape)
-                            .background(Gray700)
-                    )
+                    if (displaySubtitle.isNotEmpty()) {
+                        Text(
+                            text = displaySubtitle,
+                            style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(4.dp)
+                                .clip(CircleShape)
+                                .background(Gray700)
+                        )
+                    }
                     Text(
                         text = displayDate,
                         style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
