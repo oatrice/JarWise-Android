@@ -17,14 +17,31 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.oatrice.jarwise.model.Transaction
+import com.oatrice.jarwise.data.Transaction
 import com.oatrice.jarwise.ui.theme.Gray500
 import com.oatrice.jarwise.ui.theme.Gray700
 import com.oatrice.jarwise.ui.theme.Gray800
 import com.oatrice.jarwise.ui.theme.Gray900
+import com.oatrice.jarwise.utils.getJarDetails
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 @Composable
 fun TransactionCard(transaction: Transaction) {
+    val jar = getJarDetails(transaction.jarId)
+    
+    // Date Parsing (Naive ISO parser for display)
+    val displayDate = try {
+        val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+        isoFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val date = isoFormat.parse(transaction.date)
+        val displayFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
+        displayFormat.format(date!!)
+    } catch (e: Exception) {
+        transaction.date // Fallback
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -45,21 +62,19 @@ fun TransactionCard(transaction: Transaction) {
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(transaction.color),
+                    .background(jar.color.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = transaction.icon,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = transaction.iconTint
+                Text(
+                    text = jar.icon,
+                    fontSize = 20.sp
                 )
             }
 
             // Details
             Column {
                 Text(
-                    text = transaction.merchant,
+                    text = transaction.note.ifBlank { "Transaction" },
                     style = MaterialTheme.typography.bodyMedium.copy(
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
@@ -70,7 +85,7 @@ fun TransactionCard(transaction: Transaction) {
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = transaction.category,
+                        text = jar.name,
                         style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
                     )
                     Box(
@@ -80,7 +95,7 @@ fun TransactionCard(transaction: Transaction) {
                             .background(Gray700)
                     )
                     Text(
-                        text = transaction.date,
+                        text = displayDate,
                         style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
                     )
                 }

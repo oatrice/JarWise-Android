@@ -13,7 +13,12 @@ import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.ScanScreen
 import com.oatrice.jarwise.ui.TransactionHistoryScreen
+import com.oatrice.jarwise.ui.TransactionHistoryScreen
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
+import androidx.room.Room
+import androidx.activity.viewModels
+import com.oatrice.jarwise.data.AppDatabase
+import com.oatrice.jarwise.ui.MainViewModel
 
 sealed class Screen {
     data object Dashboard : Screen()
@@ -25,10 +30,19 @@ sealed class Screen {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        val db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "jarwise-db"
+        ).build()
+        
+        val viewModel: MainViewModel by viewModels { MainViewModel.Factory(db.transactionDao()) }
+
         enableEdgeToEdge()
         setContent {
             JarWiseTheme {
                 var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
+                val transactions by viewModel.transactions.collectAsState()
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -36,11 +50,13 @@ class MainActivity : ComponentActivity() {
                 ) {
                     when (currentScreen) {
                         is Screen.Dashboard -> DashboardScreen(
+                            transactions = transactions,
                             onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
                             onNavigateToScan = { currentScreen = Screen.Scan },
                             onNavigateToAdd = { currentScreen = Screen.AddTransaction }
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
+                            transactions = transactions,
                             onBack = { currentScreen = Screen.Dashboard }
                         )
                         is Screen.Scan -> ScanScreen(
@@ -50,13 +66,13 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = Screen.Dashboard
                             }
                         )
-                        is Screen.AddTransaction -> AddTransactionScreen(
-                            onBack = { currentScreen = Screen.Dashboard },
-                            onSave = { amount, jarId, note ->
-                                println("Transaction saved: $amount for $jarId ($note)")
-                                currentScreen = Screen.Dashboard
-                            }
-                        )
+                            is Screen.AddTransaction -> AddTransactionScreen(
+                                onBack = { currentScreen = Screen.Dashboard },
+                                onSave = { amount, jarId, note ->
+                                    viewModel.saveTransaction(amount, jarId, note)
+                                    currentScreen = Screen.Dashboard
+                                }
+                            )
                     }
                 }
             }

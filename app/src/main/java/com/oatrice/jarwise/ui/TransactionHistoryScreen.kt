@@ -20,7 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.oatrice.jarwise.data.GeneratedMockData
+import com.oatrice.jarwise.data.Transaction
 import com.oatrice.jarwise.ui.components.TransactionCard
 import com.oatrice.jarwise.ui.theme.*
 import kotlin.math.abs
@@ -32,17 +32,13 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionHistoryScreen(
+    transactions: List<Transaction> = emptyList(),
     onBack: () -> Unit
 ) {
-    val transactions = GeneratedMockData.transactions
     val totalSpent = transactions.sumOf { it.amount }
     
-    // Group transactions by date
-    val todayTransactions = transactions.filter { it.date.contains("Today") }
-    val yesterdayTransactions = transactions.filter { it.date.contains("Yesterday") }
-    val olderTransactions = transactions.filter { 
-        !it.date.contains("Today") && !it.date.contains("Yesterday") 
-    }
+    // Sort by date descending
+    val sortedTransactions = transactions.sortedByDescending { it.date }
 
     Scaffold(
         containerColor = Gray950,
@@ -102,50 +98,18 @@ fun TransactionHistoryScreen(
                 )
             }
 
-            // Today's Transactions
-            if (todayTransactions.isNotEmpty()) {
+            // All Transactions
+            if (sortedTransactions.isNotEmpty()) {
                 item {
                     Text(
-                        "Today",
+                        "All Transactions",
                         color = Gray500,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                         modifier = Modifier.padding(top = 8.dp)
                     )
                 }
-                items(todayTransactions) { transaction ->
-                    TransactionCard(transaction = transaction)
-                }
-            }
-
-            // Yesterday's Transactions
-            if (yesterdayTransactions.isNotEmpty()) {
-                item {
-                    Text(
-                        "Yesterday",
-                        color = Gray500,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-                items(yesterdayTransactions) { transaction ->
-                    TransactionCard(transaction = transaction)
-                }
-            }
-
-            // Older Transactions
-            if (olderTransactions.isNotEmpty()) {
-                item {
-                    Text(
-                        "Older",
-                        color = Gray500,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-                items(olderTransactions) { transaction ->
+                items(sortedTransactions) { transaction ->
                     TransactionCard(transaction = transaction)
                 }
             }
