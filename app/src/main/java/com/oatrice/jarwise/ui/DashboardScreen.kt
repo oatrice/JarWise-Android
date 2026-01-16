@@ -28,8 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.oatrice.jarwise.data.MockJars
-import com.oatrice.jarwise.data.MockTransactions
+import com.oatrice.jarwise.data.GeneratedMockData
 import com.oatrice.jarwise.ui.components.JarCard
 import com.oatrice.jarwise.ui.components.TransactionCard
 import com.oatrice.jarwise.ui.theme.*
@@ -41,7 +40,7 @@ import com.oatrice.jarwise.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen() {
-    val totalBalance = MockJars.sumOf { it.current }
+    val totalBalance = GeneratedMockData.jars.sumOf { it.current }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -185,7 +184,7 @@ fun DashboardScreen() {
                     }
                 }
                 
-                itemsIndexed(MockJars) { index, jar ->
+                itemsIndexed(GeneratedMockData.jars) { index, jar ->
                     JarCard(jar = jar, isPriority = index == 0)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -201,7 +200,7 @@ fun DashboardScreen() {
                     }
                 }
 
-                itemsIndexed(MockTransactions) { _, transaction ->
+                itemsIndexed(GeneratedMockData.transactions) { _, transaction ->
                     TransactionCard(transaction = transaction)
                     Spacer(modifier = Modifier.height(12.dp))
                 }
