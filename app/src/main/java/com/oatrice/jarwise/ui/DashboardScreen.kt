@@ -40,7 +40,8 @@ import com.oatrice.jarwise.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
-    onNavigateToHistory: () -> Unit = {}
+    onNavigateToHistory: () -> Unit = {},
+    onNavigateToScan: () -> Unit = {}
 ) {
     val totalBalance = GeneratedMockData.jars.sumOf { it.current }
 
@@ -99,7 +100,11 @@ fun DashboardScreen(
 
                             // Actions (Scan, Search, Bell)
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                ActionButton(icon = Icons.Rounded.QrCodeScanner, contentDescription = "Scan")
+                                ActionButton(
+                                    icon = Icons.Rounded.QrCodeScanner, 
+                                    contentDescription = "Scan",
+                                    onClick = onNavigateToScan
+                                )
                                 ActionButton(icon = Icons.Rounded.Search, contentDescription = "Search")
                                 Box {
                                     ActionButton(icon = Icons.Rounded.Notifications, contentDescription = "Notifications")
