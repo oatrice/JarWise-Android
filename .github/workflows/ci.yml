@@ -23,5 +23,25 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Lint with Gradle
+      run: ./gradlew lint --stacktrace
+
+    - name: Run Unit Tests
+      run: ./gradlew test --stacktrace
+
     - name: Build with Gradle
       run: ./gradlew build --stacktrace
+
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: app/build/test-results/
+
+    - name: Upload Lint Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: lint-results
+        path: app/build/reports/lint-results-*.html
