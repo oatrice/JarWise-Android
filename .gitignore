@@ -16,3 +16,6 @@
 *.hprof
 app/build
 .pr_body.md
+
+# Temporary PR Body templates
+.pr_body*.md

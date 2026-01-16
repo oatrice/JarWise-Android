@@ -7,9 +7,16 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.oatrice.jarwise.ui.DashboardScreen
+import com.oatrice.jarwise.ui.TransactionHistoryScreen
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
+
+sealed class Screen {
+    data object Dashboard : Screen()
+    data object TransactionHistory : Screen()
+}
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -17,12 +24,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             JarWiseTheme {
-                // A surface container using the 'background' color from the theme
+                var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    DashboardScreen()
+                    when (currentScreen) {
+                        is Screen.Dashboard -> DashboardScreen(
+                            onNavigateToHistory = { currentScreen = Screen.TransactionHistory }
+                        )
+                        is Screen.TransactionHistory -> TransactionHistoryScreen(
+                            onBack = { currentScreen = Screen.Dashboard }
+                        )
+                    }
                 }
             }
         }
