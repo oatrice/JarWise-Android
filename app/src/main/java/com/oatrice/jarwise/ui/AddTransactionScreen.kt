@@ -109,36 +109,33 @@ fun AddTransactionScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Amount", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
                 
-                Box(contentAlignment = Alignment.CenterStart) {
-                    Text(
-                        "$",
-                        color = Color.Gray,
-                        fontSize = 24.sp,
+                OutlinedTextField(
+                    value = amount,
+                    onValueChange = { newText: String -> if (newText.all { char -> char.isDigit() || char == '.' }) amount = newText },
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = MaterialTheme.typography.displaySmall.copy(
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 16.dp)
+                        color = Color.White
+                    ),
+                    // placeholder = { Text("0.00", color = Color.Gray) },
+                    prefix = {
+                        Text(
+                            "$",
+                            color = Color.Gray,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF3B82F6),
+                        unfocusedBorderColor = Color(0xFF334155),
+                        focusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f),
+                        unfocusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f)
                     )
-                    OutlinedTextField(
-                        value = amount,
-                        onValueChange = { if (it.all { char -> char.isDigit() || char == '.' }) amount = it },
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        textStyle = MaterialTheme.typography.displaySmall.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        ),
-                        placeholder = { Text("0.00", color = Color.Gray) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF3B82F6),
-                            unfocusedBorderColor = Color(0xFF334155),
-                            focusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f),
-                            unfocusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f)
-                        ),
-                        contentPadding = PaddingValues(start = 40.dp, top = 24.dp, bottom = 24.dp)
-                    )
-                }
+                )
             }
 
             // Jar Selector
