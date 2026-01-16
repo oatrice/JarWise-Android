@@ -9,6 +9,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.ScanScreen
 import com.oatrice.jarwise.ui.TransactionHistoryScreen
@@ -18,6 +19,7 @@ sealed class Screen {
     data object Dashboard : Screen()
     data object TransactionHistory : Screen()
     data object Scan : Screen()
+    data object AddTransaction : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -35,7 +37,8 @@ class MainActivity : ComponentActivity() {
                     when (currentScreen) {
                         is Screen.Dashboard -> DashboardScreen(
                             onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
-                            onNavigateToScan = { currentScreen = Screen.Scan }
+                            onNavigateToScan = { currentScreen = Screen.Scan },
+                            onNavigateToAdd = { currentScreen = Screen.AddTransaction }
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
                             onBack = { currentScreen = Screen.Dashboard }
@@ -44,6 +47,13 @@ class MainActivity : ComponentActivity() {
                             onNavigateBack = { currentScreen = Screen.Dashboard },
                             onPhotoCaptured = { _ ->
                                 // For now, just return to dashboard after capture
+                                currentScreen = Screen.Dashboard
+                            }
+                        )
+                        is Screen.AddTransaction -> AddTransactionScreen(
+                            onBack = { currentScreen = Screen.Dashboard },
+                            onSave = { amount, jarId, note ->
+                                println("Transaction saved: $amount for $jarId ($note)")
                                 currentScreen = Screen.Dashboard
                             }
                         )
