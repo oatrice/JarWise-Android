@@ -10,12 +10,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.oatrice.jarwise.ui.DashboardScreen
+import com.oatrice.jarwise.ui.ScanScreen
 import com.oatrice.jarwise.ui.TransactionHistoryScreen
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 
 sealed class Screen {
     data object Dashboard : Screen()
     data object TransactionHistory : Screen()
+    data object Scan : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -32,10 +34,18 @@ class MainActivity : ComponentActivity() {
                 ) {
                     when (currentScreen) {
                         is Screen.Dashboard -> DashboardScreen(
-                            onNavigateToHistory = { currentScreen = Screen.TransactionHistory }
+                            onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
+                            onNavigateToScan = { currentScreen = Screen.Scan }
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
                             onBack = { currentScreen = Screen.Dashboard }
+                        )
+                        is Screen.Scan -> ScanScreen(
+                            onNavigateBack = { currentScreen = Screen.Dashboard },
+                            onPhotoCaptured = { _ ->
+                                // For now, just return to dashboard after capture
+                                currentScreen = Screen.Dashboard
+                            }
                         )
                     }
                 }
