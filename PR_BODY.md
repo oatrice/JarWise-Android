@@ -19,7 +19,7 @@ Resolves oatrice/JarWise-Root#18
 ## Screenshots
 | Dashboard |
 |:---:|
-| <img src="screenshots/dashboard.png" width="300" /> |
+| <img src="https://github.com/oatrice/JarWise-Android/blob/feat/18-validate-save-android/screenshots/dashboard.png?raw=true" width="300" /> |
 
 ## Verification
 - [x] Unit Tests passed (`./gradlew testDebugUnitTest`)
