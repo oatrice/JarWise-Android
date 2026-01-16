@@ -113,10 +113,10 @@ fun TransactionCard(transaction: Transaction) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "-$${String.format("%.2f", transaction.amount)}",
+                text = "$${String.format("%.2f", transaction.amount)}",
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = Color(0xFFF87171) // Red 400
                 )
             )
             Icon(

@@ -12,8 +12,8 @@ class TransactionDisplayUtilsTest {
         
         val result = TransactionDisplayUtils.getDisplayDetails(jarName, note)
         
-        assertEquals("Necessities", result.first) // Title
-        assertEquals("Buying Milk", result.second) // Subtitle
+        assertEquals("Buying Milk", result.first) // Title is Note
+        assertEquals("Necessities", result.second) // Subtitle is Jar Name
     }
 
     @Test
