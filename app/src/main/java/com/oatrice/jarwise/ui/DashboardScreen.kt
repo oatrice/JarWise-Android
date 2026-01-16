@@ -28,7 +28,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.compose.AsyncImage
 import com.oatrice.jarwise.data.GeneratedMockData
+import com.oatrice.jarwise.data.Transaction
 import com.oatrice.jarwise.ui.components.JarCard
 import com.oatrice.jarwise.ui.components.TransactionCard
 import com.oatrice.jarwise.ui.theme.*
@@ -40,6 +42,7 @@ import com.oatrice.jarwise.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    transactions: List<Transaction> = emptyList(),
     onNavigateToHistory: () -> Unit = {},
     onNavigateToScan: () -> Unit = {},
     onNavigateToAdd: () -> Unit = {}
@@ -208,9 +211,46 @@ fun DashboardScreen(
                     }
                 }
 
-                itemsIndexed(GeneratedMockData.transactions) { _, transaction ->
-                    TransactionCard(transaction = transaction)
-                    Spacer(modifier = Modifier.height(12.dp))
+                if (transactions.isEmpty()) {
+                    item {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 40.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.ReceiptLong,
+                                    contentDescription = null,
+                                    tint = Gray800,
+                                    modifier = Modifier.size(64.dp)
+                                )
+                                Text(
+                                    text = "No transactions yet",
+                                    style = MaterialTheme.typography.bodyLarge.copy(color = Gray500)
+                                )
+                                Button(
+                                    onClick = onNavigateToAdd,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Blue500.copy(alpha = 0.1f),
+                                        contentColor = Blue400
+                                    ),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Blue500.copy(alpha = 0.3f))
+                                ) {
+                                    Text("Add First Transaction")
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    itemsIndexed(transactions) { _, transaction ->
+                        TransactionCard(transaction = transaction)
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }

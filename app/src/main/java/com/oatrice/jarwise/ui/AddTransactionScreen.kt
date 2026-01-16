@@ -27,17 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 
-// Mock Jars Data
-data class Jar(val id: String, val name: String, val icon: String, val color: Color)
-
-val JARS = listOf(
-    Jar("necessities", "Necessities", "🏠", Color(0xFF3B82F6)), // Blue
-    Jar("education", "Education", "📚", Color(0xFF22C55E)),   // Green
-    Jar("savings", "Savings", "🐷", Color(0xFFEAB308)),     // Yellow
-    Jar("play", "Play", "🎮", Color(0xFFEC4899)),        // Pink
-    Jar("investment", "Investment", "📈", Color(0xFFA855F7)), // Purple
-    Jar("give", "Give", "🎁", Color(0xFFEF4444))          // Red
-)
+import com.oatrice.jarwise.utils.JARS_METADATA
+import com.oatrice.jarwise.utils.JarMetadata
+import com.oatrice.jarwise.utils.TransactionValidator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +39,9 @@ fun AddTransactionScreen(
 ) {
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
-    var selectedJarId by remember { mutableStateOf(JARS[0].id) }
+    var selectedJarId by remember { mutableStateOf("") }
+    var amountError by remember { mutableStateOf<String?>(null) }
+    var jarError by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         containerColor = Color(0xFF0F172A), // Slate 900 (match Web)
@@ -78,9 +72,12 @@ fun AddTransactionScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
-                    val amountVal = amount.toDoubleOrNull()
-                    if (amountVal != null && amountVal > 0) {
-                        onSave(amountVal, selectedJarId, note)
+                    val result = TransactionValidator.validateTransaction(amount, selectedJarId)
+                    if (result.isValid) {
+                        onSave(amount.toDouble(), selectedJarId, note)
+                    } else {
+                        amountError = result.errors["amount"]
+                        jarError = result.errors["jarId"]
                     }
                 },
                 containerColor = if (amount.toDoubleOrNull() ?: 0.0 > 0.0)
@@ -111,13 +108,23 @@ fun AddTransactionScreen(
                 
                 OutlinedTextField(
                     value = amount,
-                    onValueChange = { newText: String -> if (newText.all { char -> char.isDigit() || char == '.' }) amount = newText },
+                    onValueChange = { newText: String -> 
+                        if (newText.all { char -> char.isDigit() || char == '.' }) {
+                            amount = newText
+                            amountError = null
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     textStyle = MaterialTheme.typography.displaySmall.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
                     ),
-                    // placeholder = { Text("0.00", color = Color.Gray) },
+                    isError = amountError != null,
+                    supportingText = {
+                        if (amountError != null) {
+                            Text(text = amountError!!, color = MaterialTheme.colorScheme.error)
+                        }
+                    },
                     prefix = {
                         Text(
                             "$",
@@ -130,33 +137,50 @@ fun AddTransactionScreen(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     shape = RoundedCornerShape(16.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF3B82F6),
-                        unfocusedBorderColor = Color(0xFF334155),
+                        focusedBorderColor = if (amountError != null) MaterialTheme.colorScheme.error else Color(0xFF3B82F6),
+                        unfocusedBorderColor = if (amountError != null) MaterialTheme.colorScheme.error else Color(0xFF334155),
                         focusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f),
-                        unfocusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f)
+                        unfocusedContainerColor = Color(0xFF1E293B).copy(alpha = 0.5f),
+                        errorBorderColor = MaterialTheme.colorScheme.error,
+                        errorLabelColor = MaterialTheme.colorScheme.error
                     )
                 )
             }
 
             // Jar Selector
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Select Jar", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                   Text("Select Jar", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                    if (jarError != null) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = jarError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    } 
+                }
                 
+
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.height(280.dp) // Fixed height enough for 3 rows
                 ) {
-                    items(JARS) { jar ->
+                    items(JARS_METADATA) { jar ->
                         JarSelectionCard(
                             jar = jar,
                             isSelected = selectedJarId == jar.id,
-                            onClick = { selectedJarId = jar.id }
+                            isError = jarError != null && selectedJarId.isEmpty(),
+                            onClick = { 
+                                selectedJarId = jar.id
+                                jarError = null
+                            }
                         )
                     }
                 }
-            }
+                }
 
             // Note Input
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -183,9 +207,13 @@ fun AddTransactionScreen(
 }
 
 @Composable
-fun JarSelectionCard(jar: Jar, isSelected: Boolean, onClick: () -> Unit) {
+fun JarSelectionCard(jar: JarMetadata, isSelected: Boolean, isError: Boolean = false, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) Color(0xFF1F2937) else Color(0xFF1E293B).copy(alpha = 0.3f)
-    val borderColor = if (isSelected) Color(0xFF3B82F6).copy(alpha = 0.5f) else Color(0xFF1F2937)
+    val borderColor = when {
+        isSelected -> Color(0xFF3B82F6).copy(alpha = 0.5f)
+        isError -> MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+        else -> Color(0xFF1F2937)
+    }
     
     Surface(
         onClick = onClick,
