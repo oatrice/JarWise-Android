@@ -41,7 +41,8 @@ import com.oatrice.jarwise.ui.theme.*
 @Composable
 fun DashboardScreen(
     onNavigateToHistory: () -> Unit = {},
-    onNavigateToScan: () -> Unit = {}
+    onNavigateToScan: () -> Unit = {},
+    onNavigateToAdd: () -> Unit = {}
 ) {
     val totalBalance = GeneratedMockData.jars.sumOf { it.current }
 
@@ -217,6 +218,7 @@ fun DashboardScreen(
         // Floating Bottom Navigation (Capsule Style)
         FloatingBottomNavigation(
             onHistoryClick = onNavigateToHistory,
+            onAddClick = onNavigateToAdd,
             modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
         )
     }
@@ -242,6 +244,7 @@ fun ActionButton(
 @Composable
 fun FloatingBottomNavigation(
     onHistoryClick: () -> Unit = {},
+    onAddClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -282,7 +285,7 @@ fun FloatingBottomNavigation(
                 .size(64.dp)
                 .background(Brush.linearGradient(listOf(Blue500, Color(0xFF4F46E5))), CircleShape)
                 .border(6.dp, Gray950, CircleShape) // Thicker border for "cutout" effect
-                .clickable { /* Add Action */ },
+                .clickable { onAddClick() },
             shadowElevation = 10.dp
         ) {
             Box(contentAlignment = Alignment.Center) {
