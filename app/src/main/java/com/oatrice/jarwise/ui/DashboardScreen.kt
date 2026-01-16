@@ -39,7 +39,9 @@ import com.oatrice.jarwise.ui.theme.*
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(
+    onNavigateToHistory: () -> Unit = {}
+) {
     val totalBalance = GeneratedMockData.jars.sumOf { it.current }
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -208,7 +210,10 @@ fun DashboardScreen() {
         }
 
         // Floating Bottom Navigation (Capsule Style)
-        FloatingBottomNavigation(modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp))
+        FloatingBottomNavigation(
+            onHistoryClick = onNavigateToHistory,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
+        )
     }
 }
 
@@ -230,7 +235,10 @@ fun ActionButton(
 }
 
 @Composable
-fun FloatingBottomNavigation(modifier: Modifier = Modifier) {
+fun FloatingBottomNavigation(
+    onHistoryClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.BottomCenter
@@ -251,7 +259,7 @@ fun FloatingBottomNavigation(modifier: Modifier = Modifier) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 NavIcon(Icons.Rounded.Dashboard, "Home", isSelected = true)
-                NavIcon(Icons.Rounded.History, "History")
+                NavIcon(Icons.Rounded.History, "History", onClick = onHistoryClick)
                 // Spacer for the center button
                 Spacer(modifier = Modifier.width(48.dp))
                 NavIcon(Icons.Rounded.AccountBalanceWallet, "Wallet")
@@ -283,9 +291,10 @@ fun FloatingBottomNavigation(modifier: Modifier = Modifier) {
 fun NavIcon(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     description: String,
-    isSelected: Boolean = false
+    isSelected: Boolean = false,
+    onClick: () -> Unit = {}
 ) {
-    IconButton(onClick = {}) {
+    IconButton(onClick = onClick) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = icon,
