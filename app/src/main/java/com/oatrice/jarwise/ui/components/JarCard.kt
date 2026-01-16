@@ -155,13 +155,13 @@ fun JarCard(jar: Jar, isPriority: Boolean) {
 
                 Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = "$${String.format("%,.0f", jar.current)}",
+                        text = "$${String.format("%,.2f", jar.current)}",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             color = Color.White
                         )
                     )
                     Text(
-                        text = "/ $${String.format("%,.0f", jar.goal)}",
+                        text = "/ $${String.format("%,.2f", jar.goal)}",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = Gray500,
                             fontWeight = FontWeight.Medium
