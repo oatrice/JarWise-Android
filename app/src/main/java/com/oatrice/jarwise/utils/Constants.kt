@@ -10,12 +10,12 @@ data class JarMetadata(
 )
 
 val JARS_METADATA = listOf(
-    JarMetadata("necessities", "Necessities", "🏠", Color(0xFF3B82F6)), // Blue
-    JarMetadata("education", "Education", "📚", Color(0xFF22C55E)),   // Green
-    JarMetadata("savings", "Savings", "🐷", Color(0xFFEAB308)),     // Yellow
-    JarMetadata("play", "Play", "🎮", Color(0xFFEC4899)),        // Pink
-    JarMetadata("investment", "Investment", "📈", Color(0xFFA855F7)), // Purple
-    JarMetadata("give", "Give", "🎁", Color(0xFFEF4444))          // Red
+    JarMetadata("necessities", "Necessities", "🏠", Color(0xFF3B82F6)),
+    JarMetadata("education", "Education", "📚", Color(0xFF22C55E)),
+    JarMetadata("savings", "Savings", "🐷", Color(0xFFEAB308)),
+    JarMetadata("play", "Play", "🎮", Color(0xFFEC4899)),
+    JarMetadata("investment", "Investment", "📈", Color(0xFFA855F7)),
+    JarMetadata("give", "Give", "🎁", Color(0xFFEF4444)),
 )
 
 fun getJarDetails(jarId: String): JarMetadata {
