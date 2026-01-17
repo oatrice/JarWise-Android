@@ -7,7 +7,6 @@ plugins {
 android {
     namespace = "com.oatrice.jarwise"
     compileSdk = 34
-    buildToolsVersion = "34.0.0"
 
     defaultConfig {
         applicationId = "com.oatrice.jarwise"

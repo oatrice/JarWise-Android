@@ -13,38 +13,53 @@ class SlipDetectorServiceImpl(private val context: Context) : SlipDetectorServic
 
     private val barcodeScanner by lazy { BarcodeScanning.getClient() }
     private val textRecognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
+    private val parser = SlipParser()
 
     override suspend fun detectSlip(uri: Uri): SlipDetectionResult {
         try {
             val image = InputImage.fromFilePath(context, uri)
 
-            // 1. Check for QR Code (First Pass) - Fast & High Confidence
+            // 1. Run OCR (Needed for Keywords check AND Data Extraction)
+            val visionText = Tasks.await(textRecognizer.process(image))
+            val fullText = visionText.text
+            android.util.Log.d("SlipCheck", "OCR Text: ${fullText.take(100)}...")
+
+            // 2. Check for QR Code
             val barcodes = Tasks.await(barcodeScanner.process(image))
-            if (barcodes.isNotEmpty()) {
-                for (barcode in barcodes) {
-                    val rawValue = barcode.rawValue
-                    android.util.Log.d("SlipCheck", "QR Found: $rawValue")
-                    if (SlipDetectionLogic.followsSlipQrPattern(rawValue)) {
-                        return SlipDetectionResult(
-                            isSlip = true,
-                            confidence = 1.0f,
-                            detectedType = SlipType.QR_SLIP,
-                            rawText = rawValue
-                        )
-                    }
+            var qrCodeContent: String? = null
+            var isQrSlip = false
+
+            for (barcode in barcodes) {
+                val rawValue = barcode.rawValue
+                android.util.Log.d("SlipCheck", "QR Found: $rawValue")
+                if (SlipDetectionLogic.followsSlipQrPattern(rawValue)) {
+                    isQrSlip = true
+                    qrCodeContent = rawValue
+                    break // Stop after first valid QR
                 }
             }
 
-            // 2. Check for Keywords (OCR Pass) - Slower but necessary if no QR
-            val visionText = Tasks.await(textRecognizer.process(image))
-            val fullText = visionText.text
-            android.util.Log.d("SlipCheck", "OCR Text: ${fullText.take(100)}...") // Log first 100 chars
-            if (SlipDetectionLogic.containsSlipKeywords(fullText)) {
+            // 3. Determine Result
+            if (isQrSlip) {
+                val parsed = parser.parse(fullText)
                 return SlipDetectionResult(
                     isSlip = true,
-                    confidence = 0.8f, // OCR is slightly less definitive than strict QR structure
+                    confidence = 1.0f,
+                    detectedType = SlipType.QR_SLIP,
+                    rawText = qrCodeContent, // Keep QR content as rawText for QR slips? Or prefer fullText? 
+                    // Usually rawText in result implied "evidence". Let's keep QR content for QR slip, but add parsedData.
+                    parsedData = parsed
+                )
+            }
+
+            if (SlipDetectionLogic.containsSlipKeywords(fullText)) {
+                val parsed = parser.parse(fullText)
+                return SlipDetectionResult(
+                    isSlip = true,
+                    confidence = 0.8f,
                     detectedType = SlipType.OCR_SLIP,
-                    rawText = fullText
+                    rawText = fullText,
+                    parsedData = parsed
                 )
             }
 

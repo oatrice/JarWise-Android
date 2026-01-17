@@ -1,6 +1,7 @@
 package com.oatrice.jarwise.data.service
 
 import android.net.Uri
+import com.oatrice.jarwise.data.model.ParsedSlip
 
 interface SlipDetectorService {
     /**
@@ -13,7 +14,8 @@ data class SlipDetectionResult(
     val isSlip: Boolean,
     val confidence: Float = 0f, // 0.0 - 1.0
     val detectedType: SlipType = SlipType.UNKNOWN,
-    val rawText: String? = null
+    val rawText: String? = null,
+    val parsedData: ParsedSlip? = null
 )
 
 enum class SlipType {

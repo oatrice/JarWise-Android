@@ -12,6 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 
+import com.oatrice.jarwise.data.model.DetectedSlip
+
 class SlipViewModel(
     private val repository: SlipRepository,
     private val slipDetector: SlipDetectorService
@@ -23,8 +25,8 @@ class SlipViewModel(
     private val _selectedBucketId = MutableStateFlow<String?>(null)
     val selectedBucketId: StateFlow<String?> = _selectedBucketId.asStateFlow()
 
-    private val _recentImages = MutableStateFlow<List<Uri>>(emptyList())
-    val recentImages: StateFlow<List<Uri>> = _recentImages.asStateFlow()
+    private val _recentImages = MutableStateFlow<List<DetectedSlip>>(emptyList())
+    val recentImages: StateFlow<List<DetectedSlip>> = _recentImages.asStateFlow()
 
     private val _isScanning = MutableStateFlow(false)
     val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
@@ -77,7 +79,7 @@ class SlipViewModel(
 
                  if (result.isSlip) {
                      foundCount++
-                     uri 
+                     DetectedSlip(uri, result)
                  } else {
                      null
                  }

@@ -89,7 +89,19 @@ class MainActivity : ComponentActivity() {
                                 scanStats = scanStats,
                                 onBack = { currentScreen = Screen.Dashboard },
                                 onPermissionResult = { slipViewModel.refreshImages() },
-                                onBucketSelected = { bucketId -> slipViewModel.selectBucket(bucketId) }
+                                onBucketSelected = { bucketId -> slipViewModel.selectBucket(bucketId) },
+                                onConfirmSlip = { _, parsedSlip ->
+                                    val amount = parsedSlip.amount ?: 0.0
+                                    val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}" // Simplified note
+                                    val date = parsedSlip.date?.let {
+                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                        sdf.format(it)
+                                    }
+                                    viewModel.saveTransaction(amount, "1", note, date) // Default to jarId "1"
+                                    // Navigate back or show success? For now, stay on screen or go to dashboard.
+                                    // currentScreen = Screen.Dashboard // Optional: auto-navigate
+                                }
                             )
                         }
                         is Screen.AddTransaction -> AddTransactionScreen(
