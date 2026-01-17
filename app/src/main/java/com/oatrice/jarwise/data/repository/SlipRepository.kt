@@ -54,17 +54,98 @@ class SlipRepository(private val context: Context) {
         return imageList
     }
 
+
+
+    data class ImageBucket(
+        val id: String,
+        val displayName: String,
+        val coverUri: Uri,
+        val count: Int
+    )
+
     /**
-     * Get images from a specific folder (Tree Uri).
-     * Used for "Import Folder" workflow.
+     * Get unique folders (buckets) containing images.
+     * Groups by BUCKET_ID to create an album list.
      */
-    fun getImagesFromFolder(folderUri: Uri): List<Uri> {
+    fun getImageBuckets(): List<ImageBucket> {
+        val buckets = mutableMapOf<String, ImageBucket>()
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.BUCKET_ID,
+            MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
+            MediaStore.Images.Media.DATE_ADDED
+        )
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+
+        context.contentResolver.query(
+            collection,
+            projection,
+            null,
+            null,
+            sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+            val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID)
+            val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
+
+            while (cursor.moveToNext()) {
+                val bucketId = cursor.getString(bucketIdColumn) ?: continue
+                val bucketName = cursor.getString(bucketNameColumn) ?: "Unknown"
+                val id = cursor.getLong(idColumn)
+                val contentUri = ContentUris.withAppendedId(collection, id)
+
+                if (!buckets.containsKey(bucketId)) {
+                    // First time seeing this bucket, so this is the most recent image (sort order)
+                    buckets[bucketId] = ImageBucket(bucketId, bucketName, contentUri, 1)
+                } else {
+                    // Already seen, just increment count
+                    val current = buckets[bucketId]!!
+                    buckets[bucketId] = current.copy(count = current.count + 1)
+                }
+            }
+        }
+        return buckets.values.toList()
+    }
+
+    /**
+     * Get images specifically from a bucket (folder).
+     */
+    fun getImagesInBucket(bucketId: String, limit: Int = 100): List<Uri> {
         val imageList = mutableListOf<Uri>()
-        val directory = DocumentFile.fromTreeUri(context, folderUri)
-        
-        directory?.listFiles()?.forEach { file ->
-            if (file.isFile && file.type?.startsWith("image/") == true) {
-                imageList.add(file.uri)
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DATE_ADDED
+        )
+        val selection = "${MediaStore.Images.Media.BUCKET_ID} = ?"
+        val selectionArgs = arrayOf(bucketId)
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+        val collection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+
+        context.contentResolver.query(
+            collection,
+            projection,
+            selection,
+            selectionArgs,
+            sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+            var count = 0
+            while (cursor.moveToNext() && count < limit) {
+                val id = cursor.getLong(idColumn)
+                val contentUri = ContentUris.withAppendedId(collection, id)
+                imageList.add(contentUri)
+                count++
             }
         }
         return imageList

@@ -75,12 +75,19 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = Screen.Dashboard
                             }
                         )
-                        is Screen.SlipImport -> com.oatrice.jarwise.ui.SlipImportScreen(
-                            recentImages = recentImages,
-                            onBack = { currentScreen = Screen.Dashboard },
-                            onPermissionResult = { slipViewModel.refreshImages() },
-                            onImagesSelected = { uris -> slipViewModel.addSelectedImages(uris) }
-                        )
+                        is Screen.SlipImport -> {
+                            val buckets by slipViewModel.buckets.collectAsState()
+                            val selectedBucketId by slipViewModel.selectedBucketId.collectAsState()
+                            
+                            com.oatrice.jarwise.ui.SlipImportScreen(
+                                recentImages = recentImages,
+                                buckets = buckets,
+                                selectedBucketId = selectedBucketId,
+                                onBack = { currentScreen = Screen.Dashboard },
+                                onPermissionResult = { slipViewModel.refreshImages() },
+                                onBucketSelected = { bucketId -> slipViewModel.selectBucket(bucketId) }
+                            )
+                        }
                         is Screen.AddTransaction -> AddTransactionScreen(
                             onBack = { currentScreen = Screen.Dashboard },
                             onSave = { amount, jarId, note ->

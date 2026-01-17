@@ -21,14 +21,24 @@ import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import androidx.compose.runtime.*
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Schedule
+import com.oatrice.jarwise.data.repository.SlipRepository
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
 fun SlipImportScreen(
     recentImages: List<Uri>,
+    buckets: List<SlipRepository.ImageBucket>,
+    selectedBucketId: String?,
     onBack: () -> Unit,
-    onPermissionResult: () -> Unit = {}, // Added callback to refresh if needed
-    onImagesSelected: (List<Uri>) -> Unit = {} // Added callback for manual selection
+    onPermissionResult: () -> Unit = {},
+    onBucketSelected: (String?) -> Unit = {}
 ) {
     // Determine permission based on Android version
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -38,6 +48,7 @@ fun SlipImportScreen(
     }
     
     val permissionState = rememberPermissionState(permission)
+    var showAlbumDialog by remember { mutableStateOf(false) }
 
     // Request permission on launch if not granted
     LaunchedEffect(Unit) {
@@ -53,10 +64,30 @@ fun SlipImportScreen(
         }
     }
 
+    if (showAlbumDialog) {
+        AlbumSelectionDialog(
+            buckets = buckets,
+            onDismissRequest = { showAlbumDialog = false },
+            onBucketSelected = { 
+                onBucketSelected(it)
+                showAlbumDialog = false
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Import Slips") },
+                title = { 
+                    Column {
+                        Text("Import Slips")
+                        val currentBucket = buckets.find { it.id == selectedBucketId }
+                        Text(
+                            text = currentBucket?.displayName ?: "Recent Images",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
@@ -65,7 +96,12 @@ fun SlipImportScreen(
             )
         },
         floatingActionButton = {
-            FolderPicker(onImagesSelected = onImagesSelected)
+            ExtendedFloatingActionButton(
+                onClick = { showAlbumDialog = true },
+                icon = { Icon(Icons.Default.List, contentDescription = null) },
+                text = { Text("Albums") },
+                modifier = Modifier.padding(16.dp)
+            )
         }
     ) { paddingValues ->
         Column(
@@ -76,12 +112,6 @@ fun SlipImportScreen(
             
             if (permissionState.status.isGranted) {
                 // Permission Granted Content
-                Text(
-                    text = "Recent Images",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(16.dp)
-                )
-
                 if (recentImages.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                          Text("No images found.", style = MaterialTheme.typography.bodyMedium)
@@ -123,22 +153,46 @@ fun SlipImportScreen(
         }
     }
 }
- 
+
 @Composable
-fun FolderPicker(onImagesSelected: (List<Uri>) -> Unit) {
-    val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
-        contract = androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments()
-    ) { uris ->
-        if (uris.isNotEmpty()) {
-            onImagesSelected(uris)
+fun AlbumSelectionDialog(
+    buckets: List<SlipRepository.ImageBucket>,
+    onDismissRequest: () -> Unit,
+    onBucketSelected: (String?) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = { Text("Select Album") },
+        text = {
+            LazyColumn(modifier = Modifier.heightIn(max = 300.dp)) {
+                item {
+                    ListItem(
+                        headlineContent = { Text("Recent Images") },
+                        leadingContent = { Icon(Icons.Default.Schedule, null) },
+                        modifier = Modifier.clickable { onBucketSelected(null) }
+                    )
+                }
+                items(buckets) { bucket ->
+                    ListItem(
+                        headlineContent = { Text(bucket.displayName) },
+                        supportingContent = { Text("${bucket.count} items") },
+                        leadingContent = {
+                            Image(
+                                painter = rememberAsyncImagePainter(bucket.coverUri),
+                                contentDescription = null,
+                                modifier = Modifier.size(40.dp),
+                                contentScale = ContentScale.Crop
+                            )
+                        },
+                        modifier = Modifier.clickable { onBucketSelected(bucket.id) }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Cancel")
+            }
         }
-    }
-    
-    FloatingActionButton(
-        onClick = { launcher.launch(arrayOf("image/*")) },
-        modifier = Modifier.padding(16.dp)
-    ) {
-        // Use a generic "Add" icon or similar
-        Text("+ Files")
-    }
+    )
 }

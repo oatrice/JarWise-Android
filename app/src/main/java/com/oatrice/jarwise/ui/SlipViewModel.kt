@@ -17,43 +17,57 @@ class SlipViewModel(
     private val slipDetector: SlipDetectorService
 ) : ViewModel() {
 
+    private val _buckets = MutableStateFlow<List<SlipRepository.ImageBucket>>(emptyList())
+    val buckets: StateFlow<List<SlipRepository.ImageBucket>> = _buckets.asStateFlow()
+
+    private val _selectedBucketId = MutableStateFlow<String?>(null)
+    val selectedBucketId: StateFlow<String?> = _selectedBucketId.asStateFlow()
+
     private val _recentImages = MutableStateFlow<List<Uri>>(emptyList())
     val recentImages: StateFlow<List<Uri>> = _recentImages.asStateFlow()
 
     init {
-        loadRecentImages()
+        loadImages(null)
+        loadBuckets()
         observeChanges()
     }
 
-    private fun loadRecentImages() {
+    private fun loadBuckets() {
         viewModelScope.launch(Dispatchers.IO) {
-            val allImages = repository.getRecentImages()
-            // Temporarily disable strict filtering to verify permission fix
-            // Just log the detection result for now
-            // val slipImages = allImages.filter { uri -> slipDetector.isSlip(uri) }
-            
-            _recentImages.value = allImages
+            _buckets.value = repository.getImageBuckets()
+        }
+    }
+
+    fun selectBucket(bucketId: String?) {
+        _selectedBucketId.value = bucketId
+        loadImages(bucketId)
+    }
+
+    private fun loadImages(bucketId: String?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val images = if (bucketId != null) {
+                repository.getImagesInBucket(bucketId)
+            } else {
+                repository.getRecentImages()
+            }
+            // TODO: filtering logic (SlipDetector) will go here later
+            _recentImages.value = images
         }
     }
     
     private fun observeChanges() {
         viewModelScope.launch {
             repository.observeNewImages().collect {
-                // When a new image is detected, refresh the whole list
-                loadRecentImages()
+                // When a new image is detected, refresh current view
+                loadImages(_selectedBucketId.value)
+                loadBuckets() // Also refresh buckets
             }
         }
     }
     
     fun refreshImages() {
-        loadRecentImages()
-    }
-
-    fun addSelectedImages(uris: List<Uri>) {
-        viewModelScope.launch(Dispatchers.IO) {
-            val currentList = _recentImages.value
-            _recentImages.value = uris + currentList
-        }
+        loadImages(_selectedBucketId.value)
+        loadBuckets()
     }
 
     class Factory(
