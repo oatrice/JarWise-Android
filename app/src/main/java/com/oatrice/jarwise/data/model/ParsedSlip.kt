@@ -8,5 +8,6 @@ data class ParsedSlip(
     val bankName: String? = null,
     val senderAccount: String? = null,
     val receiverAccount: String? = null,
+    val jarId: String? = null,
     val rawText: String = ""
 )

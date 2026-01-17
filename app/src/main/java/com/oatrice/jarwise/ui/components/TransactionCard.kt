@@ -27,6 +27,9 @@ import com.oatrice.jarwise.utils.TransactionDisplayUtils
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import androidx.compose.ui.tooling.preview.Preview
+import android.content.res.Configuration
+import com.oatrice.jarwise.ui.theme.JarWiseTheme
 
 @Composable
 fun TransactionCard(transaction: Transaction) {
@@ -126,5 +129,25 @@ fun TransactionCard(transaction: Transaction) {
                 modifier = Modifier.size(16.dp)
             )
         }
+    }
+}
+
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Transaction Card Dark"
+)
+@Composable
+fun TransactionCardPreview() {
+    JarWiseTheme {
+        TransactionCard(
+            transaction = Transaction(
+                id = 1,
+                amount = 1250.00,
+                jarId = "necessities",
+                note = "Groceries from Lotus",
+                date = "2024-05-20T10:30:00.000Z"
+            )
+        )
     }
 }
