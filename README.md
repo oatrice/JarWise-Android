@@ -6,9 +6,9 @@
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=android&logoColor=white)
 ![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
-- Framework: Jetpack Compose
-- Language: Kotlin
-- Architecture: MVVM + Clean Architecture
+- **Kotlin**: `1.9.24`
+- **Jetpack Compose**: BOM `2024.02.01`
+- **Architecture**: MVVM + Clean Architecture
 
 **Modules**:
 - `:app`: Main application
