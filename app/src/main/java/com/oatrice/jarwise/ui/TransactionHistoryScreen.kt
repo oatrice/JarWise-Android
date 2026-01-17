@@ -205,5 +205,34 @@ private fun SummaryCard(
 @Preview(showBackground = true, backgroundColor = 0xFF0A0A0A)
 @Composable
 private fun TransactionHistoryScreenPreview() {
-    TransactionHistoryScreen(onBack = {})
+    val mockTransactions = listOf(
+        Transaction(
+            id = 1,
+            amount = 1250.00,
+            jarId = "necessities",
+            note = "Groceries from Lotus",
+            date = "2024-05-20T10:30:00.000Z"
+        ),
+        Transaction(
+            id = 2,
+            amount = 500.00,
+            jarId = "play",
+            note = "Movie tickets",
+            date = "2024-05-21T18:00:00.000Z"
+        ),
+        Transaction(
+            id = 3,
+            amount = 120.00,
+            jarId = "necessities",
+            note = "Water Bill",
+            date = "2024-05-18T09:15:00.000Z"
+        )
+    )
+
+    JarWiseTheme {
+        TransactionHistoryScreen(
+            transactions = mockTransactions,
+            onBack = {}
+        )
+    }
 }

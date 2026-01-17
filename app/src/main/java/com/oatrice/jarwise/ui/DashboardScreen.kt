@@ -98,7 +98,7 @@ fun DashboardScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp) // Extra padding for Floating Nav
             ) {
                 // HEADER SECTION (Sticky-ish visuals, but scrolls with content for Balance)
@@ -401,9 +401,27 @@ fun NavIcon(
 @Preview(showBackground = true)
 @Composable
 fun DashboardPreview() {
+    val mockTransactions = listOf(
+        Transaction(
+            id = 1,
+            amount = 1250.00,
+            jarId = "necessities",
+            note = "Groceries from Lotus",
+            date = "2024-05-20T10:30:00.000Z"
+        ),
+        Transaction(
+            id = 2,
+            amount = 500.00,
+            jarId = "play",
+            note = "Movie tickets",
+            date = "2024-05-21T18:00:00.000Z"
+        )
+    )
+
     JarWiseTheme {
         DashboardScreen(
-            jars = GeneratedMockData.jars.take(2)
+            jars = GeneratedMockData.jars.take(2),
+            transactions = mockTransactions
         )
     }
 }
