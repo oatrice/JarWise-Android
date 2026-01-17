@@ -19,13 +19,13 @@ class MainViewModel(private val dao: TransactionDao) : ViewModel() {
         initialValue = emptyList()
     )
 
-    fun saveTransaction(amount: Double, jarId: String, note: String) {
+    fun saveTransaction(amount: Double, jarId: String, note: String, date: String? = null) {
         viewModelScope.launch {
             val transaction = Transaction(
                 amount = amount,
                 jarId = jarId,
                 note = note,
-                date = getCurrentIsoDate()
+                date = date ?: getCurrentIsoDate()
             )
             dao.insert(transaction)
         }

@@ -1,20 +1,47 @@
 package com.oatrice.jarwise.ui
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.scaleIn
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.CloudUpload
+import androidx.compose.material.icons.rounded.Dashboard
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.LocalFireDepartment
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.QrCodeScanner
+import androidx.compose.material.icons.rounded.ReceiptLong
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,18 +49,29 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import coil.compose.AsyncImage
 import com.oatrice.jarwise.data.GeneratedMockData
+import com.oatrice.jarwise.model.Jar
 import com.oatrice.jarwise.data.Transaction
 import com.oatrice.jarwise.ui.components.JarCard
 import com.oatrice.jarwise.ui.components.TransactionCard
-import com.oatrice.jarwise.ui.theme.*
+import com.oatrice.jarwise.ui.theme.Blue400
+import com.oatrice.jarwise.ui.theme.Blue500
+import com.oatrice.jarwise.ui.theme.GradientBlueToCyan
+import com.oatrice.jarwise.ui.theme.Gray100
+import com.oatrice.jarwise.ui.theme.Gray400
+import com.oatrice.jarwise.ui.theme.Gray500
+import com.oatrice.jarwise.ui.theme.Gray800
+import com.oatrice.jarwise.ui.theme.Gray900
+import com.oatrice.jarwise.ui.theme.Gray950
+import com.oatrice.jarwise.ui.theme.JarWiseTheme
+import com.oatrice.jarwise.ui.theme.Orange400
+import com.oatrice.jarwise.ui.theme.Orange500
+import com.oatrice.jarwise.ui.theme.Red500
 
 /**
  * The primary dashboard screen of the JarWise application.
@@ -42,12 +80,14 @@ import com.oatrice.jarwise.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    jars: List<Jar> = GeneratedMockData.jars,
     transactions: List<Transaction> = emptyList(),
     onNavigateToHistory: () -> Unit = {},
     onNavigateToScan: () -> Unit = {},
+    onNavigateToImport: () -> Unit = {},
     onNavigateToAdd: () -> Unit = {}
 ) {
-    val totalBalance = GeneratedMockData.jars.sumOf { it.current }
+    val totalBalance = jars.sumOf { it.current }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -58,7 +98,7 @@ fun DashboardScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(32.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp) // Extra padding for Floating Nav
             ) {
                 // HEADER SECTION (Sticky-ish visuals, but scrolls with content for Balance)
@@ -108,6 +148,11 @@ fun DashboardScreen(
                                     icon = Icons.Rounded.QrCodeScanner, 
                                     contentDescription = "Scan",
                                     onClick = onNavigateToScan
+                                )
+                                ActionButton(
+                                    icon = Icons.Rounded.CloudUpload, 
+                                    contentDescription = "Import",
+                                    onClick = onNavigateToImport
                                 )
                                 ActionButton(icon = Icons.Rounded.Search, contentDescription = "Search")
                                 Box {
@@ -195,7 +240,7 @@ fun DashboardScreen(
                     }
                 }
                 
-                itemsIndexed(GeneratedMockData.jars) { index, jar ->
+                itemsIndexed(jars) { index, jar ->
                     JarCard(jar = jar, isPriority = index == 0)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -247,9 +292,8 @@ fun DashboardScreen(
                         }
                     }
                 } else {
-                    itemsIndexed(transactions) { _, transaction ->
+                    itemsIndexed(transactions.take(3)) { _, transaction ->
                         TransactionCard(transaction = transaction)
-                        Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
             }
@@ -357,7 +401,27 @@ fun NavIcon(
 @Preview(showBackground = true)
 @Composable
 fun DashboardPreview() {
+    val mockTransactions = listOf(
+        Transaction(
+            id = 1,
+            amount = 1250.00,
+            jarId = "necessities",
+            note = "Groceries from Lotus",
+            date = "2024-05-20T10:30:00.000Z"
+        ),
+        Transaction(
+            id = 2,
+            amount = 500.00,
+            jarId = "play",
+            note = "Movie tickets",
+            date = "2024-05-21T18:00:00.000Z"
+        )
+    )
+
     JarWiseTheme {
-        DashboardScreen()
+        DashboardScreen(
+            jars = GeneratedMockData.jars.take(2),
+            transactions = mockTransactions
+        )
     }
 }
