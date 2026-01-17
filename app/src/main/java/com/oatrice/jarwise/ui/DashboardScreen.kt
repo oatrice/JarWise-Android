@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.oatrice.jarwise.data.GeneratedMockData
+import com.oatrice.jarwise.model.Jar
 import com.oatrice.jarwise.data.Transaction
 import com.oatrice.jarwise.ui.components.JarCard
 import com.oatrice.jarwise.ui.components.TransactionCard
@@ -79,13 +80,14 @@ import com.oatrice.jarwise.ui.theme.Red500
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
+    jars: List<Jar> = GeneratedMockData.jars,
     transactions: List<Transaction> = emptyList(),
     onNavigateToHistory: () -> Unit = {},
     onNavigateToScan: () -> Unit = {},
     onNavigateToImport: () -> Unit = {},
     onNavigateToAdd: () -> Unit = {}
 ) {
-    val totalBalance = GeneratedMockData.jars.sumOf { it.current }
+    val totalBalance = jars.sumOf { it.current }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
@@ -238,7 +240,7 @@ fun DashboardScreen(
                     }
                 }
                 
-                itemsIndexed(GeneratedMockData.jars) { index, jar ->
+                itemsIndexed(jars) { index, jar ->
                     JarCard(jar = jar, isPriority = index == 0)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -400,6 +402,8 @@ fun NavIcon(
 @Composable
 fun DashboardPreview() {
     JarWiseTheme {
-        DashboardScreen()
+        DashboardScreen(
+            jars = GeneratedMockData.jars.take(2)
+        )
     }
 }

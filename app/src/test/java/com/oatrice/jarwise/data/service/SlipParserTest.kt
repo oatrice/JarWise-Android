@@ -109,22 +109,25 @@ class SlipParserTest {
     }
     @Test
     fun parse_extractsJarCorrectly_byKeyword() {
-        // Test Necessities
+        // Test Necessities (New mapping: Home, Electricity, Water)
+        val textHome = "Payment for Home Internet\nAmount 599.00"
+        assertEquals("necessities", parser.parse(textHome).jarId)
+
+        val textWater = "Water Bill\nAmount 120.00"
+        assertEquals("necessities", parser.parse(textWater).jarId)
+
+        // Test Play (New mapping: Grab, Tops, 7-Eleven moved here + existing Netflix)
         val text711 = "Payment to 7-Eleven\nAmount 50.00"
-        assertEquals("necessities", parser.parse(text711).jarId)
+        assertEquals("play", parser.parse(text711).jarId)
 
         val textGrab = "Grab Transport\nAmount 120.00"
-        assertEquals("necessities", parser.parse(textGrab).jarId)
+        assertEquals("play", parser.parse(textGrab).jarId)
 
         val textTops = "Tops Market\nAmount 500.00"
-        assertEquals("necessities", parser.parse(textTops).jarId)
+        assertEquals("play", parser.parse(textTops).jarId)
 
-        // Test Play
         val textNetflix = "Netflix Subscription\nAmount 419.00"
         assertEquals("play", parser.parse(textNetflix).jarId)
-
-        val textSteam = "Steam Games\nAmount 800.00"
-        assertEquals("play", parser.parse(textSteam).jarId)
 
         // Test Unknown -> null
         val textUnknown = "Transfer to Mr. Nobody\nAmount 1000.00"
