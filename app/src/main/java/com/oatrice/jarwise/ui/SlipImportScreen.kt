@@ -83,9 +83,7 @@ fun SlipImportScreen(
                 title = { 
                     Column {
                         Text("Import Slips")
-                        if (isScanning) {
-                             Text("Detecting slips...", style = MaterialTheme.typography.bodySmall)
-                        } else if (scanStats.isNotEmpty()) {
+                        if (scanStats.isNotEmpty()) {
                              Text(scanStats, style = MaterialTheme.typography.bodySmall)
                         } else {
                             val currentBucket = buckets.find { it.id == selectedBucketId }

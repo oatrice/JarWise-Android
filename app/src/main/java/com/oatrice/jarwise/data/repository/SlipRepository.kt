@@ -90,15 +90,21 @@ class SlipRepository(private val context: Context) {
             null,
             sortOrder
         )?.use { cursor ->
+            android.util.Log.d("SlipRepository", "getImageBuckets found ${cursor.count} rows")
+            
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             val bucketIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_ID)
             val bucketNameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME)
 
             while (cursor.moveToNext()) {
-                val bucketId = cursor.getString(bucketIdColumn) ?: continue
-                val bucketName = cursor.getString(bucketNameColumn) ?: "Unknown"
+                // If bucketId is null, use a fallback instead of skipping
+                val bucketId = cursor.getString(bucketIdColumn) ?: "unknown_bucket"
+                val bucketName = cursor.getString(bucketNameColumn) ?: "Uncategorized"
                 val id = cursor.getLong(idColumn)
                 val contentUri = ContentUris.withAppendedId(collection, id)
+
+                // Debug log to see every file found
+                android.util.Log.d("SlipRepository", "Found image ID: $id in bucket: $bucketName ($bucketId)")
 
                 if (!buckets.containsKey(bucketId)) {
                     // First time seeing this bucket, so this is the most recent image (sort order)
@@ -144,6 +150,10 @@ class SlipRepository(private val context: Context) {
             while (cursor.moveToNext() && count < limit) {
                 val id = cursor.getLong(idColumn)
                 val contentUri = ContentUris.withAppendedId(collection, id)
+                
+                // Debug log
+                android.util.Log.d("SlipRepository", "Loaded image from bucket $bucketId: $contentUri")
+                
                 imageList.add(contentUri)
                 count++
             }
@@ -177,6 +187,23 @@ class SlipRepository(private val context: Context) {
 
         awaitClose {
             context.contentResolver.unregisterContentObserver(observer)
+        }
+    }
+
+    /**
+     * Resolves the display name of a file from its URI.
+     */
+    fun getFileName(uri: Uri): String? {
+        val projection = arrayOf(MediaStore.MediaColumns.DISPLAY_NAME)
+        return try {
+            context.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val index = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME)
+                    if (index != -1) cursor.getString(index) else null
+                } else null
+            }
+        } catch (e: Exception) {
+            null
         }
     }
 }

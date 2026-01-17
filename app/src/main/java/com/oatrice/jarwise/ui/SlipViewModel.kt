@@ -58,23 +58,25 @@ class SlipViewModel(
             _scanStats.value = "Scanning..."
             
             val images = if (bucketId != null) {
-                repository.getImagesInBucket(bucketId)
+                repository.getImagesInBucket(bucketId, limit = 1000)
             } else {
-                repository.getRecentImages()
+                repository.getRecentImages(limit = 50)
             }
 
             var foundCount = 0
             val totalCount = images.size
             
             // Check each image for Slip properties
-            val slipList = images.mapNotNull { uri ->
+            val slipList = images.mapIndexedNotNull { index, uri ->
                  val result = slipDetector.detectSlip(uri)
-                 android.util.Log.d("SlipCheck", "Checked $uri -> IsSlip: ${result.isSlip}, Type: ${result.detectedType}, Conf: ${result.confidence}")
+                 val fileName = repository.getFileName(uri) ?: "Unknown"
+                 android.util.Log.d("SlipCheck", "Checked [$fileName] -> IsSlip: ${result.isSlip}, Type: ${result.detectedType}, Conf: ${result.confidence}")
                  
+                 // Update progress UI
+                 _scanStats.value = "Scanning: ${index + 1} / $totalCount"
+
                  if (result.isSlip) {
                      foundCount++
-                     // Update progress (optional, might be too frequent)
-                     // _scanStats.value = "Scanning: $foundCount / $totalCount"
                      uri 
                  } else {
                      null
