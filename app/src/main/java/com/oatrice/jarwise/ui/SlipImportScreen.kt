@@ -39,6 +39,8 @@ import com.oatrice.jarwise.data.model.ParsedSlip
 import com.oatrice.jarwise.data.repository.SlipRepository
 import java.text.SimpleDateFormat
 import java.util.Locale
+import androidx.compose.ui.tooling.preview.Preview
+import com.oatrice.jarwise.data.service.SlipDetectionResult
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -368,5 +370,67 @@ fun SlipEditDialog(
                 }
             }
         }
+    }
+}
+
+// Previews
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSlipImportScreen() {
+    val mockBuckets = listOf(
+        SlipRepository.ImageBucket("1", "Camera", Uri.EMPTY, 10),
+        SlipRepository.ImageBucket("2", "Screenshots", Uri.EMPTY, 5)
+    )
+    
+    val mockSlips = listOf(
+        DetectedSlip(
+            uri = Uri.EMPTY, 
+            result = SlipDetectionResult(
+                isSlip = true, 
+                confidence = 0.9f, 
+                parsedData = ParsedSlip(amount = 500.00, bankName = "KBank")
+            )
+        ),
+        DetectedSlip(
+            uri = Uri.EMPTY, 
+            result = SlipDetectionResult(isSlip = false)
+        )
+    )
+
+    MaterialTheme {
+        SlipImportScreen(
+            recentImages = mockSlips,
+            buckets = mockBuckets,
+            selectedBucketId = null,
+            isScanning = false,
+            onBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun PreviewSlipEditDialog() {
+    val mockSlip = DetectedSlip(
+        uri = Uri.EMPTY,
+        result = SlipDetectionResult(
+            isSlip = true,
+            confidence = 0.95f,
+            parsedData = ParsedSlip(
+                amount = 1250.00,
+                bankName = "SCB",
+                date = java.util.Date(),
+                rawText = "Transfer Successful\nAmount 1,250.00 THB\nFrom SCB"
+            )
+        )
+    )
+
+    MaterialTheme {
+        SlipEditDialog(
+            slip = mockSlip,
+            onDismiss = {},
+            onConfirm = {}
+        )
     }
 }
