@@ -1,13 +1,10 @@
 # 🤖 Android Workspace Overview (Native)
 ![Version](https://img.shields.io/badge/version-1.0-blue.svg)
 
-**Tech Stack**:
-![Kotlin](https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white) 
-![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=android&logoColor=white)
-![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-1.9.24-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Compose_BOM-2024.02.01-4285F4?style=for-the-badge&logo=android&logoColor=white)
+![Android](https://img.shields.io/badge/Android_SDK-34-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
-- **Kotlin**: `1.9.24`
-- **Jetpack Compose**: BOM `2024.02.01`
 - **Architecture**: MVVM + Clean Architecture
 
 **Modules**:
