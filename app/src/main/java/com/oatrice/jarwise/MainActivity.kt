@@ -78,11 +78,15 @@ class MainActivity : ComponentActivity() {
                         is Screen.SlipImport -> {
                             val buckets by slipViewModel.buckets.collectAsState()
                             val selectedBucketId by slipViewModel.selectedBucketId.collectAsState()
+                            val isScanning by slipViewModel.isScanning.collectAsState()
+                            val scanStats by slipViewModel.scanStats.collectAsState()
                             
                             com.oatrice.jarwise.ui.SlipImportScreen(
                                 recentImages = recentImages,
                                 buckets = buckets,
                                 selectedBucketId = selectedBucketId,
+                                isScanning = isScanning,
+                                scanStats = scanStats,
                                 onBack = { currentScreen = Screen.Dashboard },
                                 onPermissionResult = { slipViewModel.refreshImages() },
                                 onBucketSelected = { bucketId -> slipViewModel.selectBucket(bucketId) }

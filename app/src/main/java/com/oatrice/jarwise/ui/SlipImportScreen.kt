@@ -36,6 +36,8 @@ fun SlipImportScreen(
     recentImages: List<Uri>,
     buckets: List<SlipRepository.ImageBucket>,
     selectedBucketId: String?,
+    isScanning: Boolean = false,
+    scanStats: String = "",
     onBack: () -> Unit,
     onPermissionResult: () -> Unit = {},
     onBucketSelected: (String?) -> Unit = {}
@@ -81,16 +83,30 @@ fun SlipImportScreen(
                 title = { 
                     Column {
                         Text("Import Slips")
-                        val currentBucket = buckets.find { it.id == selectedBucketId }
-                        Text(
-                            text = currentBucket?.displayName ?: "Recent Images",
-                            style = MaterialTheme.typography.bodySmall
-                        )
+                        if (isScanning) {
+                             Text("Detecting slips...", style = MaterialTheme.typography.bodySmall)
+                        } else if (scanStats.isNotEmpty()) {
+                             Text(scanStats, style = MaterialTheme.typography.bodySmall)
+                        } else {
+                            val currentBucket = buckets.find { it.id == selectedBucketId }
+                            Text(
+                                text = currentBucket?.displayName ?: "Recent Images",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    if (isScanning) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = 16.dp).size(24.dp),
+                            strokeWidth = 2.dp
+                        )
                     }
                 }
             )

@@ -14,7 +14,7 @@ class SlipDetectorServiceImpl(private val context: Context) : SlipDetectorServic
     private val barcodeScanner by lazy { BarcodeScanning.getClient() }
     private val textRecognizer by lazy { TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS) }
 
-    override suspend fun isSlip(uri: Uri): Boolean {
+    override suspend fun detectSlip(uri: Uri): SlipDetectionResult {
         try {
             val image = InputImage.fromFilePath(context, uri)
 
@@ -23,8 +23,14 @@ class SlipDetectorServiceImpl(private val context: Context) : SlipDetectorServic
             if (barcodes.isNotEmpty()) {
                 for (barcode in barcodes) {
                     val rawValue = barcode.rawValue
+                    android.util.Log.d("SlipCheck", "QR Found: $rawValue")
                     if (SlipDetectionLogic.followsSlipQrPattern(rawValue)) {
-                        return true
+                        return SlipDetectionResult(
+                            isSlip = true,
+                            confidence = 1.0f,
+                            detectedType = SlipType.QR_SLIP,
+                            rawText = rawValue
+                        )
                     }
                 }
             }
@@ -32,18 +38,24 @@ class SlipDetectorServiceImpl(private val context: Context) : SlipDetectorServic
             // 2. Check for Keywords (OCR Pass) - Slower but necessary if no QR
             val visionText = Tasks.await(textRecognizer.process(image))
             val fullText = visionText.text
+            android.util.Log.d("SlipCheck", "OCR Text: ${fullText.take(100)}...") // Log first 100 chars
             if (SlipDetectionLogic.containsSlipKeywords(fullText)) {
-                return true
+                return SlipDetectionResult(
+                    isSlip = true,
+                    confidence = 0.8f, // OCR is slightly less definitive than strict QR structure
+                    detectedType = SlipType.OCR_SLIP,
+                    rawText = fullText
+                )
             }
 
-            return false
+            return SlipDetectionResult(isSlip = false)
 
         } catch (e: IOException) {
             e.printStackTrace()
-            return false
+            return SlipDetectionResult(isSlip = false)
         } catch (e: Exception) {
             e.printStackTrace()
-            return false
+            return SlipDetectionResult(isSlip = false)
         }
     }
 }

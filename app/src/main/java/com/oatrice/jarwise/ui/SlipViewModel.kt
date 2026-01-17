@@ -26,6 +26,13 @@ class SlipViewModel(
     private val _recentImages = MutableStateFlow<List<Uri>>(emptyList())
     val recentImages: StateFlow<List<Uri>> = _recentImages.asStateFlow()
 
+    private val _isScanning = MutableStateFlow(false)
+    val isScanning: StateFlow<Boolean> = _isScanning.asStateFlow()
+
+    private val _scanStats = MutableStateFlow("")
+    val scanStats: StateFlow<String> = _scanStats.asStateFlow()
+
+
     init {
         loadImages(null)
         loadBuckets()
@@ -43,15 +50,40 @@ class SlipViewModel(
         loadImages(bucketId)
     }
 
+
+
     private fun loadImages(bucketId: String?) {
         viewModelScope.launch(Dispatchers.IO) {
+            _isScanning.value = true
+            _scanStats.value = "Scanning..."
+            
             val images = if (bucketId != null) {
                 repository.getImagesInBucket(bucketId)
             } else {
                 repository.getRecentImages()
             }
-            // TODO: filtering logic (SlipDetector) will go here later
-            _recentImages.value = images
+
+            var foundCount = 0
+            val totalCount = images.size
+            
+            // Check each image for Slip properties
+            val slipList = images.mapNotNull { uri ->
+                 val result = slipDetector.detectSlip(uri)
+                 android.util.Log.d("SlipCheck", "Checked $uri -> IsSlip: ${result.isSlip}, Type: ${result.detectedType}, Conf: ${result.confidence}")
+                 
+                 if (result.isSlip) {
+                     foundCount++
+                     // Update progress (optional, might be too frequent)
+                     // _scanStats.value = "Scanning: $foundCount / $totalCount"
+                     uri 
+                 } else {
+                     null
+                 }
+            }
+            
+            _recentImages.value = slipList
+            _scanStats.value = "Scanned: $totalCount, Slips Found: $foundCount"
+            _isScanning.value = false
         }
     }
     
