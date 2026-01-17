@@ -41,6 +41,8 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import androidx.compose.ui.tooling.preview.Preview
 import com.oatrice.jarwise.data.service.SlipDetectionResult
+import android.content.res.Configuration
+import com.oatrice.jarwise.ui.theme.JarWiseTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -102,6 +104,34 @@ fun SlipImportScreen(
         )
     }
 
+    SlipImportScreenContent(
+        recentImages = recentImages,
+        buckets = buckets,
+        selectedBucketId = selectedBucketId,
+        isScanning = isScanning,
+        scanStats = scanStats,
+        hasPermission = permissionState.status.isGranted,
+        onBack = onBack,
+        onShowAlbumDialog = { showAlbumDialog = true },
+        onSlipSelected = { selectedSlip = it },
+        onRequestPermission = { permissionState.launchPermissionRequest() }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SlipImportScreenContent(
+    recentImages: List<DetectedSlip>,
+    buckets: List<SlipRepository.ImageBucket>,
+    selectedBucketId: String?,
+    isScanning: Boolean,
+    scanStats: String,
+    hasPermission: Boolean,
+    onBack: () -> Unit,
+    onShowAlbumDialog: () -> Unit,
+    onSlipSelected: (DetectedSlip) -> Unit,
+    onRequestPermission: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
@@ -136,7 +166,7 @@ fun SlipImportScreen(
         },
         floatingActionButton = {
             ExtendedFloatingActionButton(
-                onClick = { showAlbumDialog = true },
+                onClick = onShowAlbumDialog,
                 icon = { Icon(Icons.Default.List, contentDescription = null) },
                 text = { Text("Albums") },
                 modifier = Modifier.padding(16.dp)
@@ -149,7 +179,7 @@ fun SlipImportScreen(
                 .padding(paddingValues)
         ) {
             
-            if (permissionState.status.isGranted) {
+            if (hasPermission) {
                 // Permission Granted Content
                 if (recentImages.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -163,7 +193,7 @@ fun SlipImportScreen(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(recentImages) { slip ->
-                            Box(modifier = Modifier.clickable { selectedSlip = slip }) {
+                            Box(modifier = Modifier.clickable { onSlipSelected(slip) }) {
                                 Image(
                                     painter = rememberAsyncImagePainter(slip.uri),
                                     contentDescription = null,
@@ -198,7 +228,7 @@ fun SlipImportScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("Permission required to load images.")
                         Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { permissionState.launchPermissionRequest() }) {
+                        Button(onClick = onRequestPermission) {
                             Text("Grant Permission")
                         }
                     }
@@ -375,7 +405,11 @@ fun SlipEditDialog(
 
 // Previews
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Dark Mode"
+)
 @Composable
 fun PreviewSlipImportScreen() {
     val mockBuckets = listOf(
@@ -398,18 +432,27 @@ fun PreviewSlipImportScreen() {
         )
     )
 
-    MaterialTheme {
-        SlipImportScreen(
+    JarWiseTheme {
+        SlipImportScreenContent(
             recentImages = mockSlips,
             buckets = mockBuckets,
             selectedBucketId = null,
             isScanning = false,
-            onBack = {}
+            scanStats = "",
+            hasPermission = true, // Mock permission enabled
+            onBack = {},
+            onShowAlbumDialog = {},
+            onSlipSelected = {},
+            onRequestPermission = {}
         )
     }
 }
 
-@Preview(showBackground = true)
+@Preview(
+    showBackground = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    name = "Dark Mode"
+)
 @Composable
 fun PreviewSlipEditDialog() {
     val mockSlip = DetectedSlip(
@@ -426,7 +469,7 @@ fun PreviewSlipEditDialog() {
         )
     )
 
-    MaterialTheme {
+    JarWiseTheme {
         SlipEditDialog(
             slip = mockSlip,
             onDismiss = {},
