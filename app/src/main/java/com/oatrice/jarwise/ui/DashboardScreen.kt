@@ -253,9 +253,9 @@ fun DashboardScreen(
                         }
                     }
                 } else {
-                    itemsIndexed(transactions) { _, transaction ->
+                    itemsIndexed(transactions.take(3)) { _, transaction ->
                         TransactionCard(transaction = transaction)
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }

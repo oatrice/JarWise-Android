@@ -99,6 +99,7 @@ class MainActivity : ComponentActivity() {
                                         sdf.format(it)
                                     }
                                     viewModel.saveTransaction(amount, jarId, note, date)
+                                    android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
                                     // Navigate back or show success? For now, stay on screen or go to dashboard.
                                     // currentScreen = Screen.Dashboard // Optional: auto-navigate
                                 }
