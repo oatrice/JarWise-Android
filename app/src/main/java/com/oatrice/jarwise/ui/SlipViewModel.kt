@@ -5,12 +5,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.oatrice.jarwise.data.repository.SlipRepository
+import com.oatrice.jarwise.data.service.SlipDetectorService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
 
-class SlipViewModel(private val repository: SlipRepository) : ViewModel() {
+class SlipViewModel(
+    private val repository: SlipRepository,
+    private val slipDetector: SlipDetectorService
+) : ViewModel() {
 
     private val _recentImages = MutableStateFlow<List<Uri>>(emptyList())
     val recentImages: StateFlow<List<Uri>> = _recentImages.asStateFlow()
@@ -21,8 +26,13 @@ class SlipViewModel(private val repository: SlipRepository) : ViewModel() {
     }
 
     private fun loadRecentImages() {
-        viewModelScope.launch {
-            _recentImages.value = repository.getRecentImages()
+        viewModelScope.launch(Dispatchers.IO) {
+            val allImages = repository.getRecentImages()
+            // Temporarily disable strict filtering to verify permission fix
+            // Just log the detection result for now
+            // val slipImages = allImages.filter { uri -> slipDetector.isSlip(uri) }
+            
+            _recentImages.value = allImages
         }
     }
     
@@ -39,11 +49,21 @@ class SlipViewModel(private val repository: SlipRepository) : ViewModel() {
         loadRecentImages()
     }
 
-    class Factory(private val repository: SlipRepository) : ViewModelProvider.Factory {
+    fun addSelectedImages(uris: List<Uri>) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentList = _recentImages.value
+            _recentImages.value = uris + currentList
+        }
+    }
+
+    class Factory(
+        private val repository: SlipRepository,
+        private val slipDetector: SlipDetectorService
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(SlipViewModel::class.java)) {
-                return SlipViewModel(repository) as T
+                return SlipViewModel(repository, slipDetector) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

@@ -4,21 +4,21 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.room.Room
+import com.oatrice.jarwise.data.AppDatabase
+import com.oatrice.jarwise.data.service.SlipDetectorServiceImpl
 import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
+import com.oatrice.jarwise.ui.MainViewModel
 import com.oatrice.jarwise.ui.ScanScreen
 import com.oatrice.jarwise.ui.TransactionHistoryScreen
-import com.oatrice.jarwise.ui.TransactionHistoryScreen
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
-import androidx.room.Room
-import androidx.activity.viewModels
-import com.oatrice.jarwise.data.AppDatabase
-import com.oatrice.jarwise.ui.MainViewModel
 
 sealed class Screen {
     data object Dashboard : Screen()
@@ -40,7 +40,10 @@ class MainActivity : ComponentActivity() {
         val viewModel: MainViewModel by viewModels { MainViewModel.Factory(db.transactionDao()) }
 
         val slipRepository = com.oatrice.jarwise.data.repository.SlipRepository(applicationContext)
-        val slipViewModel: com.oatrice.jarwise.ui.SlipViewModel by viewModels { com.oatrice.jarwise.ui.SlipViewModel.Factory(slipRepository) }
+        val slipDetector = SlipDetectorServiceImpl(applicationContext)
+        val slipViewModel: com.oatrice.jarwise.ui.SlipViewModel by viewModels { 
+            com.oatrice.jarwise.ui.SlipViewModel.Factory(slipRepository, slipDetector) 
+        }
 
         enableEdgeToEdge()
         setContent {
@@ -75,7 +78,8 @@ class MainActivity : ComponentActivity() {
                         is Screen.SlipImport -> com.oatrice.jarwise.ui.SlipImportScreen(
                             recentImages = recentImages,
                             onBack = { currentScreen = Screen.Dashboard },
-                            onPermissionResult = { slipViewModel.refreshImages() }
+                            onPermissionResult = { slipViewModel.refreshImages() },
+                            onImagesSelected = { uris -> slipViewModel.addSelectedImages(uris) }
                         )
                         is Screen.AddTransaction -> AddTransactionScreen(
                             onBack = { currentScreen = Screen.Dashboard },

@@ -27,7 +27,8 @@ import com.google.accompanist.permissions.rememberPermissionState
 fun SlipImportScreen(
     recentImages: List<Uri>,
     onBack: () -> Unit,
-    onPermissionResult: () -> Unit = {} // Added callback to refresh if needed
+    onPermissionResult: () -> Unit = {}, // Added callback to refresh if needed
+    onImagesSelected: (List<Uri>) -> Unit = {} // Added callback for manual selection
 ) {
     // Determine permission based on Android version
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -62,6 +63,9 @@ fun SlipImportScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            FolderPicker(onImagesSelected = onImagesSelected)
         }
     ) { paddingValues ->
         Column(
@@ -117,5 +121,24 @@ fun SlipImportScreen(
                 }
             }
         }
+    }
+}
+ 
+@Composable
+fun FolderPicker(onImagesSelected: (List<Uri>) -> Unit) {
+    val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            onImagesSelected(uris)
+        }
+    }
+    
+    FloatingActionButton(
+        onClick = { launcher.launch(arrayOf("image/*")) },
+        modifier = Modifier.padding(16.dp)
+    ) {
+        // Use a generic "Add" icon or similar
+        Text("+ Files")
     }
 }
