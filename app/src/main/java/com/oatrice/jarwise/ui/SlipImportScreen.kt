@@ -30,6 +30,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.clipToBounds
 import coil.compose.rememberAsyncImagePainter
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
@@ -38,11 +43,21 @@ import com.oatrice.jarwise.data.model.DetectedSlip
 import com.oatrice.jarwise.data.model.ParsedSlip
 import com.oatrice.jarwise.data.repository.SlipRepository
 import java.text.SimpleDateFormat
+
 import java.util.Locale
+import java.util.Date
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import com.oatrice.jarwise.data.service.SlipDetectionResult
 import android.content.res.Configuration
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
+import com.oatrice.jarwise.utils.JARS_METADATA
+import com.oatrice.jarwise.utils.getJarDetails
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalPermissionsApi::class)
 @Composable
@@ -55,7 +70,7 @@ fun SlipImportScreen(
     onBack: () -> Unit,
     onPermissionResult: () -> Unit = {},
     onBucketSelected: (String?) -> Unit = {},
-    onConfirmSlip: (DetectedSlip, ParsedSlip) -> Unit = { _, _ -> }
+    onConfirmSlip: (DetectedSlip, ParsedSlip, String) -> Unit = { _, _, _ -> }
 ) {
     // Determine permission based on Android version
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -97,8 +112,8 @@ fun SlipImportScreen(
         SlipEditDialog(
             slip = selectedSlip!!,
             onDismiss = { selectedSlip = null },
-            onConfirm = { updatedParsedSlip ->
-                onConfirmSlip(selectedSlip!!, updatedParsedSlip)
+            onConfirm = { updatedParsedSlip, jarId ->
+                onConfirmSlip(selectedSlip!!, updatedParsedSlip, jarId)
                 selectedSlip = null
             }
         )
@@ -286,17 +301,44 @@ fun AlbumSelectionDialog(
 fun SlipEditDialog(
     slip: DetectedSlip,
     onDismiss: () -> Unit,
-    onConfirm: (ParsedSlip) -> Unit
+    onConfirm: (ParsedSlip, String) -> Unit
 ) {
     var amount by remember { mutableStateOf(slip.result.parsedData?.amount?.toString() ?: "") }
     var bankName by remember { mutableStateOf(slip.result.parsedData?.bankName ?: "") }
+    var selectedJarId by remember { mutableStateOf(JARS_METADATA[0].id) }
+    var expanded by remember { mutableStateOf(false) }
     
-    // Simple date handling for now - just string
+    // Date State
+    var selectedDate by remember { mutableStateOf(slip.result.parsedData?.date ?: Date()) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    
     val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.US)
-    var dateStr by remember { 
-        mutableStateOf(
-            if (slip.result.parsedData?.date != null) dateFormat.format(slip.result.parsedData?.date!!) else ""
-        ) 
+    
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = selectedDate.time
+        )
+        
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    datePickerState.selectedDateMillis?.let {
+                        selectedDate = Date(it)
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
     }
 
     Dialog(
@@ -330,15 +372,14 @@ fun SlipEditDialog(
                         // just passing original back if string matches, or null for now if changed
                         // Implementing full date parsing logic here is overkill for this step, 
                         // assuming user just confirms mostly.
-                        val parsedDate = slip.result.parsedData?.date // Simplified: keep original for now if not editing logic complex
-                        
                         onConfirm(
                             ParsedSlip(
                                 amount = parsedAmount,
                                 bankName = bankName,
-                                date = parsedDate,
+                                date = selectedDate,
                                 rawText = slip.result.parsedData?.rawText ?: ""
-                            )
+                            ),
+                            selectedJarId
                         )
                     }) {
                         Icon(Icons.Default.Check, "Confirm")
@@ -346,16 +387,38 @@ fun SlipEditDialog(
                 }
 
                 // Image Preview
+                var scale by remember { mutableStateOf(1f) }
+                var offset by remember { mutableStateOf(Offset.Zero) }
+                
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(400.dp)
                         .padding(horizontal = 16.dp)
+                        .clipToBounds()
+                        .pointerInput(Unit) {
+                            detectTransformGestures { _, pan, zoom, _ ->
+                                scale = (scale * zoom).coerceIn(1f, 3f)
+                                if (scale == 1f) {
+                                    offset = Offset.Zero
+                                } else {
+                                    // Scale pan by current zoom to make it feel natural
+                                    offset += pan 
+                                }
+                            }
+                        }
                 ) {
                    Image(
                         painter = rememberAsyncImagePainter(slip.uri),
                         contentDescription = "Slip Image",
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .graphicsLayer(
+                                scaleX = scale,
+                                scaleY = scale,
+                                translationX = offset.x,
+                                translationY = offset.y
+                            ),
                         contentScale = ContentScale.Fit
                     )
                 }
@@ -384,11 +447,21 @@ fun SlipEditDialog(
                     Spacer(modifier = Modifier.height(8.dp))
                     
                     OutlinedTextField(
-                        value = dateStr,
-                        onValueChange = { dateStr = it },
-                        label = { Text("Date (read-only for now)") },
-                        enabled = false, // Disable date editing for simplicity in this iteration
-                        modifier = Modifier.fillMaxWidth()
+                        value = dateFormat.format(selectedDate),
+                        onValueChange = {},
+                        label = { Text("Date") },
+                        modifier = Modifier.fillMaxWidth(),
+                        readOnly = true,
+                        interactionSource = remember { MutableInteractionSource() }
+                            .also { interactionSource ->
+                                LaunchedEffect(interactionSource) {
+                                    interactionSource.interactions.collect {
+                                        if (it is PressInteraction.Release) {
+                                            showDatePicker = true
+                                        }
+                                    }
+                                }
+                            }
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
@@ -397,6 +470,42 @@ fun SlipEditDialog(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Jar Selection Dropdown
+                    val currentJar = getJarDetails(selectedJarId)
+                    
+                    ExposedDropdownMenuBox(
+                        expanded = expanded,
+                        onExpandedChange = { expanded = !expanded },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        OutlinedTextField(
+                            value = "${currentJar.icon} ${currentJar.name}",
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Jar / Account") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                            modifier = Modifier.menuAnchor().fillMaxWidth()
+                        )
+                        
+                        ExposedDropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false }
+                        ) {
+                            JARS_METADATA.forEach { jar ->
+                                DropdownMenuItem(
+                                    text = { Text("${jar.icon} ${jar.name}") },
+                                    onClick = {
+                                        selectedJarId = jar.id
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -473,7 +582,7 @@ fun PreviewSlipEditDialog() {
         SlipEditDialog(
             slip = mockSlip,
             onDismiss = {},
-            onConfirm = {}
+            onConfirm = { _, _ -> }
         )
     }
 }
