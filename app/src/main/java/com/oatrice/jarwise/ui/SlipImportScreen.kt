@@ -305,7 +305,7 @@ fun SlipEditDialog(
 ) {
     var amount by remember { mutableStateOf(slip.result.parsedData?.amount?.toString() ?: "") }
     var bankName by remember { mutableStateOf(slip.result.parsedData?.bankName ?: "") }
-    var selectedJarId by remember { mutableStateOf(JARS_METADATA[0].id) }
+    var selectedJarId by remember { mutableStateOf(slip.result.parsedData?.jarId ?: JARS_METADATA[0].id) }
     var expanded by remember { mutableStateOf(false) }
     
     // Date State

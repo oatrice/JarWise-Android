@@ -11,12 +11,31 @@ class SlipParser {
         val amount = extractAmount(text)
         val date = extractDate(text)
         val bankName = extractBankName(text)
+        val jarId = extractJarId(text)
         return ParsedSlip(
             rawText = text,
             amount = amount,
             date = date,
-            bankName = bankName
+            bankName = bankName,
+            jarId = jarId
         )
+    }
+
+    private fun extractJarId(text: String): String? {
+        val keywords = mapOf(
+            "necessities" to listOf("Home", "Electricity", "Water"),
+            "play" to listOf("Grab", "Tops", "Lotus", "Big C", "7-Eleven", "Netflix", "Steam", "Spotify", "Disney+", "YouTube"),
+            "education" to listOf("Udemy", "Coursera", "Book", "Kindle"),
+            "savings" to listOf("Deposit", "Invesment"),
+            "give" to listOf("Donation", "Charity")
+        )
+
+        for ((jarId, clues) in keywords) {
+            if (clues.any { text.contains(it, ignoreCase = true) }) {
+                return jarId
+            }
+        }
+        return null
     }
 
     private fun extractBankName(text: String): String? {
