@@ -74,7 +74,8 @@ class MainActivity : ComponentActivity() {
                         )
                         is Screen.SlipImport -> com.oatrice.jarwise.ui.SlipImportScreen(
                             recentImages = recentImages,
-                            onBack = { currentScreen = Screen.Dashboard }
+                            onBack = { currentScreen = Screen.Dashboard },
+                            onPermissionResult = { slipViewModel.refreshImages() }
                         )
                         is Screen.AddTransaction -> AddTransactionScreen(
                             onBack = { currentScreen = Screen.Dashboard },
