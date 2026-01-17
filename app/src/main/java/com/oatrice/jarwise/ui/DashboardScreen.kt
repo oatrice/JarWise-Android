@@ -45,6 +45,7 @@ fun DashboardScreen(
     transactions: List<Transaction> = emptyList(),
     onNavigateToHistory: () -> Unit = {},
     onNavigateToScan: () -> Unit = {},
+    onNavigateToImport: () -> Unit = {},
     onNavigateToAdd: () -> Unit = {}
 ) {
     val totalBalance = GeneratedMockData.jars.sumOf { it.current }
@@ -108,6 +109,11 @@ fun DashboardScreen(
                                     icon = Icons.Rounded.QrCodeScanner, 
                                     contentDescription = "Scan",
                                     onClick = onNavigateToScan
+                                )
+                                ActionButton(
+                                    icon = Icons.Rounded.CloudUpload, 
+                                    contentDescription = "Import",
+                                    onClick = onNavigateToImport
                                 )
                                 ActionButton(icon = Icons.Rounded.Search, contentDescription = "Search")
                                 Box {

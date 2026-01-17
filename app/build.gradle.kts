@@ -77,6 +77,13 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
     implementation(libs.accompanist.permissions)
+    
+    // DocumentFile
+    implementation(libs.androidx.documentfile)
+
+    // ML Kit (Issue #31)
+    implementation(libs.play.services.mlkit.text.recognition)
+    implementation(libs.mlkit.barcode.scanning)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

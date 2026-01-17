@@ -25,6 +25,7 @@ sealed class Screen {
     data object TransactionHistory : Screen()
     data object Scan : Screen()
     data object AddTransaction : Screen()
+    data object SlipImport : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -38,11 +39,15 @@ class MainActivity : ComponentActivity() {
         
         val viewModel: MainViewModel by viewModels { MainViewModel.Factory(db.transactionDao()) }
 
+        val slipRepository = com.oatrice.jarwise.data.repository.SlipRepository(applicationContext)
+        val slipViewModel: com.oatrice.jarwise.ui.SlipViewModel by viewModels { com.oatrice.jarwise.ui.SlipViewModel.Factory(slipRepository) }
+
         enableEdgeToEdge()
         setContent {
             JarWiseTheme {
                 var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
                 val transactions by viewModel.transactions.collectAsState()
+                val recentImages by slipViewModel.recentImages.collectAsState()
 
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -53,6 +58,7 @@ class MainActivity : ComponentActivity() {
                             transactions = transactions,
                             onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
                             onNavigateToScan = { currentScreen = Screen.Scan },
+                            onNavigateToImport = { currentScreen = Screen.SlipImport },
                             onNavigateToAdd = { currentScreen = Screen.AddTransaction }
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
@@ -66,13 +72,17 @@ class MainActivity : ComponentActivity() {
                                 currentScreen = Screen.Dashboard
                             }
                         )
-                            is Screen.AddTransaction -> AddTransactionScreen(
-                                onBack = { currentScreen = Screen.Dashboard },
-                                onSave = { amount, jarId, note ->
-                                    viewModel.saveTransaction(amount, jarId, note)
-                                    currentScreen = Screen.Dashboard
-                                }
-                            )
+                        is Screen.SlipImport -> com.oatrice.jarwise.ui.SlipImportScreen(
+                            recentImages = recentImages,
+                            onBack = { currentScreen = Screen.Dashboard }
+                        )
+                        is Screen.AddTransaction -> AddTransactionScreen(
+                            onBack = { currentScreen = Screen.Dashboard },
+                            onSave = { amount, jarId, note ->
+                                viewModel.saveTransaction(amount, jarId, note)
+                                currentScreen = Screen.Dashboard
+                            }
+                        )
                     }
                 }
             }
