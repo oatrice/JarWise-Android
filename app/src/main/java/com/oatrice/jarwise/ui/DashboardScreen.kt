@@ -1,5 +1,9 @@
 package com.oatrice.jarwise.ui
 
+/**
+ * The primary dashboard screen of the JarWise application.
+ * Matches the "MagicPatterns" aesthetic from the Web Mobile version.
+ */
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,13 +31,16 @@ import androidx.compose.material.icons.rounded.CloudUpload
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.LocalFireDepartment
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material.icons.rounded.ReceiptLong
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +50,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,8 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.oatrice.jarwise.data.GeneratedMockData
-import com.oatrice.jarwise.model.Jar
 import com.oatrice.jarwise.data.Transaction
+import com.oatrice.jarwise.model.Jar
 import com.oatrice.jarwise.ui.components.JarCard
 import com.oatrice.jarwise.ui.components.TransactionCard
 import com.oatrice.jarwise.ui.theme.Blue400
@@ -71,13 +82,6 @@ import com.oatrice.jarwise.ui.theme.Gray950
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 import com.oatrice.jarwise.ui.theme.Orange400
 import com.oatrice.jarwise.ui.theme.Orange500
-import com.oatrice.jarwise.ui.theme.Red500
-
-/**
- * The primary dashboard screen of the JarWise application.
- * Matches the "MagicPatterns" aesthetic from the Web Mobile version.
- */
-import androidx.compose.material.icons.rounded.Settings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,26 +149,64 @@ fun DashboardScreen(
                                 }
                             }
 
-                            // Actions (Scan, Search, Settings, Import)
+                            // Actions (Scan, Import, More)
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 ActionButton(
                                     icon = Icons.Rounded.QrCodeScanner, 
                                     contentDescription = "Scan",
                                     onClick = onNavigateToScan
                                 )
-                                // Restoration: Import Slip Button
                                 ActionButton(
                                     icon = Icons.Rounded.CloudUpload,
                                     contentDescription = "Import Slip",
                                     onClick = onNavigateToImport
                                 )
-                                ActionButton(
-                                    icon = Icons.Rounded.Settings, 
-                                    contentDescription = "Settings",
-                                    onClick = onNavigateToSettings
-                                )
-                                // Removed Search for space if needed, or keep it? User didn't ask to remove it, but added Import.
-                                // ActionButton(icon = Icons.Rounded.Search, contentDescription = "Search") 
+                                
+                                // Overflow Menu
+                                Box {
+                                    var showMenu by remember { mutableStateOf(false) }
+                                    
+                                    ActionButton(
+                                        icon = Icons.Rounded.MoreVert, 
+                                        contentDescription = "More",
+                                        onClick = { showMenu = true }
+                                    )
+                                    
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false },
+                                        modifier = Modifier.background(Gray900)
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Notifications", color = Gray100) },
+                                            onClick = { 
+                                                showMenu = false
+                                                /* TODO: Handle notifications */ 
+                                            },
+                                            leadingIcon = { 
+                                                Icon(
+                                                    Icons.Rounded.Notifications, 
+                                                    contentDescription = null,
+                                                    tint = Gray100
+                                                ) 
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Settings", color = Gray100) },
+                                            onClick = { 
+                                                showMenu = false
+                                                onNavigateToSettings() 
+                                            },
+                                            leadingIcon = { 
+                                                Icon(
+                                                    Icons.Rounded.Settings, 
+                                                    contentDescription = null,
+                                                    tint = Gray100
+                                                ) 
+                                            }
+                                        )
+                                    }
+                                }
                             }
                         }
 
@@ -238,7 +280,7 @@ fun DashboardScreen(
                 }
                 
                 itemsIndexed(jars) { index, jar ->
-                    JarCard(jar = jar, isPriority = index == 0)
+                    JarCard(jar = jar, isPriority = index == 0, currencyCode = selectedCurrency)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 

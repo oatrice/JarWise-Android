@@ -88,6 +88,7 @@ class MainActivity : ComponentActivity() {
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
                             transactions = transactions,
+                            selectedCurrency = selectedCurrency,
                             onBack = { currentScreen = Screen.Dashboard }
                         )
                         is Screen.Scan -> ScanScreen(
