@@ -12,13 +12,21 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.room.Room
 import com.oatrice.jarwise.data.AppDatabase
+
+import com.oatrice.jarwise.data.GeneratedMockData
+import com.oatrice.jarwise.data.repository.CurrencyRepository
+import com.oatrice.jarwise.data.repository.UserPreferencesRepository
 import com.oatrice.jarwise.data.service.SlipDetectorServiceImpl
 import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.MainViewModel
 import com.oatrice.jarwise.ui.ScanScreen
+import com.oatrice.jarwise.ui.SettingsScreen
+import com.oatrice.jarwise.ui.SlipViewModel
 import com.oatrice.jarwise.ui.TransactionHistoryScreen
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
+
+
 
 sealed class Screen {
     data object Dashboard : Screen()
@@ -26,6 +34,7 @@ sealed class Screen {
     data object Scan : Screen()
     data object AddTransaction : Screen()
     data object SlipImport : Screen()
+    data object Settings : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -37,12 +46,15 @@ class MainActivity : ComponentActivity() {
             AppDatabase::class.java, "jarwise-db"
         ).build()
         
-        val viewModel: MainViewModel by viewModels { MainViewModel.Factory(db.transactionDao()) }
+        val userPreferencesRepository = UserPreferencesRepository(applicationContext)
+        val currencyRepository = CurrencyRepository(userPreferencesRepository)
+        
+        val viewModel: MainViewModel by viewModels { MainViewModel.Factory(db.transactionDao(), currencyRepository) }
 
         val slipRepository = com.oatrice.jarwise.data.repository.SlipRepository(applicationContext)
         val slipDetector = SlipDetectorServiceImpl(applicationContext)
-        val slipViewModel: com.oatrice.jarwise.ui.SlipViewModel by viewModels { 
-            com.oatrice.jarwise.ui.SlipViewModel.Factory(slipRepository, slipDetector) 
+        val slipViewModel: SlipViewModel by viewModels { 
+            SlipViewModel.Factory(slipRepository, slipDetector) 
         }
 
         enableEdgeToEdge()
@@ -50,6 +62,8 @@ class MainActivity : ComponentActivity() {
             JarWiseTheme {
                 var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
                 val transactions by viewModel.transactions.collectAsState()
+                val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
+                val selectedCurrency by viewModel.selectedCurrency.collectAsState()
                 val recentImages by slipViewModel.recentImages.collectAsState()
 
                 Surface(
@@ -58,14 +72,23 @@ class MainActivity : ComponentActivity() {
                 ) {
                     when (currentScreen) {
                         is Screen.Dashboard -> DashboardScreen(
+                            jars = GeneratedMockData.jars, // Ideally usage ViewModel for jars too
                             transactions = transactions,
+                            formattedTotalBalance = formattedTotalBalance,
+                            selectedCurrency = selectedCurrency,
                             onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
                             onNavigateToScan = { currentScreen = Screen.Scan },
                             onNavigateToImport = { currentScreen = Screen.SlipImport },
-                            onNavigateToAdd = { currentScreen = Screen.AddTransaction }
+                            onNavigateToAdd = { currentScreen = Screen.AddTransaction },
+                            onNavigateToSettings = { currentScreen = Screen.Settings }
+                        )
+                        is Screen.Settings -> SettingsScreen(
+                             onBack = { currentScreen = Screen.Dashboard },
+                             viewModel = viewModel
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
                             transactions = transactions,
+                            selectedCurrency = selectedCurrency,
                             onBack = { currentScreen = Screen.Dashboard }
                         )
                         is Screen.Scan -> ScanScreen(

@@ -1,5 +1,9 @@
 package com.oatrice.jarwise.ui
 
+/**
+ * The primary dashboard screen of the JarWise application.
+ * Matches the "MagicPatterns" aesthetic from the Web Mobile version.
+ */
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -27,13 +31,16 @@ import androidx.compose.material.icons.rounded.CloudUpload
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.LocalFireDepartment
+import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.QrCodeScanner
 import androidx.compose.material.icons.rounded.ReceiptLong
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,6 +50,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,8 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.oatrice.jarwise.data.GeneratedMockData
-import com.oatrice.jarwise.model.Jar
 import com.oatrice.jarwise.data.Transaction
+import com.oatrice.jarwise.model.Jar
 import com.oatrice.jarwise.ui.components.JarCard
 import com.oatrice.jarwise.ui.components.TransactionCard
 import com.oatrice.jarwise.ui.theme.Blue400
@@ -71,24 +82,20 @@ import com.oatrice.jarwise.ui.theme.Gray950
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 import com.oatrice.jarwise.ui.theme.Orange400
 import com.oatrice.jarwise.ui.theme.Orange500
-import com.oatrice.jarwise.ui.theme.Red500
 
-/**
- * The primary dashboard screen of the JarWise application.
- * Matches the "MagicPatterns" aesthetic from the Web Mobile version.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     jars: List<Jar> = GeneratedMockData.jars,
     transactions: List<Transaction> = emptyList(),
+    formattedTotalBalance: String = "...",
+    selectedCurrency: String = "THB",
     onNavigateToHistory: () -> Unit = {},
     onNavigateToScan: () -> Unit = {},
     onNavigateToImport: () -> Unit = {},
-    onNavigateToAdd: () -> Unit = {}
+    onNavigateToAdd: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
-    val totalBalance = jars.sumOf { it.current }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Gray950, // Dark background
@@ -142,7 +149,7 @@ fun DashboardScreen(
                                 }
                             }
 
-                            // Actions (Scan, Search, Bell)
+                            // Actions (Scan, Import, More)
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 ActionButton(
                                     icon = Icons.Rounded.QrCodeScanner, 
@@ -150,23 +157,55 @@ fun DashboardScreen(
                                     onClick = onNavigateToScan
                                 )
                                 ActionButton(
-                                    icon = Icons.Rounded.CloudUpload, 
-                                    contentDescription = "Import",
+                                    icon = Icons.Rounded.CloudUpload,
+                                    contentDescription = "Import Slip",
                                     onClick = onNavigateToImport
                                 )
-                                ActionButton(icon = Icons.Rounded.Search, contentDescription = "Search")
+                                
+                                // Overflow Menu
                                 Box {
-                                    ActionButton(icon = Icons.Rounded.Notifications, contentDescription = "Notifications")
-                                    // Notification Dot
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .clip(CircleShape)
-                                            .background(Red500)
-                                            .align(Alignment.TopEnd)
-                                            .offset(x = (-2).dp, y = 2.dp)
-                                            .border(2.dp, Gray900, CircleShape)
+                                    var showMenu by remember { mutableStateOf(false) }
+                                    
+                                    ActionButton(
+                                        icon = Icons.Rounded.MoreVert, 
+                                        contentDescription = "More",
+                                        onClick = { showMenu = true }
                                     )
+                                    
+                                    DropdownMenu(
+                                        expanded = showMenu,
+                                        onDismissRequest = { showMenu = false },
+                                        modifier = Modifier.background(Gray900)
+                                    ) {
+                                        DropdownMenuItem(
+                                            text = { Text("Notifications", color = Gray100) },
+                                            onClick = { 
+                                                showMenu = false
+                                                /* TODO: Handle notifications */ 
+                                            },
+                                            leadingIcon = { 
+                                                Icon(
+                                                    Icons.Rounded.Notifications, 
+                                                    contentDescription = null,
+                                                    tint = Gray100
+                                                ) 
+                                            }
+                                        )
+                                        DropdownMenuItem(
+                                            text = { Text("Settings", color = Gray100) },
+                                            onClick = { 
+                                                showMenu = false
+                                                onNavigateToSettings() 
+                                            },
+                                            leadingIcon = { 
+                                                Icon(
+                                                    Icons.Rounded.Settings, 
+                                                    contentDescription = null,
+                                                    tint = Gray100
+                                                ) 
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -187,7 +226,7 @@ fun DashboardScreen(
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    text = "$${String.format("%,.0f", totalBalance)}",
+                                    text = formattedTotalBalance,
                                     style = MaterialTheme.typography.displaySmall.copy(
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold,
@@ -241,7 +280,7 @@ fun DashboardScreen(
                 }
                 
                 itemsIndexed(jars) { index, jar ->
-                    JarCard(jar = jar, isPriority = index == 0)
+                    JarCard(jar = jar, isPriority = index == 0, currencyCode = selectedCurrency)
                     Spacer(modifier = Modifier.height(16.dp))
                 }
 
@@ -293,7 +332,7 @@ fun DashboardScreen(
                     }
                 } else {
                     itemsIndexed(transactions.take(3)) { _, transaction ->
-                        TransactionCard(transaction = transaction)
+                        TransactionCard(transaction = transaction, currencyCode = selectedCurrency)
                     }
                 }
             }

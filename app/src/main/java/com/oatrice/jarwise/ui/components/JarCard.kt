@@ -27,9 +27,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.oatrice.jarwise.model.Jar
 import com.oatrice.jarwise.ui.theme.*
+import com.oatrice.jarwise.utils.TransactionDisplayUtils
 
 @Composable
-fun JarCard(jar: Jar, isPriority: Boolean) {
+fun JarCard(
+    jar: Jar,
+    isPriority: Boolean,
+    currencyCode: String = "THB"
+) {
     var animatedProgress by remember { mutableStateOf(0f) }
     val progress = (jar.current / jar.goal).toFloat().coerceIn(0f, 1f)
     
@@ -155,13 +160,13 @@ fun JarCard(jar: Jar, isPriority: Boolean) {
 
                 Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = "$${String.format("%,.2f", jar.current)}",
+                        text = TransactionDisplayUtils.formatCurrency(jar.current, currencyCode),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             color = Color.White
                         )
                     )
                     Text(
-                        text = "/ $${String.format("%,.2f", jar.goal)}",
+                        text = "/ ${TransactionDisplayUtils.formatCurrency(jar.goal, currencyCode)}",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             color = Gray500,
                             fontWeight = FontWeight.Medium

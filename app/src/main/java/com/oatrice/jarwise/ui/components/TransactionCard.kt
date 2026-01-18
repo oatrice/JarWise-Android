@@ -32,7 +32,10 @@ import android.content.res.Configuration
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 
 @Composable
-fun TransactionCard(transaction: Transaction) {
+fun TransactionCard(
+    transaction: Transaction,
+    currencyCode: String = "THB" // Default to THB if not provided
+) {
     val jar = getJarDetails(transaction.jarId)
     
     // Date Parsing (Naive ISO parser for display)
@@ -76,7 +79,7 @@ fun TransactionCard(transaction: Transaction) {
             }
 
             // Details
-            val (displayTitle, displaySubtitle) = TransactionDisplayUtils.getDisplayDetails(jar.name, transaction.note)
+            val (displayTitle, displaySubtitle) = TransactionDisplayUtils.getDisplayDetails(transaction)
             
             Column {
                 Text(
@@ -116,7 +119,7 @@ fun TransactionCard(transaction: Transaction) {
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
-                text = "$${String.format("%.2f", transaction.amount)}",
+                text = TransactionDisplayUtils.formatCurrency(transaction.amount, currencyCode),
                 style = MaterialTheme.typography.bodyLarge.copy(
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFFF87171) // Red 400

@@ -18,3 +18,7 @@ To update colors, you must modify the source of truth in the **[JarWise-Root](ht
 2.  **Script**: `scripts/sync_tokens.js` (In **JarWise-Root**)
 
 Do not edit `Color.kt` directly.
+
+## ✨ Features
+*   **Currency Support**: Native currency management using DataStore Preferences and dynamic UI updates.
+*   **Mobile Experience**: Optimized Dashboard layout with quick access to Import Slip and Settings.
