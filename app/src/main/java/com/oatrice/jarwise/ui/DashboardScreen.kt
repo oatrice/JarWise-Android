@@ -77,18 +77,21 @@ import com.oatrice.jarwise.ui.theme.Red500
  * The primary dashboard screen of the JarWise application.
  * Matches the "MagicPatterns" aesthetic from the Web Mobile version.
  */
+import androidx.compose.material.icons.rounded.Settings
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     jars: List<Jar> = GeneratedMockData.jars,
     transactions: List<Transaction> = emptyList(),
+    formattedTotalBalance: String = "...",
+    selectedCurrency: String = "THB",
     onNavigateToHistory: () -> Unit = {},
     onNavigateToScan: () -> Unit = {},
     onNavigateToImport: () -> Unit = {},
-    onNavigateToAdd: () -> Unit = {}
+    onNavigateToAdd: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {}
 ) {
-    val totalBalance = jars.sumOf { it.current }
-
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Gray950, // Dark background
@@ -142,32 +145,26 @@ fun DashboardScreen(
                                 }
                             }
 
-                            // Actions (Scan, Search, Bell)
+                            // Actions (Scan, Search, Settings, Import)
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 ActionButton(
                                     icon = Icons.Rounded.QrCodeScanner, 
                                     contentDescription = "Scan",
                                     onClick = onNavigateToScan
                                 )
+                                // Restoration: Import Slip Button
                                 ActionButton(
-                                    icon = Icons.Rounded.CloudUpload, 
-                                    contentDescription = "Import",
+                                    icon = Icons.Rounded.CloudUpload,
+                                    contentDescription = "Import Slip",
                                     onClick = onNavigateToImport
                                 )
-                                ActionButton(icon = Icons.Rounded.Search, contentDescription = "Search")
-                                Box {
-                                    ActionButton(icon = Icons.Rounded.Notifications, contentDescription = "Notifications")
-                                    // Notification Dot
-                                    Box(
-                                        modifier = Modifier
-                                            .size(10.dp)
-                                            .clip(CircleShape)
-                                            .background(Red500)
-                                            .align(Alignment.TopEnd)
-                                            .offset(x = (-2).dp, y = 2.dp)
-                                            .border(2.dp, Gray900, CircleShape)
-                                    )
-                                }
+                                ActionButton(
+                                    icon = Icons.Rounded.Settings, 
+                                    contentDescription = "Settings",
+                                    onClick = onNavigateToSettings
+                                )
+                                // Removed Search for space if needed, or keep it? User didn't ask to remove it, but added Import.
+                                // ActionButton(icon = Icons.Rounded.Search, contentDescription = "Search") 
                             }
                         }
 
@@ -187,7 +184,7 @@ fun DashboardScreen(
                                 )
                                 Spacer(Modifier.height(4.dp))
                                 Text(
-                                    text = "$${String.format("%,.0f", totalBalance)}",
+                                    text = formattedTotalBalance,
                                     style = MaterialTheme.typography.displaySmall.copy(
                                         color = Color.White,
                                         fontWeight = FontWeight.Bold,
@@ -293,7 +290,7 @@ fun DashboardScreen(
                     }
                 } else {
                     itemsIndexed(transactions.take(3)) { _, transaction ->
-                        TransactionCard(transaction = transaction)
+                        TransactionCard(transaction = transaction, currencyCode = selectedCurrency)
                     }
                 }
             }
