@@ -309,78 +309,7 @@ fun ActionButton(
     }
 }
 
-@Composable
-fun FloatingBottomNavigation(
-    onHistoryClick: () -> Unit = {},
-    onAddClick: () -> Unit = {},
-    modifier: Modifier = Modifier
-) {
-    Box(
-        modifier = modifier.fillMaxWidth(),
-        contentAlignment = Alignment.BottomCenter
-    ) {
-        // The Glassmorphic Bar
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .height(72.dp),
-            shape = RoundedCornerShape(100),
-            color = Gray900.copy(alpha = 0.9f),
-            border = androidx.compose.foundation.BorderStroke(1.dp, Color.White.copy(alpha = 0.1f)),
-            shadowElevation = 8.dp
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                NavIcon(Icons.Rounded.Dashboard, "Home", isSelected = true)
-                NavIcon(Icons.Rounded.History, "History", onClick = onHistoryClick)
-                // Spacer for the center button
-                Spacer(modifier = Modifier.width(48.dp))
-                NavIcon(Icons.Rounded.AccountBalanceWallet, "Wallet")
-                NavIcon(Icons.Rounded.Person, "Profile")
-            }
-        }
 
-        // The Floating Add Button (Popped Out)
-        // Positioned relative to the bar
-        Surface(
-            shape = CircleShape,
-            color = Color.Transparent,
-            modifier = Modifier
-                .offset(y = (-4).dp)
-                .size(64.dp)
-                .background(Brush.linearGradient(listOf(Blue500, Color(0xFF4F46E5))), CircleShape)
-                .border(6.dp, Gray950, CircleShape) // Thicker border for "cutout" effect
-                .clickable { onAddClick() },
-            shadowElevation = 10.dp
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(Icons.Rounded.Add, "Add", tint = Color.White, modifier = Modifier.size(32.dp))
-            }
-        }
-    }
-}
-
-@Composable
-fun NavIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    description: String,
-    isSelected: Boolean = false,
-    onClick: () -> Unit = {}
-) {
-    IconButton(onClick = onClick) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = icon,
-                contentDescription = description,
-                tint = if (isSelected) Blue400 else Gray500,
-                modifier = Modifier.size(28.dp)
-            )
-        }
-    }
-}
 
 @Preview(showBackground = true)
 @Composable

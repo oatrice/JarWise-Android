@@ -115,9 +115,15 @@ fun AddTransactionScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = {
+                    val amountVal = amount.toDoubleOrNull()
+                    if (amountVal == null) {
+                       amountError = "Invalid amount"
+                       return@ExtendedFloatingActionButton
+                    }
+                    
                     val result = TransactionValidator.validateTransaction(amount, selectedJarId)
                     if (result.isValid) {
-                        onSave(amount.toDouble(), selectedJarId, selectedWalletId, note, isoFormatter.format(selectedDate))
+                        onSave(amountVal, selectedJarId, selectedWalletId, note, isoFormatter.format(selectedDate))
                     } else {
                         amountError = result.errors["amount"]
                         jarError = result.errors["jarId"]
@@ -152,7 +158,8 @@ fun AddTransactionScreen(
                 OutlinedTextField(
                     value = amount,
                     onValueChange = { newText: String -> 
-                        if (newText.all { char -> char.isDigit() || char == '.' }) {
+                        // Allow digits and at most one decimal point
+                         if (newText.isEmpty() || newText.matches(Regex("^\\d*\\.?\\d*$"))) {
                             amount = newText
                             amountError = null
                         }
