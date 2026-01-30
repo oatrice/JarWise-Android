@@ -34,7 +34,8 @@ import com.oatrice.jarwise.ui.theme.JarWiseTheme
 @Composable
 fun TransactionCard(
     transaction: Transaction,
-    currencyCode: String = "THB" // Default to THB if not provided
+    currencyCode: String = "THB",
+    showDate: Boolean = true
 ) {
     val jar = getJarDetails(transaction.jarId)
     
@@ -49,12 +50,17 @@ fun TransactionCard(
         transaction.date // Fallback
     }
 
+    // Draft styling colors
+    val isDraft = transaction.status == "draft"
+    val cardBackground = if (isDraft) Color(0xFF422006).copy(alpha = 0.2f) else Gray900.copy(alpha = 0.4f)
+    val cardBorder = if (isDraft) Color(0xFFFBBF24).copy(alpha = 0.3f) else Gray800.copy(alpha = 0.5f)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Gray900.copy(alpha = 0.4f))
-            .border(1.dp, Gray800.copy(alpha = 0.5f), RoundedCornerShape(16.dp))
+            .background(cardBackground)
+            .border(1.dp, cardBorder, RoundedCornerShape(16.dp))
             .clickable { /* Handle click */ }
             .padding(16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -82,13 +88,34 @@ fun TransactionCard(
             val (displayTitle, displaySubtitle) = TransactionDisplayUtils.getDisplayDetails(transaction)
             
             Column {
-                Text(
-                    text = displayTitle,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = displayTitle,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
-                )
+                    // Draft badge
+                    if (isDraft) {
+                        Surface(
+                            color = Color(0xFFFBBF24).copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "DRAFT",
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = Color(0xFFFBBF24),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
+                    }
+                }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -98,17 +125,21 @@ fun TransactionCard(
                             text = displaySubtitle,
                             style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
                         )
-                        Box(
-                            modifier = Modifier
-                                .size(4.dp)
-                                .clip(CircleShape)
-                                .background(Gray700)
+                        if (showDate) {
+                            Box(
+                                modifier = Modifier
+                                    .size(4.dp)
+                                    .clip(CircleShape)
+                                    .background(Gray700)
+                            )
+                        }
+                    }
+                    if (showDate) {
+                        Text(
+                            text = displayDate,
+                            style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
                         )
                     }
-                    Text(
-                        text = displayDate,
-                        style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
-                    )
                 }
             }
         }

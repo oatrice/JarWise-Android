@@ -52,6 +52,19 @@ class MainViewModel(
         }
     }
 
+    fun saveDraft(amount: Double, jarId: String, note: String, date: String? = null) {
+        viewModelScope.launch {
+            val transaction = Transaction(
+                amount = amount,
+                jarId = jarId,
+                note = note,
+                date = date ?: getCurrentIsoDate(),
+                status = "draft"
+            )
+            dao.insert(transaction)
+        }
+    }
+
     fun updateCurrency(code: String) {
         viewModelScope.launch {
             currencyRepository.setCurrency(code)

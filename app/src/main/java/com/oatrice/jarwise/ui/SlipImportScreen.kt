@@ -4,7 +4,9 @@ import android.Manifest
 import android.net.Uri
 import android.os.Build
 import android.util.Log
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -70,7 +72,8 @@ fun SlipImportScreen(
     onBack: () -> Unit,
     onPermissionResult: () -> Unit = {},
     onBucketSelected: (String?) -> Unit = {},
-    onConfirmSlip: (DetectedSlip, ParsedSlip, String) -> Unit = { _, _, _ -> }
+    onConfirmSlip: (DetectedSlip, ParsedSlip, String) -> Unit = { _, _, _ -> },
+    onSaveDraft: (DetectedSlip, ParsedSlip, String) -> Unit = { _, _, _ -> }
 ) {
     // Determine permission based on Android version
     val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -114,6 +117,10 @@ fun SlipImportScreen(
             onDismiss = { selectedSlip = null },
             onConfirm = { updatedParsedSlip, jarId ->
                 onConfirmSlip(selectedSlip!!, updatedParsedSlip, jarId)
+                selectedSlip = null
+            },
+            onSaveDraft = { updatedParsedSlip, jarId ->
+                onSaveDraft(selectedSlip!!, updatedParsedSlip, jarId)
                 selectedSlip = null
             }
         )
@@ -301,7 +308,8 @@ fun AlbumSelectionDialog(
 fun SlipEditDialog(
     slip: DetectedSlip,
     onDismiss: () -> Unit,
-    onConfirm: (ParsedSlip, String) -> Unit
+    onConfirm: (ParsedSlip, String) -> Unit,
+    onSaveDraft: (ParsedSlip, String) -> Unit = { _, _ -> }
 ) {
     var amount by remember { mutableStateOf(slip.result.parsedData?.amount?.toString() ?: "") }
     var bankName by remember { mutableStateOf(slip.result.parsedData?.bankName ?: "") }
@@ -505,6 +513,32 @@ fun SlipEditDialog(
                                 )
                             }
                         }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    // Save as Draft Button
+                    Button(
+                        onClick = {
+                            val parsedAmount = amount.toDoubleOrNull()
+                            onSaveDraft(
+                                ParsedSlip(
+                                    amount = parsedAmount,
+                                    bankName = bankName,
+                                    date = selectedDate,
+                                    rawText = slip.result.parsedData?.rawText ?: ""
+                                ),
+                                selectedJarId
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF422006).copy(alpha = 0.2f),
+                            contentColor = Color(0xFFFBBF24)
+                        ),
+                        border = BorderStroke(1.dp, Color(0xFFFBBF24).copy(alpha = 0.3f)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Save as Draft")
                     }
                 }
             }

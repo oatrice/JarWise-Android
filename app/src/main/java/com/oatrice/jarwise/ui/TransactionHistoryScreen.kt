@@ -43,6 +43,16 @@ import com.oatrice.jarwise.ui.theme.Gray950
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 import com.oatrice.jarwise.ui.theme.Red400
 import com.oatrice.jarwise.utils.TransactionDisplayUtils
+import com.oatrice.jarwise.utils.TransactionGroupingUtils
+import com.oatrice.jarwise.ui.theme.Green400
+import com.oatrice.jarwise.ui.components.BottomNav
+import com.oatrice.jarwise.ui.components.NavPage
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlin.math.abs
 
 /**
@@ -54,84 +64,167 @@ import kotlin.math.abs
 fun TransactionHistoryScreen(
     transactions: List<Transaction> = emptyList(),
     selectedCurrency: String = "THB",
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigate: (NavPage) -> Unit = {}
 ) {
     val totalSpent = transactions.sumOf { it.amount }
     
-    // Sort by date descending
-    val sortedTransactions = transactions.sortedByDescending { it.date }
+    // Scroll behavior for TopAppBar hide/show
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val lazyListState = rememberLazyListState()
+    
+    // Track if header should be visible based on scroll
+    val isHeaderVisible = remember {
+        derivedStateOf {
+            scrollBehavior.state.collapsedFraction < 0.5f
+        }
+    }
 
-    Scaffold(
-        containerColor = Gray950,
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Transaction History",
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Rounded.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Gray400
+    // Wrap in Box to overlay BottomNav correctly
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = Gray950,
+            topBar = {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            "Transaction History",
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
                         )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* Search */ }) {
-                        Icon(
-                            Icons.Rounded.Search,
-                            contentDescription = "Search",
-                            tint = Gray400
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Gray950.copy(alpha = 0.8f)
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.Rounded.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Gray400
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { /* Search */ }) {
+                            Icon(
+                                Icons.Rounded.Search,
+                                contentDescription = "Search",
+                                tint = Gray400
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Gray950.copy(alpha = 0.8f)
+                    ),
+                    scrollBehavior = scrollBehavior
                 )
+            }
+        ) { paddingValues ->
+            // Group transactions by date
+            val groupedTransactions = TransactionGroupingUtils.groupByDate(transactions)
+            
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+            ) {
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Summary Card
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SummaryCard(
+                            totalSpent = totalSpent,
+                            transactionCount = transactions.size,
+                            currencyCode = selectedCurrency
+                        )
+                    }
+
+                    // Grouped Transactions
+                    groupedTransactions.forEach { group ->
+                        // Date Header with Daily Totals
+                        item {
+                            DailyHeader(
+                                dateHeader = group.dateHeader,
+                                totalIncome = group.totalIncome,
+                                totalExpense = group.totalExpense,
+                                currencyCode = selectedCurrency
+                            )
+                        }
+                        
+                        // Transactions for this day
+                        items(group.transactions) { transaction ->
+                            TransactionCard(
+                                transaction = transaction,
+                                currencyCode = selectedCurrency,
+                                showDate = false
+                            )
+                        }
+                    }
+
+                    // Bottom Spacer for BottomNav
+                    item {
+                        Spacer(modifier = Modifier.height(120.dp))
+                    }
+                }
+            }
+        }
+        
+        // BottomNav aligned to screen bottom (outside Scaffold padding)
+        Box(
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            BottomNav(
+                activePage = NavPage.HISTORY,
+                visible = isHeaderVisible.value,
+                onNavigate = onNavigate
             )
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+    }
+}
+
+@Composable
+private fun DailyHeader(
+    dateHeader: String,
+    totalIncome: Double,
+    totalExpense: Double,
+    currencyCode: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = dateHeader,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Summary Card
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                SummaryCard(
-                    totalSpent = totalSpent,
-                    transactionCount = transactions.size,
-                    currencyCode = selectedCurrency
+            if (totalIncome > 0) {
+                Text(
+                    text = "+" + TransactionDisplayUtils.formatCurrency(totalIncome, currencyCode),
+                    color = Green400,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
-
-            // All Transactions
-            if (sortedTransactions.isNotEmpty()) {
-                item {
-                    Text(
-                        "All Transactions",
-                        color = Gray500,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-                items(sortedTransactions) { transaction ->
-                    TransactionCard(transaction = transaction, currencyCode = selectedCurrency)
-                }
-            }
-
-            // Bottom Spacer
-            item {
-                Spacer(modifier = Modifier.height(100.dp))
+            if (totalExpense < 0) {
+                Text(
+                    text = TransactionDisplayUtils.formatCurrency(totalExpense, currencyCode),
+                    color = Red400,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }

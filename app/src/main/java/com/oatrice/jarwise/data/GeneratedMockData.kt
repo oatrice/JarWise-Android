@@ -26,7 +26,7 @@ object GeneratedMockData {
         Jar(
             id = "2",
             name = "Financial Freedom",
-            current = 12000,
+            current = 12000.0,
             goal = 100000.0,
             level = 12,
             icon = Icons.Rounded.AttachMoney,
@@ -37,7 +37,7 @@ object GeneratedMockData {
         Jar(
             id = "3",
             name = "Play",
-            current = 850,
+            current = 850.0,
             goal = 1000.0,
             level = 2,
             icon = Icons.Rounded.Gamepad,
@@ -48,7 +48,7 @@ object GeneratedMockData {
         Jar(
             id = "4",
             name = "Education",
-            current = 150,
+            current = 150.0,
             goal = 500.0,
             level = 1,
             icon = Icons.Rounded.School,
@@ -59,7 +59,7 @@ object GeneratedMockData {
         Jar(
             id = "5",
             name = "Long-term Savings",
-            current = 3200,
+            current = 3200.0,
             goal = 5000.0,
             level = 5,
             icon = Icons.Rounded.Flight,
@@ -70,7 +70,7 @@ object GeneratedMockData {
         Jar(
             id = "6",
             name = "Give",
-            current = 120,
+            current = 120.0,
             goal = 200.0,
             level = 1,
             icon = Icons.Rounded.Favorite,
