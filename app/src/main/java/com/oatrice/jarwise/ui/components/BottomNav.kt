@@ -30,6 +30,8 @@ import com.oatrice.jarwise.ui.theme.Blue500
 import com.oatrice.jarwise.ui.theme.Gray500
 import com.oatrice.jarwise.ui.theme.Gray800
 import com.oatrice.jarwise.ui.theme.Gray900
+import androidx.compose.ui.tooling.preview.Preview
+import com.oatrice.jarwise.ui.theme.JarWiseTheme
 
 enum class NavPage {
     DASHBOARD, HISTORY, ADD, BUDGET, PROFILE
@@ -90,7 +92,6 @@ fun BottomNav(
             Box(
                 modifier = Modifier
                     .size(56.dp)
-                    .offset(y = (-8).dp)
                     .shadow(8.dp, CircleShape, ambientColor = Blue500.copy(alpha = 0.4f))
                     .clip(CircleShape)
                     .background(
@@ -146,5 +147,19 @@ private fun NavItem(
             tint = if (isActive) Blue400 else Gray500,
             modifier = Modifier.size(24.dp)
         )
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0A0A0A)
+@Composable
+fun BottomNavPreview() {
+    JarWiseTheme {
+        Box(modifier = Modifier.fillMaxSize()) {
+            BottomNav(
+                activePage = NavPage.DASHBOARD,
+                visible = true,
+                onNavigate = {}
+            )
+        }
     }
 }

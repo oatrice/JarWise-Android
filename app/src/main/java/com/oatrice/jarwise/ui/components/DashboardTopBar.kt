@@ -1,5 +1,6 @@
 package com.oatrice.jarwise.ui.components
 
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -143,6 +144,21 @@ fun DashboardTopBar(
                     }
                 }
             }
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFF0A0A0A)
+@Composable
+fun DashboardTopBarPreview() {
+    JarWiseTheme {
+        Box(modifier = Modifier.fillMaxWidth().height(120.dp)) {
+            DashboardTopBar(
+                visible = true,
+                onScanClick = {},
+                onImportClick = {},
+                onSettingsClick = {}
+            )
         }
     }
 }
