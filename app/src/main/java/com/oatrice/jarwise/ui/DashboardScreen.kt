@@ -82,6 +82,14 @@ import com.oatrice.jarwise.ui.theme.Gray950
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 import com.oatrice.jarwise.ui.theme.Orange400
 import com.oatrice.jarwise.ui.theme.Orange500
+import com.oatrice.jarwise.ui.components.BottomNav
+import com.oatrice.jarwise.ui.components.NavPage
+import com.oatrice.jarwise.ui.components.DashboardTopBar
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
+import com.oatrice.jarwise.ui.utils.rememberScrollVisibilityState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,122 +102,39 @@ fun DashboardScreen(
     onNavigateToScan: () -> Unit = {},
     onNavigateToImport: () -> Unit = {},
     onNavigateToAdd: () -> Unit = {},
-    onNavigateToSettings: () -> Unit = {}
+    onNavigateToSettings: () -> Unit = {},
+    onNavigate: (NavPage) -> Unit = {}
 ) {
+    // Scroll state for visibility tracking
+    val lazyListState = rememberLazyListState()
+    val scrollState = rememberScrollVisibilityState(lazyListState)
+    
+    // Listen to scroll changes
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { 
+            lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset 
+        }
+        .collect {
+            scrollState.updateScrollVisibility()
+        }
+    }
+    
     Box(modifier = Modifier.fillMaxSize()) {
         Scaffold(
             containerColor = Gray950, // Dark background
         ) { paddingValues ->
             LazyColumn(
+                state = lazyListState,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
                     .padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
-                contentPadding = PaddingValues(top = 16.dp, bottom = 120.dp) // Extra padding for Floating Nav
+                contentPadding = PaddingValues(top = 100.dp, bottom = 120.dp) // Extra padding for TopBar & Floating Nav
             ) {
                 // HEADER SECTION (Sticky-ish visuals, but scrolls with content for Balance)
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
-                        // Top Bar: User & Actions
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            // User Profile
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(42.dp)
-                                        .clip(CircleShape)
-                                        .background(Brush.linearGradient(GradientBlueToCyan))
-                                        .padding(2.dp)
-                                ) {
-                                    AsyncImage(
-                                        model = "https://ui-avatars.com/api/?name=User&background=0D0D0D&color=fff",
-                                        contentDescription = "User Avatar",
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(CircleShape)
-                                            .background(Gray950)
-                                            .border(2.dp, Gray950, CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
-                                }
-                                Column {
-                                    Text(
-                                        text = "Welcome back",
-                                        style = MaterialTheme.typography.labelMedium.copy(color = Gray400)
-                                    )
-                                    Text(
-                                        text = "Oatrice",
-                                        style = MaterialTheme.typography.titleMedium.copy(color = Gray100)
-                                    )
-                                }
-                            }
-
-                            // Actions (Scan, Import, More)
-                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                ActionButton(
-                                    icon = Icons.Rounded.QrCodeScanner, 
-                                    contentDescription = "Scan",
-                                    onClick = onNavigateToScan
-                                )
-                                ActionButton(
-                                    icon = Icons.Rounded.CloudUpload,
-                                    contentDescription = "Import Slip",
-                                    onClick = onNavigateToImport
-                                )
-                                
-                                // Overflow Menu
-                                Box {
-                                    var showMenu by remember { mutableStateOf(false) }
-                                    
-                                    ActionButton(
-                                        icon = Icons.Rounded.MoreVert, 
-                                        contentDescription = "More",
-                                        onClick = { showMenu = true }
-                                    )
-                                    
-                                    DropdownMenu(
-                                        expanded = showMenu,
-                                        onDismissRequest = { showMenu = false },
-                                        modifier = Modifier.background(Gray900)
-                                    ) {
-                                        DropdownMenuItem(
-                                            text = { Text("Notifications", color = Gray100) },
-                                            onClick = { 
-                                                showMenu = false
-                                                /* TODO: Handle notifications */ 
-                                            },
-                                            leadingIcon = { 
-                                                Icon(
-                                                    Icons.Rounded.Notifications, 
-                                                    contentDescription = null,
-                                                    tint = Gray100
-                                                ) 
-                                            }
-                                        )
-                                        DropdownMenuItem(
-                                            text = { Text("Settings", color = Gray100) },
-                                            onClick = { 
-                                                showMenu = false
-                                                onNavigateToSettings() 
-                                            },
-                                            leadingIcon = { 
-                                                Icon(
-                                                    Icons.Rounded.Settings, 
-                                                    contentDescription = null,
-                                                    tint = Gray100
-                                                ) 
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
                         // Balance & Streak (Scrolls with content)
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -337,13 +262,33 @@ fun DashboardScreen(
                 }
             }
         }
-
-        // Floating Bottom Navigation (Capsule Style)
-        FloatingBottomNavigation(
-            onHistoryClick = onNavigateToHistory,
-            onAddClick = onNavigateToAdd,
-            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 24.dp)
-        )
+        
+        // Top Bar
+        Box(modifier = Modifier.align(Alignment.TopCenter)) {
+            DashboardTopBar(
+                visible = scrollState.isVisible,
+                onScanClick = onNavigateToScan,
+                onImportClick = onNavigateToImport,
+                onSettingsClick = onNavigateToSettings
+            )
+        }
+        
+        // BottomNav with scroll visibility
+        Box(
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            BottomNav(
+                activePage = NavPage.DASHBOARD,
+                visible = scrollState.isVisible,
+                onNavigate = { page ->
+                    when (page) {
+                        NavPage.HISTORY -> onNavigateToHistory()
+                        NavPage.ADD -> onNavigateToAdd()
+                        else -> onNavigate(page)
+                    }
+                }
+            )
+        }
     }
 }
 

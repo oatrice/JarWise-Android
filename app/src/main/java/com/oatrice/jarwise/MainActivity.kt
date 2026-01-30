@@ -82,7 +82,15 @@ class MainActivity : ComponentActivity() {
                             onNavigateToScan = { currentScreen = Screen.Scan },
                             onNavigateToImport = { currentScreen = Screen.SlipImport },
                             onNavigateToAdd = { currentScreen = Screen.AddTransaction },
-                            onNavigateToSettings = { currentScreen = Screen.Settings }
+                            onNavigateToSettings = { currentScreen = Screen.Settings },
+                            onNavigate = { page ->
+                                when (page) {
+                                    com.oatrice.jarwise.ui.components.NavPage.HISTORY -> currentScreen = Screen.TransactionHistory
+                                    com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
+                                    // Other pages can be handled here
+                                    else -> {}
+                                }
+                            }
                         )
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
@@ -91,7 +99,14 @@ class MainActivity : ComponentActivity() {
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
                             transactions = transactions,
                             selectedCurrency = selectedCurrency,
-                            onBack = { currentScreen = Screen.Dashboard }
+                            onBack = { currentScreen = Screen.Dashboard },
+                            onNavigate = { page ->
+                                when (page) {
+                                    com.oatrice.jarwise.ui.components.NavPage.DASHBOARD -> currentScreen = Screen.Dashboard
+                                    com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
+                                    else -> {}
+                                }
+                            }
                         )
                         is Screen.Scan -> ScanScreen(
                             onNavigateBack = { currentScreen = Screen.Dashboard },

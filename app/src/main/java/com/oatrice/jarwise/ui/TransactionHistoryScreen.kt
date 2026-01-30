@@ -45,6 +45,14 @@ import com.oatrice.jarwise.ui.theme.Red400
 import com.oatrice.jarwise.utils.TransactionDisplayUtils
 import com.oatrice.jarwise.utils.TransactionGroupingUtils
 import com.oatrice.jarwise.ui.theme.Green400
+import com.oatrice.jarwise.ui.components.BottomNav
+import com.oatrice.jarwise.ui.components.NavPage
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.MediumTopAppBar
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlin.math.abs
 
 /**
@@ -56,11 +64,24 @@ import kotlin.math.abs
 fun TransactionHistoryScreen(
     transactions: List<Transaction> = emptyList(),
     selectedCurrency: String = "THB",
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigate: (NavPage) -> Unit = {}
 ) {
     val totalSpent = transactions.sumOf { it.amount }
+    
+    // Scroll behavior for TopAppBar hide/show
+    val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
+    val lazyListState = rememberLazyListState()
+    
+    // Track if header should be visible based on scroll
+    val isHeaderVisible = remember {
+        derivedStateOf {
+            scrollBehavior.state.collapsedFraction < 0.5f
+        }
+    }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = Gray950,
         topBar = {
             TopAppBar(
@@ -91,55 +112,73 @@ fun TransactionHistoryScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Gray950.copy(alpha = 0.8f)
-                )
+                ),
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
         // Group transactions by date
         val groupedTransactions = TransactionGroupingUtils.groupByDate(transactions)
         
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Summary Card
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-                SummaryCard(
-                    totalSpent = totalSpent,
-                    transactionCount = transactions.size,
-                    currencyCode = selectedCurrency
-                )
-            }
-
-            // Grouped Transactions
-            groupedTransactions.forEach { group ->
-                // Date Header with Daily Totals
+            LazyColumn(
+                state = lazyListState,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Summary Card
                 item {
-                    DailyHeader(
-                        dateHeader = group.dateHeader,
-                        totalIncome = group.totalIncome,
-                        totalExpense = group.totalExpense,
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SummaryCard(
+                        totalSpent = totalSpent,
+                        transactionCount = transactions.size,
                         currencyCode = selectedCurrency
                     )
                 }
-                
-                // Transactions for this day
-                items(group.transactions) { transaction ->
-                    TransactionCard(
-                        transaction = transaction,
-                        currencyCode = selectedCurrency,
-                        showDate = false
-                    )
+
+                // Grouped Transactions
+                groupedTransactions.forEach { group ->
+                    // Date Header with Daily Totals
+                    item {
+                        DailyHeader(
+                            dateHeader = group.dateHeader,
+                            totalIncome = group.totalIncome,
+                            totalExpense = group.totalExpense,
+                            currencyCode = selectedCurrency
+                        )
+                    }
+                    
+                    // Transactions for this day
+                    items(group.transactions) { transaction ->
+                        TransactionCard(
+                            transaction = transaction,
+                            currencyCode = selectedCurrency,
+                            showDate = false
+                        )
+                    }
+                }
+
+                // Bottom Spacer for BottomNav
+                item {
+                    Spacer(modifier = Modifier.height(120.dp))
                 }
             }
-
-            // Bottom Spacer
-            item {
-                Spacer(modifier = Modifier.height(100.dp))
+            
+            // BottomNav
+            Box(
+                modifier = Modifier.align(Alignment.BottomCenter)
+            ) {
+                BottomNav(
+                    activePage = NavPage.HISTORY,
+                    visible = isHeaderVisible.value,
+                    onNavigate = onNavigate
+                )
             }
         }
     }
