@@ -80,106 +80,109 @@ fun TransactionHistoryScreen(
         }
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = Gray950,
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Transaction History",
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Rounded.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Gray400
+    // Wrap in Box to overlay BottomNav correctly
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+            containerColor = Gray950,
+            topBar = {
+                TopAppBar(
+                    title = { 
+                        Text(
+                            "Transaction History",
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White
                         )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* Search */ }) {
-                        Icon(
-                            Icons.Rounded.Search,
-                            contentDescription = "Search",
-                            tint = Gray400
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Gray950.copy(alpha = 0.8f)
-                ),
-                scrollBehavior = scrollBehavior
-            )
-        }
-    ) { paddingValues ->
-        // Group transactions by date
-        val groupedTransactions = TransactionGroupingUtils.groupByDate(transactions)
-        
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            LazyColumn(
-                state = lazyListState,
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                Icons.Rounded.ArrowBack,
+                                contentDescription = "Back",
+                                tint = Gray400
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { /* Search */ }) {
+                            Icon(
+                                Icons.Rounded.Search,
+                                contentDescription = "Search",
+                                tint = Gray400
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Gray950.copy(alpha = 0.8f)
+                    ),
+                    scrollBehavior = scrollBehavior
+                )
+            }
+        ) { paddingValues ->
+            // Group transactions by date
+            val groupedTransactions = TransactionGroupingUtils.groupByDate(transactions)
+            
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(paddingValues)
             ) {
-                // Summary Card
-                item {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    SummaryCard(
-                        totalSpent = totalSpent,
-                        transactionCount = transactions.size,
-                        currencyCode = selectedCurrency
-                    )
-                }
-
-                // Grouped Transactions
-                groupedTransactions.forEach { group ->
-                    // Date Header with Daily Totals
+                LazyColumn(
+                    state = lazyListState,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Summary Card
                     item {
-                        DailyHeader(
-                            dateHeader = group.dateHeader,
-                            totalIncome = group.totalIncome,
-                            totalExpense = group.totalExpense,
+                        Spacer(modifier = Modifier.height(8.dp))
+                        SummaryCard(
+                            totalSpent = totalSpent,
+                            transactionCount = transactions.size,
                             currencyCode = selectedCurrency
                         )
                     }
-                    
-                    // Transactions for this day
-                    items(group.transactions) { transaction ->
-                        TransactionCard(
-                            transaction = transaction,
-                            currencyCode = selectedCurrency,
-                            showDate = false
-                        )
+
+                    // Grouped Transactions
+                    groupedTransactions.forEach { group ->
+                        // Date Header with Daily Totals
+                        item {
+                            DailyHeader(
+                                dateHeader = group.dateHeader,
+                                totalIncome = group.totalIncome,
+                                totalExpense = group.totalExpense,
+                                currencyCode = selectedCurrency
+                            )
+                        }
+                        
+                        // Transactions for this day
+                        items(group.transactions) { transaction ->
+                            TransactionCard(
+                                transaction = transaction,
+                                currencyCode = selectedCurrency,
+                                showDate = false
+                            )
+                        }
+                    }
+
+                    // Bottom Spacer for BottomNav
+                    item {
+                        Spacer(modifier = Modifier.height(120.dp))
                     }
                 }
-
-                // Bottom Spacer for BottomNav
-                item {
-                    Spacer(modifier = Modifier.height(120.dp))
-                }
             }
-            
-            // BottomNav
-            Box(
-                modifier = Modifier.align(Alignment.BottomCenter)
-            ) {
-                BottomNav(
-                    activePage = NavPage.HISTORY,
-                    visible = isHeaderVisible.value,
-                    onNavigate = onNavigate
-                )
-            }
+        }
+        
+        // BottomNav aligned to screen bottom (outside Scaffold padding)
+        Box(
+            modifier = Modifier.align(Alignment.BottomCenter)
+        ) {
+            BottomNav(
+                activePage = NavPage.HISTORY,
+                visible = isHeaderVisible.value,
+                onNavigate = onNavigate
+            )
         }
     }
 }

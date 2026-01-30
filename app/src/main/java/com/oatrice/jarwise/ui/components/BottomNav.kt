@@ -47,7 +47,7 @@ fun BottomNav(
 ) {
     // Animate visibility
     val offsetY by animateDpAsState(
-        targetValue = if (visible) 0.dp else 120.dp,
+        targetValue = if (visible) 0.dp else 250.dp, // Increased from 120.dp to ensure fully hidden
         animationSpec = spring(stiffness = 200f, dampingRatio = 0.7f),
         label = "BottomNavOffset"
     )
@@ -55,6 +55,7 @@ fun BottomNav(
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars) // Handle system navigation bar
             .padding(horizontal = 20.dp)
             .padding(bottom = 24.dp)
             .offset(y = offsetY),

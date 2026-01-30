@@ -68,6 +68,16 @@ class MainActivity : ComponentActivity() {
                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
                 val recentImages by slipViewModel.recentImages.collectAsState()
 
+                val handleNavigation: (com.oatrice.jarwise.ui.components.NavPage) -> Unit = { page ->
+                    when (page) {
+                        com.oatrice.jarwise.ui.components.NavPage.DASHBOARD -> currentScreen = Screen.Dashboard
+                        com.oatrice.jarwise.ui.components.NavPage.HISTORY -> currentScreen = Screen.TransactionHistory
+                        com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
+                        // Add other destinations here when ready (WALLET, PROFILE)
+                        else -> {}
+                    }
+                }
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -83,14 +93,7 @@ class MainActivity : ComponentActivity() {
                             onNavigateToImport = { currentScreen = Screen.SlipImport },
                             onNavigateToAdd = { currentScreen = Screen.AddTransaction },
                             onNavigateToSettings = { currentScreen = Screen.Settings },
-                            onNavigate = { page ->
-                                when (page) {
-                                    com.oatrice.jarwise.ui.components.NavPage.HISTORY -> currentScreen = Screen.TransactionHistory
-                                    com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
-                                    // Other pages can be handled here
-                                    else -> {}
-                                }
-                            }
+                            onNavigate = handleNavigation
                         )
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
@@ -100,13 +103,7 @@ class MainActivity : ComponentActivity() {
                             transactions = transactions,
                             selectedCurrency = selectedCurrency,
                             onBack = { currentScreen = Screen.Dashboard },
-                            onNavigate = { page ->
-                                when (page) {
-                                    com.oatrice.jarwise.ui.components.NavPage.DASHBOARD -> currentScreen = Screen.Dashboard
-                                    com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
-                                    else -> {}
-                                }
-                            }
+                            onNavigate = handleNavigation
                         )
                         is Screen.Scan -> ScanScreen(
                             onNavigateBack = { currentScreen = Screen.Dashboard },
