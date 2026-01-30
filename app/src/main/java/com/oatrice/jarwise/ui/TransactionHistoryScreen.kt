@@ -129,7 +129,11 @@ fun TransactionHistoryScreen(
                 
                 // Transactions for this day
                 items(group.transactions) { transaction ->
-                    TransactionCard(transaction = transaction, currencyCode = selectedCurrency)
+                    TransactionCard(
+                        transaction = transaction,
+                        currencyCode = selectedCurrency,
+                        showDate = false
+                    )
                 }
             }
 

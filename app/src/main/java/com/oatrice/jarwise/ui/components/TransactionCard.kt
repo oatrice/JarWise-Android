@@ -34,7 +34,8 @@ import com.oatrice.jarwise.ui.theme.JarWiseTheme
 @Composable
 fun TransactionCard(
     transaction: Transaction,
-    currencyCode: String = "THB" // Default to THB if not provided
+    currencyCode: String = "THB",
+    showDate: Boolean = true
 ) {
     val jar = getJarDetails(transaction.jarId)
     
@@ -124,17 +125,21 @@ fun TransactionCard(
                             text = displaySubtitle,
                             style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
                         )
-                        Box(
-                            modifier = Modifier
-                                .size(4.dp)
-                                .clip(CircleShape)
-                                .background(Gray700)
+                        if (showDate) {
+                            Box(
+                                modifier = Modifier
+                                    .size(4.dp)
+                                    .clip(CircleShape)
+                                    .background(Gray700)
+                            )
+                        }
+                    }
+                    if (showDate) {
+                        Text(
+                            text = displayDate,
+                            style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
                         )
                     }
-                    Text(
-                        text = displayDate,
-                        style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
-                    )
                 }
             }
         }
