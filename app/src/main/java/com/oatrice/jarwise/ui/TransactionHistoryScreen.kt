@@ -43,6 +43,8 @@ import com.oatrice.jarwise.ui.theme.Gray950
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 import com.oatrice.jarwise.ui.theme.Red400
 import com.oatrice.jarwise.utils.TransactionDisplayUtils
+import com.oatrice.jarwise.utils.TransactionGroupingUtils
+import com.oatrice.jarwise.ui.theme.Green400
 import kotlin.math.abs
 
 /**
@@ -57,9 +59,6 @@ fun TransactionHistoryScreen(
     onBack: () -> Unit
 ) {
     val totalSpent = transactions.sumOf { it.amount }
-    
-    // Sort by date descending
-    val sortedTransactions = transactions.sortedByDescending { it.date }
 
     Scaffold(
         containerColor = Gray950,
@@ -96,12 +95,15 @@ fun TransactionHistoryScreen(
             )
         }
     ) { paddingValues ->
+        // Group transactions by date
+        val groupedTransactions = TransactionGroupingUtils.groupByDate(transactions)
+        
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Summary Card
             item {
@@ -113,18 +115,20 @@ fun TransactionHistoryScreen(
                 )
             }
 
-            // All Transactions
-            if (sortedTransactions.isNotEmpty()) {
+            // Grouped Transactions
+            groupedTransactions.forEach { group ->
+                // Date Header with Daily Totals
                 item {
-                    Text(
-                        "All Transactions",
-                        color = Gray500,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 8.dp)
+                    DailyHeader(
+                        dateHeader = group.dateHeader,
+                        totalIncome = group.totalIncome,
+                        totalExpense = group.totalExpense,
+                        currencyCode = selectedCurrency
                     )
                 }
-                items(sortedTransactions) { transaction ->
+                
+                // Transactions for this day
+                items(group.transactions) { transaction ->
                     TransactionCard(transaction = transaction, currencyCode = selectedCurrency)
                 }
             }
@@ -132,6 +136,49 @@ fun TransactionHistoryScreen(
             // Bottom Spacer
             item {
                 Spacer(modifier = Modifier.height(100.dp))
+            }
+        }
+    }
+}
+
+@Composable
+private fun DailyHeader(
+    dateHeader: String,
+    totalIncome: Double,
+    totalExpense: Double,
+    currencyCode: String
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 16.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = dateHeader,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            if (totalIncome > 0) {
+                Text(
+                    text = "+" + TransactionDisplayUtils.formatCurrency(totalIncome, currencyCode),
+                    color = Green400,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            if (totalExpense < 0) {
+                Text(
+                    text = TransactionDisplayUtils.formatCurrency(totalExpense, currencyCode),
+                    color = Red400,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
     }
