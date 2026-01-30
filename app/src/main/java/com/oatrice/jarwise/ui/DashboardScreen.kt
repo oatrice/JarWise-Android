@@ -257,7 +257,7 @@ fun DashboardScreen(
                     }
                 } else {
                     itemsIndexed(transactions.take(3)) { _, transaction ->
-                        TransactionCard(transaction = transaction, currencyCode = selectedCurrency, showDate = false)
+                        TransactionCard(transaction = transaction, currencyCode = selectedCurrency, showDate = true)
                     }
                 }
             }

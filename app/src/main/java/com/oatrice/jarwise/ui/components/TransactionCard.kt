@@ -85,7 +85,18 @@ fun TransactionCard(
             }
 
             // Details
-            val (displayTitle, displaySubtitle) = TransactionDisplayUtils.getDisplayDetails(transaction)
+            val wallet = com.oatrice.jarwise.utils.getWalletDetails(transaction.walletId)
+            
+            // Allow note to be the main title if present, otherwise Jar Name
+            val displayTitle = if (transaction.note.isNotBlank()) transaction.note else jar.name
+            
+            // Subtitle: Jar Name (if not title) • Wallet Name
+            val subtitleParts = mutableListOf<String>()
+            if (transaction.note.isNotBlank()) {
+                subtitleParts.add(jar.name)
+            }
+            subtitleParts.add(wallet.name)
+            val displaySubtitle = subtitleParts.joinToString(" • ")
             
             Column {
                 Row(
@@ -116,52 +127,43 @@ fun TransactionCard(
                         }
                     }
                 }
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (displaySubtitle.isNotEmpty()) {
-                        Text(
-                            text = displaySubtitle,
-                            style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
-                        )
-                        if (showDate) {
-                            Box(
-                                modifier = Modifier
-                                    .size(4.dp)
-                                    .clip(CircleShape)
-                                    .background(Gray700)
-                            )
-                        }
-                    }
-                    if (showDate) {
-                        Text(
-                            text = displayDate,
-                            style = MaterialTheme.typography.bodySmall.copy(color = Gray500)
-                        )
-                    }
-                }
+                Text(
+                    text = displaySubtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(color = Gray500),
+                    maxLines = 1
+                )
             }
         }
 
-        // Amount & Arrow
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = TransactionDisplayUtils.formatCurrency(transaction.amount, currencyCode),
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFFF87171) // Red 400
+        // Amount & Date
+        Column(horizontalAlignment = Alignment.End) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = TransactionDisplayUtils.formatCurrency(transaction.amount, currencyCode),
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFF87171) // Red 400
+                    )
                 )
-            )
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowRight,
-                contentDescription = null,
-                tint = Gray500,
-                modifier = Modifier.size(16.dp)
-            )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowRight,
+                    contentDescription = null,
+                    tint = Gray500,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            if (showDate) {
+                Text(
+                    text = displayDate,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = Gray500,
+                        fontSize = 11.sp
+                    )
+                )
+            }
         }
     }
 }

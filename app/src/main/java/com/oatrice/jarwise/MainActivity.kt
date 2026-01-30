@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             AppDatabase::class.java, "jarwise-db"
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
             .build()
         
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
                                         sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                                         sdf.format(it)
                                     }
-                                    viewModel.saveTransaction(amount, jarId, note, date)
+                                    viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date)
                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
                                 },
                                 onSaveDraft = { _, parsedSlip, jarId ->
@@ -146,15 +146,15 @@ class MainActivity : ComponentActivity() {
                                         sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
                                         sdf.format(it)
                                     }
-                                    viewModel.saveDraft(amount, jarId, note, date)
+                                    viewModel.saveDraft(amount, jarId, "wallet-bank", note, date)
                                     android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             )
                         }
                         is Screen.AddTransaction -> AddTransactionScreen(
                             onBack = { currentScreen = Screen.Dashboard },
-                            onSave = { amount, jarId, note ->
-                                viewModel.saveTransaction(amount, jarId, note)
+                            onSave = { amount, jarId, walletId, note, date ->
+                                viewModel.saveTransaction(amount, jarId, walletId, note, date)
                                 currentScreen = Screen.Dashboard
                             }
                         )

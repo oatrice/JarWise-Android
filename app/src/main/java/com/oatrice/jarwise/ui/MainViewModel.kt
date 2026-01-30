@@ -40,11 +40,12 @@ class MainViewModel(
         initialValue = "..."
     )
 
-    fun saveTransaction(amount: Double, jarId: String, note: String, date: String? = null) {
+    fun saveTransaction(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
         viewModelScope.launch {
             val transaction = Transaction(
                 amount = amount,
                 jarId = jarId,
+                walletId = walletId,
                 note = note,
                 date = date ?: getCurrentIsoDate()
             )
@@ -52,11 +53,12 @@ class MainViewModel(
         }
     }
 
-    fun saveDraft(amount: Double, jarId: String, note: String, date: String? = null) {
+    fun saveDraft(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
         viewModelScope.launch {
             val transaction = Transaction(
                 amount = amount,
                 jarId = jarId,
+                walletId = walletId,
                 note = note,
                 date = date ?: getCurrentIsoDate(),
                 status = "draft"
