@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] - 2026-01-30
+### Added
+- **Transactions**: Implemented draft transaction functionality, allowing users to save and complete entries later.
+- **UI**: The transaction history screen now groups entries by date and displays daily totals for improved readability.
+
+### Changed
+- **Navigation**: Overhauled the app's navigation system for a more unified and consistent user experience.
+
 ## [1.0.0] - 2026-01-18
 ### Changed
 - **Data**: Updated the sample data displayed within the app.
