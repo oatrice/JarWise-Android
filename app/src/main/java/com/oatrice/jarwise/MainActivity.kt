@@ -44,7 +44,9 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             applicationContext,
             AppDatabase::class.java, "jarwise-db"
-        ).build()
+        )
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .build()
         
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
         val currencyRepository = CurrencyRepository(userPreferencesRepository)
@@ -123,8 +125,17 @@ class MainActivity : ComponentActivity() {
                                     }
                                     viewModel.saveTransaction(amount, jarId, note, date)
                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
-                                    // Navigate back or show success? For now, stay on screen or go to dashboard.
-                                    // currentScreen = Screen.Dashboard // Optional: auto-navigate
+                                },
+                                onSaveDraft = { _, parsedSlip, jarId ->
+                                    val amount = parsedSlip.amount ?: 0.0
+                                    val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
+                                    val date = parsedSlip.date?.let {
+                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                                        sdf.format(it)
+                                    }
+                                    viewModel.saveDraft(amount, jarId, note, date)
+                                    android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             )
                         }

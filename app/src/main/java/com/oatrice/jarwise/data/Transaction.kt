@@ -9,5 +9,7 @@ data class Transaction(
     val amount: Double,
     val note: String,
     val jarId: String,
-    val date: String // ISO 8601 string
+    val date: String, // ISO 8601 string
+    val type: String = "expense", // "income" | "expense"
+    val status: String = "completed" // "draft" | "completed"
 )
