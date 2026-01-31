@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.4.0] - 2026-01-31
+### Added
+- **Hierarchical Jars**: Implemented a hierarchical system allowing users to create and manage sub-jars under parent jars for more detailed budget organization.
+- **Jar Customization**: Users can now edit the name, percentage allocation, and icon for each jar on the "Manage Jars" screen.
+- **UI Enhancements**: The "Manage Jars" screen now features visual connectors to clearly show parent-child relationships and includes a confirmation dialog before deleting a jar.
+
+### Fixed
+- **UI**: Corrected an issue where the custom sort order of jars was not being saved correctly.
+
 ## [1.3.0] - 2026-01-31
 ### Added
 - **Jar Management**: Implemented a new system for users to create, manage, and save their financial "jars".
