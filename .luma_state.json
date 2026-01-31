@@ -3,18 +3,18 @@
   "project_key": "3",
   "phase": "coding",
   "active_issue": {
-    "number": 56,
-    "title": "[Web | Android] Enhance Add Transaction (Date & Wallet)",
-    "html_url": "https://github.com/oatrice/JarWise-Root/issues/56",
-    "body": "## Goals\nEnhance the existing \"Add Transaction\" feature to support realistic usage scenarios, prioritizing Web Mock UI first.\n\n## Requirements\n- [ ] **DateTime Picker**: User must be able to specify the date and time of the transaction (default to current).\n- [ ] **Separation of Concerns**: Separate \"Source\" (Wallet/Account) from \"Category\" (Jar).\n  - **Wallet**: Where the money comes from (e.g., Cash, Bank, Credit Card).\n  - **Jar**: Which 6 Jars bucket this expense belongs to.\n\n## Platforms\n### 🌐 Web (Phase 1: Mock UI Priority)\n- [ ] **Status**: 🚀 Priority\n- [ ] **Objective**: focus on **UI/UX and Visuals**.\n- [ ] Add **Date Picker** UI.\n- [ ] Add **Wallet Type Selector** UI.\n- [ ] Logic can be mocked/localStorage for now.\n\n### 🤖 Android (Phase 2: Full Integration)\n- [ ] **Status**: ⏳ Planned\n- [ ] **Objective**: Full functional implementation.\n- [ ] Add Native Date/Time Dialogs.\n- [ ] Implement robust Wallet selection and Room database integration.\n",
-    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgkh8jk",
+    "number": 17,
+    "title": "[Web | Android] Manage Jars (Edit %, Name, Icon)",
+    "html_url": "https://github.com/oatrice/JarWise-Root/issues/17",
+    "body": "# 🎯 Objective\nImplement the \"Manage Jars\" feature to allow users to customize their 6 Jars system by editing jar names, percentages, icons, and colors.\n\n## 📝 Specifications\n- [ ] **View Jar Details**: Tap on a jar to see full details and edit options\n- [ ] **Edit Jar Name**: Allow renaming jars (e.g., \"Necessities\" → \"Bills & Rent\")\n- [ ] **Edit Percentage**: Adjust allocation percentage with validation (total must = 100%)\n- [ ] **Edit Icon/Color**: Change jar icon and theme color\n- [ ] **Reset to Default**: Option to restore default 6 Jars configuration\n- [ ] **Persistence**: Save changes to local storage (mock) or backend\n\n## 🔗 References\n- **Feature ID**: `CORE-04` (See FEATURES.md)\n- **Design Reference**: Jar card style from Dashboard\n- **Default Jars**:\n  | Jar | Default % | Purpose |\n  | :--- | :---: | :--- |\n  | Necessities | 55% | Essential expenses |\n  | Education | 10% | Self-improvement |\n  | Savings | 10% | Long-term savings |\n  | Play | 10% | Entertainment |\n  | Investment | 10% | Financial growth |\n  | Give | 5% | Charity/gifts |\n\n## 🏗️ Implementation Guidelines\n- **Web**: Modal or dedicated settings page with form inputs\n- **Android**: Bottom sheet or separate Composable screen\n- **Validation**: Real-time % validation showing remaining allocation\n- **UX**: Show warning when total ≠ 100%, disable save until valid\n",
+    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgjwwBg",
     "project_id": "PVT_kwHOATfKEM4BMuLi",
     "repository": "oatrice/JarWise-Root"
   },
-  "active_branch": "feat/56-enhance-add-transaction",
-  "started_at": "2026-01-30T18:56:32.162532",
+  "active_branch": "feat/17-manage-jars",
+  "started_at": "2026-01-31T12:13:42.486236",
   "checklist": {},
   "pr_url": null,
   "pr_number": null,
-  "last_updated": "2026-01-30T19:08:33.273141"
+  "last_updated": "2026-01-31T12:13:44.274667"
 }

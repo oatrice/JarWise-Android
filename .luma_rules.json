@@ -1,0 +1,29 @@
+{
+    "project_name": "JarWise Android",
+    "version": "1.0",
+    "kanban": {
+        "project_number": 7,
+        "owner": "oatrice"
+    },
+    "preflight_checks": [
+        {
+            "id": "build_check",
+            "name": "Build Check",
+            "type": "command",
+            "command": "./scripts/build_android.sh assembleDebug",
+            "required": true,
+            "message": "Build must pass before creating PR"
+        }
+    ],
+    "context_rules": [
+        "ALWAYS use ./scripts/build_android.sh instead of ./gradlew directly",
+        "Use ./scripts/run_tests.sh for running tests",
+        "The wrapper scripts set the correct JAVA_HOME (Android Studio JDK)",
+        "Build command: ./scripts/build_android.sh assembleDebug",
+        "Test command: ./scripts/run_tests.sh"
+    ],
+    "context_sources": [
+        "README.md",
+        "docs/ARCHITECTURE.md"
+    ]
+}

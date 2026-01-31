@@ -15,8 +15,11 @@ import com.oatrice.jarwise.data.AppDatabase
 
 import com.oatrice.jarwise.data.GeneratedMockData
 import com.oatrice.jarwise.data.repository.CurrencyRepository
+import com.oatrice.jarwise.data.repository.JarConfigRepository
 import com.oatrice.jarwise.data.repository.UserPreferencesRepository
 import com.oatrice.jarwise.data.service.SlipDetectorServiceImpl
+import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
+import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
 import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.MainViewModel
@@ -35,6 +38,7 @@ sealed class Screen {
     data object AddTransaction : Screen()
     data object SlipImport : Screen()
     data object Settings : Screen()
+    data object ManageJars : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -45,18 +49,32 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             AppDatabase::class.java, "jarwise-db"
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
             .build()
         
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
         val currencyRepository = CurrencyRepository(userPreferencesRepository)
         
-        val viewModel: MainViewModel by viewModels { MainViewModel.Factory(db.transactionDao(), currencyRepository) }
+        // JarConfig Repository
+        val jarConfigRepository = JarConfigRepository(db.jarConfigDao())
+        
+        
+        val viewModel: MainViewModel by viewModels { 
+            MainViewModel.Factory(
+                db.transactionDao(), 
+                currencyRepository,
+                jarConfigRepository
+            ) 
+        }
 
         val slipRepository = com.oatrice.jarwise.data.repository.SlipRepository(applicationContext)
         val slipDetector = SlipDetectorServiceImpl(applicationContext)
         val slipViewModel: SlipViewModel by viewModels { 
             SlipViewModel.Factory(slipRepository, slipDetector) 
+        }
+        
+        val manageJarsViewModel: ManageJarsViewModel by viewModels {
+            ManageJarsViewModel.Factory(jarConfigRepository)
         }
 
         enableEdgeToEdge()
@@ -83,18 +101,22 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     when (currentScreen) {
-                        is Screen.Dashboard -> DashboardScreen(
-                            jars = GeneratedMockData.jars, // Ideally usage ViewModel for jars too
-                            transactions = transactions,
-                            formattedTotalBalance = formattedTotalBalance,
-                            selectedCurrency = selectedCurrency,
-                            onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
-                            onNavigateToScan = { currentScreen = Screen.Scan },
-                            onNavigateToImport = { currentScreen = Screen.SlipImport },
-                            onNavigateToAdd = { currentScreen = Screen.AddTransaction },
-                            onNavigateToSettings = { currentScreen = Screen.Settings },
-                            onNavigate = handleNavigation
-                        )
+                        is Screen.Dashboard -> {
+                            val jars by viewModel.jars.collectAsState()
+                            DashboardScreen(
+                                jars = jars,
+                                transactions = transactions,
+                                formattedTotalBalance = formattedTotalBalance,
+                                selectedCurrency = selectedCurrency,
+                                onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
+                                onNavigateToScan = { currentScreen = Screen.Scan },
+                                onNavigateToImport = { currentScreen = Screen.SlipImport },
+                                onNavigateToAdd = { currentScreen = Screen.AddTransaction },
+                                onNavigateToSettings = { currentScreen = Screen.Settings },
+                                onNavigateToManageJars = { currentScreen = Screen.ManageJars },
+                                onNavigate = handleNavigation
+                            )
+                        }
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
                              viewModel = viewModel
@@ -157,6 +179,10 @@ class MainActivity : ComponentActivity() {
                                 viewModel.saveTransaction(amount, jarId, walletId, note, date)
                                 currentScreen = Screen.Dashboard
                             }
+                        )
+                        is Screen.ManageJars -> ManageJarsScreen(
+                            viewModel = manageJarsViewModel,
+                            onBack = { currentScreen = Screen.Dashboard }
                         )
                     }
                 }

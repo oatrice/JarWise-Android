@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.3.0] - 2026-01-31
+### Added
+- **Jar Management**: Implemented a new system for users to create, manage, and save their financial "jars".
+- **UI**: Introduced a dedicated "Manage Jars" screen, accessible from the dashboard, to configure jars.
+
 ## [1.2.0] - 2026-01-30
 ### Added
 - **Wallet Management**: Users can now create and manage multiple wallets to better organize their finances.
