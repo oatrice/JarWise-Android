@@ -13,7 +13,7 @@ import androidx.room.PrimaryKey
         childColumns = ["parentId"],
         onDelete = ForeignKey.CASCADE
     )],
-    indices = [Index(value = ["userId", "parentId"])]
+    indices = [Index(value = ["userId", "parentId"]), Index(value = ["parentId"])]
 )
 data class Allocation(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

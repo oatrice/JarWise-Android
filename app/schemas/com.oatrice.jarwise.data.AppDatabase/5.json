@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 5,
-    "identityHash": "eb60db24d364f913ee083e952b8649bd",
+    "identityHash": "ab788d0ffddcccd5679d901b8011ef17",
     "entities": [
       {
         "tableName": "transactions",
@@ -197,6 +197,15 @@
             ],
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_allocations_userId_parentId` ON `${TABLE_NAME}` (`userId`, `parentId`)"
+          },
+          {
+            "name": "index_allocations_parentId",
+            "unique": false,
+            "columnNames": [
+              "parentId"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_allocations_parentId` ON `${TABLE_NAME}` (`parentId`)"
           }
         ],
         "foreignKeys": [
@@ -217,7 +226,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'eb60db24d364f913ee083e952b8649bd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ab788d0ffddcccd5679d901b8011ef17')"
     ]
   }
 }

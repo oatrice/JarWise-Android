@@ -28,7 +28,7 @@ data class EditableJar(
     val parentId: Long?,
     val level: Int,
     val isSystemDefault: Boolean,
-    val sortOrder: Int
+    val sortOrder: Int = 0
 )
 
 class ManageJarsViewModel(
