@@ -27,7 +27,8 @@ data class EditableJar(
     val icon: ImageVector,
     val parentId: Long?,
     val level: Int,
-    val isSystemDefault: Boolean
+    val isSystemDefault: Boolean,
+    val sortOrder: Int
 )
 
 class ManageJarsViewModel(
@@ -75,9 +76,8 @@ class ManageJarsViewModel(
                 val flattened = mutableListOf<EditableJar>()
                 
                 fun traverse(parentId: Long?) {
-                    // Get children for this parent, sort by sortOrder (implicit from DAO usually, ensuring stable) 
-                    // or valid sort field if we had one. DAO orders by sortOrder.
-                    val children = groupedByParent[parentId] ?: emptyList()
+                    // Get children for this parent, sort by sortOrder
+                    val children = groupedByParent[parentId]?.sortedBy { it.sortOrder } ?: emptyList()
                     
                     children.forEach { child ->
                         flattened.add(child)
@@ -125,18 +125,6 @@ class ManageJarsViewModel(
     }
 
     fun resetToDefaults() {
-        // Implementation for resetting to defaults would require logic to re-seed or revert changes.
-        // For Allocation migration, we might just re-seed. 
-        // For now, let's skip complex reset logic or implement a simple refresh from specific defaults if needed.
-        // Or we can just reset the *active* in-memory values to what's in DB (cancel changes).
-        // But this function implies 'Factory Reset'. 
-        // Let's implement basic reset - maybe just re-fetch?
-        // Wait, the previous implementation reset to HARDCODED defaults.
-        // We can do similar by clearing and re-seeding via DAO? 
-        // Simplest: Just re-load for now or omit if too complex for MVP.
-        // The user expects specific behavior. Let's keep it simple: Re-load from DB (Cancel edits).
-        // Or if 'Reset' means 'Restore Factory Defaults', we need to delete custom and re-insert defaults.
-        // Let's leave as TODO or simple reload.
         loadAllocations() 
         _showResetDialog.value = false
         _selectedJarId.value = null
@@ -148,13 +136,6 @@ class ManageJarsViewModel(
         viewModelScope.launch {
             _jars.value.forEach { editable ->
                 // Map back to Allocation and Update
-                // We only update name, percentage, color, icon.
-                // We need to fetch original to keep other fields? Or just update fields.
-                // DAO update takes full object.
-                // Efficiency update: We should ideally only update dirty ones.
-                // For MVP, just update all or fetch-and-update.
-                // Since we don't have full params in Editable, we rely on mapping.
-                // Wait, EditableJar has most fields.
                 val allocation = Allocation(
                     id = editable.id,
                     userId = editable.userId,
@@ -165,8 +146,8 @@ class ManageJarsViewModel(
                     icon = editable.iconName,
                     color = editable.colorName,
                     isSystemDefault = editable.isSystemDefault,
-                    isActive = true
-                    // sortOrder? Missed in EditableJar. Should add it or ignore.
+                    isActive = true,
+                    sortOrder = editable.sortOrder
                 )
                 allocationDao.update(allocation)
             }
@@ -260,7 +241,8 @@ class ManageJarsViewModel(
         icon = getIconFromName(icon),
         parentId = parentId,
         level = level,
-        isSystemDefault = isSystemDefault
+        isSystemDefault = isSystemDefault,
+        sortOrder = sortOrder
     )
 
     companion object {
