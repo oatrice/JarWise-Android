@@ -80,7 +80,7 @@ class MainActivity : ComponentActivity() {
         }
         
         val manageJarsViewModel: ManageJarsViewModel by viewModels {
-            ManageJarsViewModel.Factory(jarConfigRepository)
+            ManageJarsViewModel.Factory(db.allocationDao())
         }
 
         enableEdgeToEdge()

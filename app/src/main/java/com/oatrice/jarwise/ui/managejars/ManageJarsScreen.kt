@@ -124,15 +124,38 @@ fun ManageJarsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 itemsIndexed(jars, key = { _, jar -> jar.id }) { _, jar ->
-                    JarEditCard(
-                        jar = jar,
-                        isExpanded = selectedJarId == jar.id,
-                        onClick = { viewModel.selectJar(jar.id) },
-                        onNameChange = { viewModel.updateJar(jar.id, name = it) },
-                        onPercentageChange = { viewModel.updateJar(jar.id, percentage = it) },
-                        onColorChange = { viewModel.updateJar(jar.id, colorName = it) },
-                        onIconChange = { viewModel.updateJar(jar.id, iconName = it) }
-                    )
+                    // Indentation based on level
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        if (jar.level > 0) {
+                            Spacer(modifier = Modifier.width((jar.level * 24).dp)) // Indent
+                        }
+                        Box(modifier = Modifier.weight(1f)) {
+                            JarEditCard(
+                                jar = jar,
+                                isExpanded = selectedJarId == jar.id,
+                                onClick = { viewModel.selectJar(jar.id) },
+                                onNameChange = { viewModel.updateJar(jar.id, name = it) },
+                                onPercentageChange = { viewModel.updateJar(jar.id, percentage = it) },
+                                onColorChange = { viewModel.updateJar(jar.id, colorName = it) },
+                                onIconChange = { viewModel.updateJar(jar.id, iconName = it) },
+                                onDelete = { viewModel.deleteJar(jar.id) }
+                            )
+                        }
+                    }
+                }
+                
+                // Add New Jar Button
+                item {
+                    Button(
+                        onClick = { viewModel.addJar() },
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Rounded.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add New Jar", color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    }
                 }
             }
         }
@@ -169,7 +192,8 @@ private fun JarEditCard(
     onNameChange: (String) -> Unit,
     onPercentageChange: (Int) -> Unit,
     onColorChange: (String) -> Unit,
-    onIconChange: (String) -> Unit
+    onIconChange: (String) -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -189,6 +213,7 @@ private fun JarEditCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // ... same header code ...
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -201,15 +226,22 @@ private fun JarEditCard(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(jar.name, fontWeight = FontWeight.SemiBold)
-                    Text("${jar.percentage}% allocation", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                    // Hide allocation subtitle for categories if needed, but keeping for now
+                    if (jar.level == 0) {
+                        Text("${jar.percentage}% allocation", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                    } else {
+                        Text("Category", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                    }
                 }
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(jar.color.copy(alpha = 0.2f))
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                ) {
-                    Text("${jar.percentage}%", color = jar.color, fontWeight = FontWeight.Bold)
+                if (jar.level == 0) {
+                     Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(jar.color.copy(alpha = 0.2f))
+                            .padding(horizontal = 12.dp, vertical = 4.dp)
+                    ) {
+                        Text("${jar.percentage}%", color = jar.color, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
 
@@ -231,19 +263,21 @@ private fun JarEditCard(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Percentage Slider
-                    Text("Percentage: ${jar.percentage}%", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Slider(
-                        value = jar.percentage.toFloat(),
-                        onValueChange = { onPercentageChange(it.toInt()) },
-                        valueRange = 0f..100f,
-                        steps = 99,
-                        colors = SliderDefaults.colors(thumbColor = jar.color, activeTrackColor = jar.color)
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    // Percentage Slider (Only for Top Level Jars)
+                    if (jar.level == 0) {
+                        Text("Percentage: ${jar.percentage}%", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Slider(
+                            value = jar.percentage.toFloat(),
+                            onValueChange = { onPercentageChange(it.toInt()) },
+                            valueRange = 0f..100f,
+                            steps = 99,
+                            colors = SliderDefaults.colors(thumbColor = jar.color, activeTrackColor = jar.color)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
 
                     // Color Picker
+                    // ... (keep color picker) ...
                     Text("Color", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -267,6 +301,7 @@ private fun JarEditCard(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Icon Picker
+                     // ... (keep icon picker) ...
                     Text("Icon", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -293,6 +328,20 @@ private fun JarEditCard(
                                 )
                             }
                         }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // Delete Button (New)
+                    Button(
+                        onClick = onDelete,
+                        colors = ButtonDefaults.buttonColors(containerColor = Red500),
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Rounded.Delete, contentDescription = null, tint = Color.White)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Delete", color = Color.White)
                     }
                 }
             }

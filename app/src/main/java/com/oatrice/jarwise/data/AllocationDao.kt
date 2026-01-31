@@ -28,4 +28,7 @@ interface AllocationDao {
 
     @Query("UPDATE allocations SET parentId = :newParentId, level = 1, targetPercent = NULL WHERE id = :id AND userId = :userId")
     suspend fun demoteToCategory(userId: String, id: Long, newParentId: Long)
+
+    @Query("SELECT * FROM allocations WHERE userId = :userId AND isActive = 1 ORDER BY sortOrder ASC")
+    fun getAllAllocations(userId: String): Flow<List<Allocation>>
 }

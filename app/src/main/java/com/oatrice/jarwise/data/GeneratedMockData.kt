@@ -8,7 +8,7 @@ import com.oatrice.jarwise.ui.theme.*
 
 // WARNING: This file is auto-generated. Do not edit directly.
 // Generated from: shared-spec/data/mockData.json
-// Generated at: 2026-01-18T06:16:41.633Z
+// Generated at: 2026-01-31T11:24:59.073Z
 
 object GeneratedMockData {
     val jars = listOf(
