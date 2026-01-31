@@ -93,6 +93,19 @@ class ManageJarsViewModel(
     fun resetToDefaults() {
         viewModelScope.launch {
             repository.resetToDefaults()
+            // StateFlow might not emit if DB defaults equal previous DB defaults, 
+            // so we must update local state manually to ensure UI reverts.
+            _jars.value = JarConfig.DEFAULTS.map { config ->
+                EditableJar(
+                    id = config.id,
+                    name = config.name,
+                    percentage = config.percentage,
+                    colorName = config.colorName,
+                    iconName = config.iconName,
+                    color = getColorFromName(config.colorName),
+                    icon = getIconFromName(config.iconName)
+                )
+            }
             _showResetDialog.value = false
             _selectedJarId.value = null
         }
