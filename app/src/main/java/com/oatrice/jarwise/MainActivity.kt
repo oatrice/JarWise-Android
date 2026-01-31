@@ -45,7 +45,7 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             AppDatabase::class.java, "jarwise-db"
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
             .build()
         
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
