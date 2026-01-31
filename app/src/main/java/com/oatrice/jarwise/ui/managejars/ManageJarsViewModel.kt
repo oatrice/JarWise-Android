@@ -44,6 +44,9 @@ class ManageJarsViewModel(
     private val _showResetDialog = MutableStateFlow(false)
     val showResetDialog: StateFlow<Boolean> = _showResetDialog.asStateFlow()
 
+    private val _jarToDelete = MutableStateFlow<EditableJar?>(null)
+    val jarToDelete: StateFlow<EditableJar?> = _jarToDelete.asStateFlow()
+
     // Only verify percentage sum for Top Level Jars (level = 0)
     val totalPercentage: StateFlow<Int> = _jars.map { list ->
         list.filter { it.level == 0 }.sumOf { it.percentage }
@@ -62,9 +65,30 @@ class ManageJarsViewModel(
     private fun loadAllocations() {
         viewModelScope.launch {
             allocationDao.getAllAllocations(currentUserId).collect { allocations ->
-                // Sort by level and order? For now, list as-is but we might want to structure them
-                // Simple flat map for now
-                _jars.value = allocations.map { it.toEditableJar() }
+                // Sort by sorting tree structure (DFS) to ensure visual hierarchy (Parent -> Children)
+                val allItems = allocations.map { it.toEditableJar() }
+                
+                // Group by parentId
+                val groupedByParent = allItems.groupBy { it.parentId }
+                
+                // Recursive DFS traversal
+                val flattened = mutableListOf<EditableJar>()
+                
+                fun traverse(parentId: Long?) {
+                    // Get children for this parent, sort by sortOrder (implicit from DAO usually, ensuring stable) 
+                    // or valid sort field if we had one. DAO orders by sortOrder.
+                    val children = groupedByParent[parentId] ?: emptyList()
+                    
+                    children.forEach { child ->
+                        flattened.add(child)
+                        traverse(child.id) // Recursive call for this child's children
+                    }
+                }
+                
+                // Start with roots (parentId = null)
+                traverse(null)
+                
+                _jars.value = flattened
             }
         }
     }
@@ -168,10 +192,45 @@ class ManageJarsViewModel(
         }
     }
     
+    fun addCategory(parentId: Long) {
+        viewModelScope.launch {
+            // Get parent to inherit color logic if needed, or just default.
+            // For now, grey/default. 
+            // In Web we inherited parent color. Let's try to find parent.
+            val parent = _jars.value.find { it.id == parentId }
+            val color = parent?.colorName ?: "gray"
+            
+            val newCategory = Allocation(
+                userId = currentUserId,
+                name = "New Category",
+                level = 1, // Currently supporting only 1 level deep for categories as per Web
+                parentId = parentId,
+                targetPercent = null, // Categories don't have direct targetPercent in this model yet
+                icon = "dollar", // Default icon
+                color = color,
+                sortOrder = _jars.value.size + 1 // Simple sort
+            )
+            allocationDao.insert(newCategory)
+        }
+    }
+    
     fun deleteJar(id: Long) {
-         viewModelScope.launch {
+         // See confirmDelete() for implementation
+    }
+
+    fun showDeleteConfirmation(jar: EditableJar) {
+        _jarToDelete.value = jar
+    }
+
+    fun cancelDelete() {
+        _jarToDelete.value = null
+    }
+
+    fun confirmDelete() {
+        val jar = _jarToDelete.value ?: return
+        viewModelScope.launch {
              // Find and delete. Cascade will match DB.
-             val item = _jars.value.find { it.id == id }
+             val item = _jars.value.find { it.id == jar.id }
              if (item != null) {
                  val allocation = Allocation(
                      id = item.id,
@@ -186,7 +245,8 @@ class ManageJarsViewModel(
                  )
                  allocationDao.delete(allocation)
              }
-         }
+             _jarToDelete.value = null
+        }
     }
 
     private fun Allocation.toEditableJar() = EditableJar(

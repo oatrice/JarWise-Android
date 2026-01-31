@@ -121,25 +121,72 @@ fun ManageJarsScreen(
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(0.dp) // Removed spacing to make connectors look continuous if needed, but 8dp is fine if we draw lines correctly. Let's keep tight or manage spacing.
             ) {
-                itemsIndexed(jars, key = { _, jar -> jar.id }) { _, jar ->
-                    // Indentation based on level
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        if (jar.level > 0) {
-                            Spacer(modifier = Modifier.width((jar.level * 24).dp)) // Indent
-                        }
-                        Box(modifier = Modifier.weight(1f)) {
-                            JarEditCard(
-                                jar = jar,
-                                isExpanded = selectedJarId == jar.id,
-                                onClick = { viewModel.selectJar(jar.id) },
-                                onNameChange = { viewModel.updateJar(jar.id, name = it) },
-                                onPercentageChange = { viewModel.updateJar(jar.id, percentage = it) },
-                                onColorChange = { viewModel.updateJar(jar.id, colorName = it) },
-                                onIconChange = { viewModel.updateJar(jar.id, iconName = it) },
-                                onDelete = { viewModel.deleteJar(jar.id) }
-                            )
+                itemsIndexed(jars, key = { _, jar -> jar.id }) { index, jar ->
+                    // Connector Lines Logic
+                    // Ideally we need to know if it's the last child to stop the vertical line.
+                    // For simple MVP without complex tree calculation in UI, we draw basic L shape.
+                    
+                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                             if (jar.level > 0) {
+                                // Indentation and Connector
+                                Box(
+                                    modifier = Modifier
+                                        .width((jar.level * 24).dp)
+                                        .fillMaxHeight()
+                                ) {
+                                    // Vertical line from parent (simple approximation: full height)
+                                    // ideally we want to stop if it's the last child.
+                                    // For now, let's just draw an L shape for the item itself
+                                    
+                                    // Vertical Line
+                                    // We need to draw a line at offset. 
+                                    // Let's use a simpler visual: Just the L shape for THIS item.
+                                    // The vertical backbone needs to come from previous siblings. 
+                                    // Fully accurate tree lines in LazyColumn are hard without knowing neighbors easily.
+                                    // Let's draw a simple L: 
+                                    // Top-center to Center-center (Vertical)
+                                    // Center-center to Right-center (Horizontal)
+                                    // AND if not last child, Center-center to Bottom-center.
+                                    
+                                    // Simplified: Just draw the L for current item relative to the "slot"
+                                    Spacer(modifier = Modifier
+                                        .width(2.dp)
+                                        .fillMaxHeight() // This assumes continuous line. 
+                                        .align(Alignment.CenterEnd)
+                                        .offset(x = (-12).dp) // Center of the 24dp indent
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    )
+                                }
+                                
+                                // Small horizontal connector
+                                Box(
+                                    modifier = Modifier
+                                        .width(12.dp)
+                                        .height(2.dp)
+                                        .align(Alignment.CenterVertically)
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                )
+                            }
+                            
+                            Box(modifier = Modifier.weight(1f)) {
+                                JarEditCard(
+                                    jar = jar,
+                                    isExpanded = selectedJarId == jar.id,
+                                    onClick = { viewModel.selectJar(jar.id) },
+                                    onNameChange = { viewModel.updateJar(jar.id, name = it) },
+                                    onPercentageChange = { viewModel.updateJar(jar.id, percentage = it) },
+                                    onColorChange = { viewModel.updateJar(jar.id, colorName = it) },
+                                    onIconChange = { viewModel.updateJar(jar.id, iconName = it) },
+                                    onDelete = { 
+                                        viewModel.selectJar(jar.id) // Ensure selected
+                                        viewModel.showDeleteConfirmation(jar) 
+                                    },
+                                    onAddCategory = { viewModel.addCategory(jar.id) }
+                                )
+                            }
                         }
                     }
                 }
@@ -163,6 +210,7 @@ fun ManageJarsScreen(
 
     // Reset Confirmation Dialog
     if (showResetDialog) {
+        // ... (existing dialog)
         AlertDialog(
             onDismissRequest = { viewModel.hideResetConfirmation() },
             title = { Text("Reset to Default?") },
@@ -182,6 +230,41 @@ fun ManageJarsScreen(
             }
         )
     }
+    
+    // Delete Confirmation Dialog
+    val jarToDelete by viewModel.jarToDelete.collectAsState()
+    if (jarToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.cancelDelete() },
+            title = { Text("Delete ${if (jarToDelete!!.level == 0) "Jar" else "Category"}?") },
+            text = { 
+                Column {
+                    Text("Are you sure you want to delete '${jarToDelete!!.name}'?")
+                    if (jarToDelete!!.level == 0) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "This will also delete all categories inside it.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Red400
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { viewModel.confirmDelete() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Red500)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.cancelDelete() }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -193,7 +276,8 @@ private fun JarEditCard(
     onPercentageChange: (Int) -> Unit,
     onColorChange: (String) -> Unit,
     onIconChange: (String) -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onAddCategory: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -214,7 +298,7 @@ private fun JarEditCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // ... same header code ...
-                Box(
+                Box(    // Keep existing Box logic for Icon
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
@@ -332,16 +416,39 @@ private fun JarEditCard(
                     
                     Spacer(modifier = Modifier.height(24.dp))
                     
-                    // Delete Button (New)
-                    Button(
-                        onClick = onDelete,
-                        colors = ButtonDefaults.buttonColors(containerColor = Red500),
+                    // Actions Row
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Icon(Icons.Rounded.Delete, contentDescription = null, tint = Color.White)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Delete", color = Color.White)
+                        // Add Category Button (Only for Top Level Jars)
+                        if (jar.level == 0) {
+                            Button(
+                                onClick = onAddCategory,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                                ),
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Add Category", fontSize = 12.sp)
+                            }
+                        }
+
+                        // Delete Button
+                        Button(
+                            onClick = onDelete,
+                            colors = ButtonDefaults.buttonColors(containerColor = Red500),
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Rounded.Delete, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Delete ${if (jar.level==0) "Jar" else "Cat"}", color = Color.White, fontSize = 12.sp)
+                        }
                     }
                 }
             }
