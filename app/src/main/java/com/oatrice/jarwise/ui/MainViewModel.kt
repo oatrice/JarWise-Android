@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.oatrice.jarwise.data.Transaction
 import com.oatrice.jarwise.data.TransactionDao
 import com.oatrice.jarwise.data.repository.CurrencyRepository
+import com.oatrice.jarwise.data.repository.JarConfigRepository
+import com.oatrice.jarwise.model.Jar
+import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
 import com.oatrice.jarwise.utils.TransactionDisplayUtils
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -16,8 +19,15 @@ import java.util.*
 
 class MainViewModel(
     private val dao: TransactionDao,
-    private val currencyRepository: CurrencyRepository
+    private val currencyRepository: CurrencyRepository,
+    private val jarConfigRepository: JarConfigRepository
 ) : ViewModel() {
+
+    init {
+        viewModelScope.launch {
+            jarConfigRepository.initializeDefaultsIfEmpty()
+        }
+    }
 
     val transactions = dao.getAll().stateIn(
         scope = viewModelScope,
@@ -38,6 +48,39 @@ class MainViewModel(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = "..."
+    )
+
+    // Real Jars Data Integrator
+    val jars = combine(
+        jarConfigRepository.getAllJarConfigsFlow(),
+        transactions
+    ) { configs, txs ->
+        if (configs.isEmpty()) {
+            emptyList()
+        } else {
+            configs.map { config ->
+                val balance = txs.filter { it.jarId == config.id }.sumOf { it.amount }
+                // Simple level/goal logic for MVP
+                val level = (balance / 1000).toInt().coerceAtLeast(1)
+                val goal = 5000.0 // Hardcoded goal for now (Issue #67)
+
+                Jar(
+                    id = config.id,
+                    name = config.name,
+                    current = balance,
+                    goal = goal,
+                    level = level,
+                    icon = ManageJarsViewModel.getIconFromName(config.iconName),
+                    color = ManageJarsViewModel.getColorFromName(config.colorName),
+                    shadowColor = ManageJarsViewModel.getColorFromName(config.colorName), // Reuse same color for shadow/bar for now
+                    barColor = ManageJarsViewModel.getColorFromName(config.colorName)
+                )
+            }
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
     )
 
     fun saveTransaction(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
@@ -81,12 +124,13 @@ class MainViewModel(
 
     class Factory(
         private val dao: TransactionDao,
-        private val currencyRepository: CurrencyRepository
+        private val currencyRepository: CurrencyRepository,
+        private val jarConfigRepository: JarConfigRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
-                return MainViewModel(dao, currencyRepository) as T
+                return MainViewModel(dao, currencyRepository, jarConfigRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

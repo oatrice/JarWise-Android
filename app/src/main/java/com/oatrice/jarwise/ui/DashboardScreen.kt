@@ -103,6 +103,7 @@ fun DashboardScreen(
     onNavigateToImport: () -> Unit = {},
     onNavigateToAdd: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToManageJars: () -> Unit = {},
     onNavigate: (NavPage) -> Unit = {}
 ) {
     // Scroll state for visibility tracking
@@ -198,8 +199,8 @@ fun DashboardScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(text = "Your Jars", style = MaterialTheme.typography.titleMedium.copy(color = Gray100))
-                        TextButton(onClick = { /* View All */ }) {
-                            Text("View All", color = Blue500)
+                        TextButton(onClick = onNavigateToManageJars) {
+                            Text("Manage", color = Blue500)
                         }
                     }
                 }
