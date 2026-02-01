@@ -10,6 +10,7 @@ ISSUE: {
 
 GIT CONTEXT:
 COMMITS:
+8c6a50d feat: [Web | Android] Support Hierarchical Wallets (Sub-...
 8f64d86 ✨ feat(wallet): adds hierarchical wallet management and fixes UI/database issues
 fb71ef8 🐛 fix(test): correct viewmodel instantiation in tests
 1dfa403 ✨ feat(wallet): add wallet initialization and deletion confirmation
@@ -24,22 +25,24 @@ STATS:
 .luma_state.json                                   |  17 +-
  CHANGELOG.md                                       |  10 +
  app/build.gradle.kts                               |   3 +-
- .../com.oatrice.jarwise.data.AppDatabase/6.json    | 288 ++++++++++++++++++++
+ .../com.oatrice.jarwise.data.AppDatabase/6.json    | 288 ++++++++
  .../main/java/com/oatrice/jarwise/MainActivity.kt  |  22 +-
  .../java/com/oatrice/jarwise/data/AppDatabase.kt   |  22 +-
- .../com/oatrice/jarwise/data/GeneratedMockData.kt  |  39 +++
- .../java/com/oatrice/jarwise/data/WalletDao.kt     |  26 ++
- .../java/com/oatrice/jarwise/data/WalletEntity.kt  |  15 ++
- .../jarwise/data/repository/WalletRepository.kt    |  91 +++++++
+ .../com/oatrice/jarwise/data/GeneratedMockData.kt  |  39 +
+ .../java/com/oatrice/jarwise/data/WalletDao.kt     |  26 +
+ .../java/com/oatrice/jarwise/data/WalletEntity.kt  |  15 +
+ .../jarwise/data/repository/WalletRepository.kt    |  91 +++
  .../main/java/com/oatrice/jarwise/model/Models.kt  |  10 +
- .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  |  21 ++
- .../ui/managewallets/AddEditWalletDialog.kt        | 194 ++++++++++++++
- .../ui/managewallets/ManageWalletsScreen.kt        | 293 +++++++++++++++++++++
- .../ui/managewallets/ManageWalletsViewModel.kt     | 149 +++++++++++
- .../ui/managewallets/ManageWalletsViewModelTest.kt | 228 ++++++++++++++++
- code_review.md                                     | 197 +++++++-------
+ .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  |  21 +
+ .../ui/managewallets/AddEditWalletDialog.kt        | 194 +++++
+ .../ui/managewallets/ManageWalletsScreen.kt        | 293 ++++++++
+ .../ui/managewallets/ManageWalletsViewModel.kt     | 149 ++++
+ .../ui/managewallets/ManageWalletsViewModelTest.kt | 228 ++++++
+ code_review.md                                     | 197 +++--
+ draft_pr_prompt.md                                 | 797 +++++++++++----------
+ draft_pr_prompt.txt                                |  68 --
  gradle/libs.versions.toml                          |   1 +
- 18 files changed, 1514 insertions(+), 112 deletions(-)
+ 20 files changed, 1916 insertions(+), 575 deletions(-)
 
 KEY FILE DIFFS:
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
