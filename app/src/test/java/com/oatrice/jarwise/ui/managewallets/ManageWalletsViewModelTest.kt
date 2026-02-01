@@ -17,16 +17,56 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+import com.oatrice.jarwise.data.repository.WalletRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.mockito.Mockito.mock
+
+// A simple fake repository for testing
+class FakeWalletRepository : WalletRepository(mock(com.oatrice.jarwise.data.WalletDao::class.java)) {
+    private val walletsData = MutableStateFlow<List<Wallet>>(emptyList())
+
+    override val wallets: Flow<List<Wallet>> = walletsData
+
+    override suspend fun insertWallet(wallet: Wallet) {
+        val currentList = walletsData.value.toMutableList()
+        val walletToInsert = if (wallet.id.isBlank()) wallet.copy(id = System.nanoTime().toString()) else wallet
+        currentList.add(walletToInsert)
+        walletsData.value = currentList
+    }
+
+    override suspend fun updateWallet(wallet: Wallet) {
+        val currentList = walletsData.value.toMutableList()
+        val index = currentList.indexOfFirst { it.id == wallet.id }
+        if (index != -1) {
+            currentList[index] = wallet
+            walletsData.value = currentList
+        }
+    }
+    
+    override suspend fun deleteWallet(id: String) {
+        val currentList = walletsData.value.toMutableList()
+        currentList.removeIf { it.id == id }
+        walletsData.value = currentList
+    }
+    
+    override suspend fun initializeDefaultsIfEmpty() {
+        // No-op for tests
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ManageWalletsViewModelTest {
 
     private lateinit var viewModel: ManageWalletsViewModel
+    private lateinit var fakeRepository: FakeWalletRepository
     private val testDispatcher = StandardTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
-        viewModel = ManageWalletsViewModel()
+        fakeRepository = FakeWalletRepository()
+        viewModel = ManageWalletsViewModel(fakeRepository)
     }
 
     @After
