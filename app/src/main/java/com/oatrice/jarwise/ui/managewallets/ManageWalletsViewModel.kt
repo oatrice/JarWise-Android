@@ -24,9 +24,18 @@ class ManageWalletsViewModel : ViewModel() {
     }
 
     fun addWallet(wallet: Wallet) {
-        // Basic validation: Parent should not be null if level > 0 (handled by UI input usually)
-        val id = (System.currentTimeMillis()).toString() // Simple ID generation
-        val newWallet = wallet.copy(id = id)
+        val id = if (wallet.id.isNotBlank()) wallet.id else (System.currentTimeMillis()).toString()
+        
+        // Calculate Level based on Parent
+        var level = 0
+        if (wallet.parentId != null) {
+            val parent = _wallets.value.find { it.id == wallet.parentId }
+            if (parent != null) {
+                level = parent.level + 1
+            }
+        }
+
+        val newWallet = wallet.copy(id = id, level = level)
         
         _wallets.update { it + newWallet }
     }
