@@ -3,6 +3,8 @@ package com.oatrice.jarwise.ui.managewallets
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDropDown
@@ -128,7 +130,6 @@ fun AddEditWalletDialog(
                         onDismissRequest = { expanded = false },
                         modifier = Modifier
                             .background(Gray800)
-                            .heightIn(max = 200.dp)
                     ) {
                         // Option: No Parent
                         DropdownMenuItem(
