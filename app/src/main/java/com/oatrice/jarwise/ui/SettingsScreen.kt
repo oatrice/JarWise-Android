@@ -3,6 +3,7 @@ package com.oatrice.jarwise.ui
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.AccountBalanceWallet
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +15,7 @@ import com.oatrice.jarwise.utils.TransactionDisplayUtils
 @Composable
 fun SettingsScreen(
     onBack: () -> Unit,
+    onNavigateToManageWallets: () -> Unit = {},
     viewModel: MainViewModel
 ) {
     val selectedCurrency by viewModel.selectedCurrency.collectAsState()
@@ -43,6 +45,25 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.Start
         ) {
+            Text(
+                text = "General",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            OutlinedButton(
+                onClick = onNavigateToManageWallets,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null)
+                    Text("Manage Wallets (Sub-accounts)")
+                }
+            }
+
             Text(
                 text = "Currency",
                 style = MaterialTheme.typography.titleMedium,

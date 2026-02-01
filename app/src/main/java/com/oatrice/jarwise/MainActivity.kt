@@ -39,6 +39,7 @@ sealed class Screen {
     data object SlipImport : Screen()
     data object Settings : Screen()
     data object ManageJars : Screen()
+    data object ManageWallets : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -126,6 +127,7 @@ class MainActivity : ComponentActivity() {
                         }
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
+                             onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
                              viewModel = viewModel
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
@@ -190,6 +192,9 @@ class MainActivity : ComponentActivity() {
                         is Screen.ManageJars -> ManageJarsScreen(
                             viewModel = manageJarsViewModel,
                             onBack = { currentScreen = Screen.Dashboard }
+                        )
+                        is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
+                            onNavigateBack = { currentScreen = Screen.Settings }
                         )
                     }
                 }
