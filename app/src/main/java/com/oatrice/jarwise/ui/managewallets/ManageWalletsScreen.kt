@@ -58,6 +58,33 @@ fun ManageWalletsScreen(
     // State for Add/Edit Modal
     var showAddEditDialog by remember { mutableStateOf(false) }
     var editingWallet by remember { mutableStateOf<Wallet?>(null) }
+    var walletToDelete by remember { mutableStateOf<Wallet?>(null) }
+
+    if (walletToDelete != null) {
+        AlertDialog(
+            onDismissRequest = { walletToDelete = null },
+            title = { Text(text = "Delete Wallet") },
+            text = { Text(text = "Are you sure you want to delete '${walletToDelete?.name}'?") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        walletToDelete?.let { viewModel.deleteWallet(it.id) }
+                        walletToDelete = null
+                    }
+                ) {
+                    Text("Delete", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { walletToDelete = null }) {
+                    Text("Cancel")
+                }
+            },
+            containerColor = Gray900,
+            titleContentColor = Color.White,
+            textContentColor = Gray400
+        )
+    }
 
     if (showAddEditDialog) {
         AddEditWalletDialog(
@@ -129,7 +156,7 @@ fun ManageWalletsScreen(
             items(displayList) { wallet ->
                 WalletTreeItem(
                     wallet = wallet,
-                    onDelete = { viewModel.deleteWallet(wallet.id) },
+                    onDelete = { walletToDelete = wallet },
                     onEdit = { 
                         editingWallet = wallet
                         showAddEditDialog = true

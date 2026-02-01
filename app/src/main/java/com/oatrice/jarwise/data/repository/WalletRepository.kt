@@ -12,6 +12,7 @@ import com.oatrice.jarwise.data.WalletEntity
 import com.oatrice.jarwise.model.Wallet
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first
 
 class WalletRepository(private val walletDao: WalletDao) {
 
@@ -70,5 +71,21 @@ class WalletRepository(private val walletDao: WalletDao) {
 
     private fun getIconName(icon: ImageVector): String {
         return icon.name.substringAfterLast(".") // Extract simple name
+    }
+
+    /**
+     * Initialize default wallets if database is empty
+     */
+    suspend fun initializeDefaultsIfEmpty() {
+        val currentWallets = walletDao.getAllWallets().first()
+        if (currentWallets.isEmpty()) { 
+             val defaults = listOf(
+                 Wallet(id = "wallet-cash", name = "Cash", balance = 0.0, color = Color(0xFF22C55E), icon = Icons.Default.AccountBalanceWallet),
+                 Wallet(id = "wallet-bank", name = "Bank Account", balance = 0.0, color = Color(0xFF3B82F6), icon = Icons.Default.AccountBalance),
+                 Wallet(id = "wallet-credit", name = "Credit Card", balance = 0.0, color = Color(0xFFA855F7), icon = Icons.Default.CreditCard)
+             )
+             
+             defaults.forEach { insertWallet(it) }
+        }
     }
 }

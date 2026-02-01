@@ -15,14 +15,18 @@ class ManageWalletsViewModel(
     private val walletRepository: com.oatrice.jarwise.data.repository.WalletRepository
 ) : ViewModel() {
 
-    // Using StateFlow from Repository directly might be better, but we need local manipulation for UI logic potentially
-    // For now, let's observe the repository flow
     val wallets: StateFlow<List<Wallet>> = walletRepository.wallets
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    init {
+        viewModelScope.launch {
+            walletRepository.initializeDefaultsIfEmpty()
+        }
+    }
 
     private val _uiEvent = MutableStateFlow<UiEvent?>(null)
     val uiEvent: StateFlow<UiEvent?> = _uiEvent.asStateFlow()
