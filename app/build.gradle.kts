@@ -19,6 +19,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
+            }
+        }
     }
 
     buildTypes {
@@ -58,6 +64,18 @@ android {
                     showStandardStreams = true
                 }
             }
+        }
+    }
+
+    sourceSets {
+        getByName("test") {
+            assets.srcDirs("$projectDir/schemas")
+        }
+        getByName("androidTest") {
+            assets.srcDirs("$projectDir/schemas")
+        }
+        getByName("release") {
+            assets.srcDirs("$projectDir/schemas")
         }
     }
 }
