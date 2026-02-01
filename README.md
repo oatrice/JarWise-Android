@@ -6,6 +6,7 @@
 
 
 
+
 - **Architecture**: MVVM + Clean Architecture
 
 **Modules**:
@@ -24,4 +25,4 @@ Do not edit `Color.kt` directly.
 *   **Currency Support**: Native currency management using DataStore Preferences and dynamic UI updates.
 *   **Mobile Experience**: Optimized Dashboard layout with quick access to Import Slip and Settings.
 *   **Transaction Management**: Add and view transactions with wallet and date selection.
-*   **Jar Management**: Configure and manage financial jars through a dedicated screen.
+*   **Jar Management**: Configure and manage financial jars, including editing names, icons, and percentages. Supports a hierarchical (parent-child) structure for complex allocation strategies.

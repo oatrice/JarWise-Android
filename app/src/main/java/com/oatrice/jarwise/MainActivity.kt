@@ -49,7 +49,13 @@ class MainActivity : ComponentActivity() {
             applicationContext,
             AppDatabase::class.java, "jarwise-db"
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2, 
+                AppDatabase.MIGRATION_2_3, 
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_4_5
+            )
+            .addCallback(AppDatabase.SEED_CALLBACK)
             .build()
         
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
@@ -74,7 +80,7 @@ class MainActivity : ComponentActivity() {
         }
         
         val manageJarsViewModel: ManageJarsViewModel by viewModels {
-            ManageJarsViewModel.Factory(jarConfigRepository)
+            ManageJarsViewModel.Factory(db.allocationDao())
         }
 
         enableEdgeToEdge()

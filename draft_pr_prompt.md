@@ -10,173 +10,62 @@ ISSUE: {
 
 GIT CONTEXT:
 COMMITS:
+691dbf2 feat: [Web | Android] Manage Jars (Edit %, Name, Icon)...
+e41e8e2 feat: [Web | Android] Manage Jars (Edit %, Name, Icon)...
 0315bea feat: [Web | Android] Manage Jars (Edit %, Name, Icon)...
 8f77971 feat: [Web | Android] Manage Jars (Edit %, Name, Icon)...
 8e1d756 ✨ feat(jar): add jar management feature
 cb2e11e ✨ feat(test): add jar configuration test infrastructure
 fb81229 ✨ feat(ui): add jar management screen and integrate with dashboard
 d72cd6e ✨ feat(jars): add jar configuration management system
-fffa67e feat: [Web | Android] Enhance Add Transaction (Date & Wa...
-48e0cfc feat: [Web | Android] Enhance Add Transaction (Date & Wa...
-b374223 ✨ feat(database): add transaction migration and testing infrastructure
-a644602 ✨ feat(wallet): add wallet management and date selection
-a0ab41f 📝 docs(changelog): Update changelog and version for 1.1.0 release
-6348fb9 ✨ feat(ui): add preview composables for BottomNav and DashboardTopBar
-65e8b7c 🛠️ refactor(ui): improve navigation and layout consistency
-1ac946d ✨ feat(navigation): implement unified navigation system
-01bd764 🎨 ui: Hide date in transaction cards
-ef70a51 ✨ feat(ui): Add transaction grouping by date with daily totals
-3bf3776 ✨ feat(transactions): add draft transaction functionality
-120e631 docs: update CHANGELOG v1.0.0 and bump version
-a265786 docs: update CHANGELOG with v1.0.0 - sample data update
-7e3f6e1 ✨ feat(mock-data): Update mock data with new values
 
 STATS:
-.idea/gradle.xml                                   |   1 +
- .luma_rules.json                                   |  29 ++
- .luma_state.json                                   |  20 ++
- CHANGELOG.md                                       |  27 +-
- README.md                                          |   5 +-
- app/build.gradle.kts                               |  13 +-
- .../com.oatrice.jarwise.data.AppDatabase/2.json    |  70 +++++
- .../com.oatrice.jarwise.data.AppDatabase/3.json    |  76 ++++++
- .../com.oatrice.jarwise.data.AppDatabase/4.json    | 120 ++++++++
- .../java/com/oatrice/jarwise/data/MigrationTest.kt |  48 ++++
- .../main/java/com/oatrice/jarwise/MainActivity.kt  |  87 ++++--
- .../java/com/oatrice/jarwise/data/AppDatabase.kt   |  35 ++-
- .../com/oatrice/jarwise/data/GeneratedMockData.kt  |  17 +-
- .../java/com/oatrice/jarwise/data/JarConfig.kt     |  31 +++
- .../java/com/oatrice/jarwise/data/JarConfigDao.kt  |  35 +++
- .../java/com/oatrice/jarwise/data/Transaction.kt   |   6 +-
- .../com/oatrice/jarwise/data/TransactionDao.kt     |  13 +
- .../jarwise/data/repository/JarConfigRepository.kt |  53 ++++
- .../com/oatrice/jarwise/ui/AddTransactionScreen.kt | 138 +++++++++-
- .../java/com/oatrice/jarwise/ui/DashboardScreen.kt | 239 ++++------------
- .../java/com/oatrice/jarwise/ui/MainViewModel.kt   |  67 ++++-
- .../com/oatrice/jarwise/ui/SlipImportScreen.kt     |  38 ++-
- .../oatrice/jarwise/ui/TransactionHistoryScreen.kt | 225 ++++++++++-----
- .../com/oatrice/jarwise/ui/components/BottomNav.kt | 165 +++++++++++
- .../jarwise/ui/components/DashboardTopBar.kt       | 164 +++++++++++
- .../jarwise/ui/components/TransactionCard.kt       | 117 +++++---
- .../jarwise/ui/managejars/ManageJarsScreen.kt      | 301 +++++++++++++++++++++
- .../jarwise/ui/managejars/ManageJarsViewModel.kt   | 176 ++++++++++++
- .../jarwise/ui/utils/ScrollVisibilityState.kt      |  65 +++++
- .../java/com/oatrice/jarwise/utils/Constants.kt    |  25 +-
- .../jarwise/utils/TransactionGroupingUtils.kt      |  93 +++++++
- .../oatrice/jarwise/data/TransactionDraftTest.kt   |  79 ++++++
- .../jarwise/ui/managejars/FakeJarConfigDao.kt      |  54 ++++
- .../ui/managejars/ManageJarsViewModelTest.kt       | 146 ++++++++++
- .../oatrice/jarwise/utils/MainDispatcherRule.kt    |  23 ++
- .../jarwise/utils/TransactionGroupingUtilsTest.kt  | 105 +++++++
- draft_pr_prompt.md                                 | 241 +++++++++++++++++
- draft_pr_prompt.txt                                |  68 +++++
- gradle/libs.versions.toml                          |   1 +
- scripts/run_tests.sh                               |   4 +-
- 40 files changed, 2886 insertions(+), 334 deletions(-)
+.luma_rules.json                                   |  29 +
+ .luma_state.json                                   |  16 +-
+ CHANGELOG.md                                       |   5 +
+ README.md                                          |   4 +-
+ app/build.gradle.kts                               |   3 +-
+ .../com.oatrice.jarwise.data.AppDatabase/4.json    | 120 +++++
+ .../main/java/com/oatrice/jarwise/MainActivity.kt  |  54 +-
+ .../java/com/oatrice/jarwise/data/AppDatabase.kt   |  18 +-
+ .../java/com/oatrice/jarwise/data/JarConfig.kt     |  31 ++
+ .../java/com/oatrice/jarwise/data/JarConfigDao.kt  |  35 ++
+ .../jarwise/data/repository/JarConfigRepository.kt |  53 ++
+ .../java/com/oatrice/jarwise/ui/DashboardScreen.kt |   5 +-
+ .../java/com/oatrice/jarwise/ui/MainViewModel.kt   |  50 +-
+ .../jarwise/ui/managejars/ManageJarsScreen.kt      | 301 +++++++++++
+ .../jarwise/ui/managejars/ManageJarsViewModel.kt   | 176 +++++++
+ .../jarwise/ui/managejars/FakeJarConfigDao.kt      |  54 ++
+ .../ui/managejars/ManageJarsViewModelTest.kt       | 146 ++++++
+ .../oatrice/jarwise/utils/MainDispatcherRule.kt    |  23 +
+ draft_pr_body.md                                   |  63 +++
+ draft_pr_prompt.md                                 | 584 +++++++++++++++++++++
+ 20 files changed, 1740 insertions(+), 30 deletions(-)
 
 KEY FILE DIFFS:
-diff --git a/.idea/gradle.xml b/.idea/gradle.xml
-index 97f0a8e..639c779 100644
---- a/.idea/gradle.xml
-+++ b/.idea/gradle.xml
-@@ -1,5 +1,6 @@
- <?xml version="1.0" encoding="UTF-8"?>
- <project version="4">
-+  <component name="GradleMigrationSettings" migrationVersion="1" />
-   <component name="GradleSettings">
-     <option name="linkedExternalProjectsSettings">
-       <GradleProjectSettings>
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
-index e4ba5aa..74e0edb 100644
+index 4c8efcf..74e0edb 100644
 --- a/app/build.gradle.kts
 +++ b/app/build.gradle.kts
 @@ -13,7 +13,7 @@ android {
          minSdk = 24
          targetSdk = 34
          versionCode = 1
--        versionName = "1.0"
+-        versionName = "1.2.0"
 +        versionName = "1.3.0"
  
          testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
          vectorDrawables {
-@@ -86,10 +86,21 @@ dependencies {
-     implementation(libs.mlkit.barcode.scanning)
- 
-     testImplementation(libs.junit)
-+
-+    testImplementation(libs.androidx.room.testing)
-+    testImplementation("org.robolectric:robolectric:4.11.1")
-+    testImplementation(libs.androidx.core.ktx)
-+    testImplementation(libs.androidx.junit)
-     androidTestImplementation(libs.androidx.junit)
-+    androidTestImplementation(libs.androidx.room.testing)
-     androidTestImplementation(libs.androidx.espresso.core)
-     androidTestImplementation(platform(libs.androidx.compose.bom))
+@@ -98,6 +98,7 @@ dependencies {
      androidTestImplementation(libs.androidx.ui.test.junit4)
      debugImplementation(libs.androidx.ui.tooling)
      debugImplementation(libs.androidx.ui.test.manifest)
 +    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-+}
-+
-+ksp {
-+    arg("room.schemaLocation", "$projectDir/schemas")
  }
-diff --git a/app/src/androidTest/java/com/oatrice/jarwise/data/MigrationTest.kt b/app/src/androidTest/java/com/oatrice/jarwise/data/MigrationTest.kt
-new file mode 100644
-index 0000000..d0758ee
---- /dev/null
-+++ b/app/src/androidTest/java/com/oatrice/jarwise/data/MigrationTest.kt
-@@ -0,0 +1,48 @@
-+package com.oatrice.jarwise.data
-+
-+import androidx.room.testing.MigrationTestHelper
-+import androidx.sqlite.db.framework.FrameworkSQLiteOpenHelperFactory
-+import androidx.test.ext.junit.runners.AndroidJUnit4
-+import androidx.test.platform.app.InstrumentationRegistry
-+import org.junit.Rule
-+import org.junit.Test
-+import org.junit.runner.RunWith
-+import java.io.IOException
-+
-+@RunWith(AndroidJUnit4::class)
-+class MigrationTest {
-+
-+    private val TEST_DB = "migration-test"
-+
-+    @get:Rule
-+    val helper: MigrationTestHelper = MigrationTestHelper(
-+        InstrumentationRegistry.getInstrumentation(),
-+        AppDatabase::class.java.canonicalName!!,
-+        FrameworkSQLiteOpenHelperFactory()
-+    )
-+
-+    @Test
-+    @Throws(IOException::class)
-+    fun migrate2To3() {
-+        var db = helper.createDatabase(TEST_DB, 2).apply {
-+            // Insert data manually for version 2
-+            execSQL("INSERT INTO transactions (id, amount, note, jarId, date, type, status) VALUES (1, 100.0, 'Test Tx', 'necessities', '2024-01-01', 'expense', 'completed')")
-+            close()
-+        }
-+
-+        // Migrate to version 3
-+        db = helper.runMigrationsAndValidate(TEST_DB, 3, true, AppDatabase.MIGRATION_2_3)
-+
-+        // Query to validate data survival and new column default value
-+        val cursor = db.query("SELECT * FROM transactions WHERE id = 1")
-+        cursor.moveToFirst()
-+        
-+        // Check new column 'walletId' exists and has default value
-+        val walletIdIndex = cursor.getColumnIndex("walletId")
-+        val walletId = cursor.getString(walletIdIndex)
-+        
-+        assert(walletId == "wallet-cash")
-+        
-+        cursor.close()
-+    }
-+}
+ 
+ ksp {
 diff --git a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
-index 0d798c4..5961cd0 100644
+index afb2974..5961cd0 100644
 --- a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
 @@ -15,8 +15,11 @@ import com.oatrice.jarwise.data.AppDatabase
@@ -199,14 +88,13 @@ index 0d798c4..5961cd0 100644
  }
  
  class MainActivity : ComponentActivity() {
-@@ -44,18 +48,34 @@ class MainActivity : ComponentActivity() {
-         val db = Room.databaseBuilder(
+@@ -45,19 +49,33 @@ class MainActivity : ComponentActivity() {
              applicationContext,
              AppDatabase::class.java, "jarwise-db"
--        ).build()
-+        )
+         )
+-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3)
 +            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
-+            .build()
+             .build()
          
          val userPreferencesRepository = UserPreferencesRepository(applicationContext)
          val currencyRepository = CurrencyRepository(userPreferencesRepository)
@@ -236,22 +124,7 @@ index 0d798c4..5961cd0 100644
  
          enableEdgeToEdge()
          setContent {
-@@ -66,22 +86,37 @@ class MainActivity : ComponentActivity() {
-                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
-                 val recentImages by slipViewModel.recentImages.collectAsState()
- 
-+                val handleNavigation: (com.oatrice.jarwise.ui.components.NavPage) -> Unit = { page ->
-+                    when (page) {
-+                        com.oatrice.jarwise.ui.components.NavPage.DASHBOARD -> currentScreen = Screen.Dashboard
-+                        com.oatrice.jarwise.ui.components.NavPage.HISTORY -> currentScreen = Screen.TransactionHistory
-+                        com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
-+                        // Add other destinations here when ready (WALLET, PROFILE)
-+                        else -> {}
-+                    }
-+                }
-+
-                 Surface(
-                     modifier = Modifier.fillMaxSize(),
+@@ -83,18 +101,22 @@ class MainActivity : ComponentActivity() {
                      color = MaterialTheme.colorScheme.background
                  ) {
                      when (currentScreen) {
@@ -264,7 +137,8 @@ index 0d798c4..5961cd0 100644
 -                            onNavigateToScan = { currentScreen = Screen.Scan },
 -                            onNavigateToImport = { currentScreen = Screen.SlipImport },
 -                            onNavigateToAdd = { currentScreen = Screen.AddTransaction },
--                            onNavigateToSettings = { currentScreen = Screen.Settings }
+-                            onNavigateToSettings = { currentScreen = Screen.Settings },
+-                            onNavigate = handleNavigation
 -                        )
 +                        is Screen.Dashboard -> {
 +                            val jars by viewModel.jars.collectAsState()
@@ -285,45 +159,7 @@ index 0d798c4..5961cd0 100644
                          is Screen.Settings -> SettingsScreen(
                               onBack = { currentScreen = Screen.Dashboard },
                               viewModel = viewModel
-@@ -89,7 +124,8 @@ class MainActivity : ComponentActivity() {
-                         is Screen.TransactionHistory -> TransactionHistoryScreen(
-                             transactions = transactions,
-                             selectedCurrency = selectedCurrency,
--                            onBack = { currentScreen = Screen.Dashboard }
-+                            onBack = { currentScreen = Screen.Dashboard },
-+                            onNavigate = handleNavigation
-                         )
-                         is Screen.Scan -> ScanScreen(
-                             onNavigateBack = { currentScreen = Screen.Dashboard },
-@@ -121,20 +157,33 @@ class MainActivity : ComponentActivity() {
-                                         sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
-                                         sdf.format(it)
-                                     }
--                                    viewModel.saveTransaction(amount, jarId, note, date)
-+                                    viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date)
-                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
--                                    // Navigate back or show success? For now, stay on screen or go to dashboard.
--                                    // currentScreen = Screen.Dashboard // Optional: auto-navigate
-+                                },
-+                                onSaveDraft = { _, parsedSlip, jarId ->
-+                                    val amount = parsedSlip.amount ?: 0.0
-+                                    val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
-+                                    val date = parsedSlip.date?.let {
-+                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
-+                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
-+                                        sdf.format(it)
-+                                    }
-+                                    viewModel.saveDraft(amount, jarId, "wallet-bank", note, date)
-+                                    android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
-                                 }
-                             )
-                         }
-                         is Screen.AddTransaction -> AddTransactionScreen(
-                             onBack = { currentScreen = Screen.Dashboard },
--                            onSave = { amount, jarId, note ->
--                                viewModel.saveTransaction(amount, jarId, note)
-+                            onSave = { amount, jarId, walletId, note, date ->
-+                                viewModel.saveTransaction(amount, jarId, walletId, note, date)
+@@ -158,6 +180,10 @@ class MainActivity : ComponentActivity() {
                                  currentScreen = Screen.Dashboard
                              }
                          )
@@ -335,35 +171,25 @@ index 0d798c4..5961cd0 100644
                  }
              }
 diff --git a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-index 1bd536a..57b1730 100644
+index 5077124..57b1730 100644
 --- a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-@@ -2,8 +2,41 @@ package com.oatrice.jarwise.data
+@@ -5,9 +5,10 @@ import androidx.room.RoomDatabase
+ import androidx.room.migration.Migration
+ import androidx.sqlite.db.SupportSQLiteDatabase
  
- import androidx.room.Database
- import androidx.room.RoomDatabase
-+import androidx.room.migration.Migration
-+import androidx.sqlite.db.SupportSQLiteDatabase
- 
--@Database(entities = [Transaction::class], version = 1, exportSchema = false)
+-@Database(entities = [Transaction::class], version = 3, exportSchema = true)
 +@Database(entities = [Transaction::class, JarConfig::class], version = 4, exportSchema = true)
  abstract class AppDatabase : RoomDatabase() {
      abstract fun transactionDao(): TransactionDao
 +    abstract fun jarConfigDao(): JarConfigDao
-+
-+    companion object {
-+        val MIGRATION_1_2 = object : Migration(1, 2) {
-+            override fun migrate(db: SupportSQLiteDatabase) {
-+                db.execSQL("ALTER TABLE transactions ADD COLUMN type TEXT NOT NULL DEFAULT 'expense'")
-+                db.execSQL("ALTER TABLE transactions ADD COLUMN status TEXT NOT NULL DEFAULT 'completed'")
-+            }
-+        }
-+
-+        val MIGRATION_2_3 = object : Migration(2, 3) {
-+            override fun migrate(db: SupportSQLiteDatabase) {
-+                db.execSQL("ALTER TABLE transactions ADD COLUMN walletId TEXT NOT NULL DEFAULT 'wallet-cash'")
-+            }
-+        }
+ 
+     companion object {
+         val MIGRATION_1_2 = object : Migration(1, 2) {
+@@ -22,5 +23,20 @@ abstract class AppDatabase : RoomDatabase() {
+                 db.execSQL("ALTER TABLE transactions ADD COLUMN walletId TEXT NOT NULL DEFAULT 'wallet-cash'")
+             }
+         }
 +
 +        val MIGRATION_3_4 = object : Migration(3, 4) {
 +            override fun migrate(db: SupportSQLiteDatabase) {
@@ -378,93 +204,9 @@ index 1bd536a..57b1730 100644
 +                """.trimIndent())
 +            }
 +        }
-+    }
+     }
  }
 +
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-index fcd9f11..e1887e6 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-@@ -8,6 +8,7 @@ import com.oatrice.jarwise.ui.theme.*
- 
- // WARNING: This file is auto-generated. Do not edit directly.
- // Generated from: shared-spec/data/mockData.json
-+// Generated at: 2026-01-18T06:16:41.633Z
- 
- object GeneratedMockData {
-     val jars = listOf(
-@@ -30,7 +31,7 @@ object GeneratedMockData {
-             level = 12,
-             icon = Icons.Rounded.AttachMoney,
-             color = Green400,
--            shadowColor = Green500,
-+            shadowColor = Blue500,
-             barColor = Green500
-         ),
-         Jar(
-@@ -41,7 +42,7 @@ object GeneratedMockData {
-             level = 2,
-             icon = Icons.Rounded.Gamepad,
-             color = Pink400,
--            shadowColor = Pink500,
-+            shadowColor = Blue500,
-             barColor = Pink500
-         ),
-         Jar(
-@@ -52,7 +53,7 @@ object GeneratedMockData {
-             level = 1,
-             icon = Icons.Rounded.School,
-             color = Yellow400,
--            shadowColor = Yellow500,
-+            shadowColor = Blue500,
-             barColor = Yellow500
-         ),
-         Jar(
-@@ -63,7 +64,7 @@ object GeneratedMockData {
-             level = 5,
-             icon = Icons.Rounded.Flight,
-             color = Purple400,
--            shadowColor = Purple500,
-+            shadowColor = Blue500,
-             barColor = Purple500
-         ),
-         Jar(
-@@ -74,7 +75,7 @@ object GeneratedMockData {
-             level = 1,
-             icon = Icons.Rounded.Favorite,
-             color = Red400,
--            shadowColor = Red500,
-+            shadowColor = Blue500,
-             barColor = Red500
-         )
-     )
-@@ -87,7 +88,7 @@ object GeneratedMockData {
-             category = "Play",
-             date = "Today, 10:43 AM",
-             icon = Icons.Rounded.Headphones,
--            color = Green500.copy(alpha = 0.1f),
-+            color = Green400.copy(alpha = 0.1f),
-             iconTint = Green400
-         ),
-         Transaction(
-@@ -97,7 +98,7 @@ object GeneratedMockData {
-             category = "Necessities",
-             date = "Yesterday, 6:30 PM",
-             icon = Icons.Rounded.ShoppingBag,
--            color = Blue500.copy(alpha = 0.1f),
-+            color = Blue400.copy(alpha = 0.1f),
-             iconTint = Blue400
-         ),
-         Transaction(
-@@ -107,7 +108,7 @@ object GeneratedMockData {
-             category = "Education",
-             date = "Dec 28, 2025",
-             icon = Icons.Rounded.School,
--            color = Yellow500.copy(alpha = 0.1f),
-+            color = Yellow400.copy(alpha = 0.1f),
-             iconTint = Yellow400
-         )
-     )
 diff --git a/app/src/main/java/com/oatrice/jarwise/data/JarConfig.kt b/app/src/main/java/com/oatrice/jarwise/data/JarConfig.kt
 new file mode 100644
 index 0000000..7ca6c72
@@ -522,7 +264,258 @@ index 0000000..d726ded
 +    @Query("SELECT * FROM jar_configs ORDER BY id")
 +    fun getAllFlow(): Flow<List<JarConfig>>
 +    
-+    @Query("SELECT * FROM jar_configs O
++    @Query("SELECT * FROM jar_configs ORDER BY id")
++    suspend fun getAll(): List<JarConfig>
++    
++    @Query("SELECT * FROM jar_configs WHERE id = :id")
++    suspend fun getById(id: String): JarConfig?
++    
++    @Insert(onConflict = OnConflictStrategy.REPLACE)
++    suspend fun insertAll(configs: List<JarConfig>)
++    
++    @Insert(onConflict = OnConflictStrategy.REPLACE)
++    suspend fun insert(config: JarConfig)
++    
++    @Update
++    suspend fun update(config: JarConfig)
++    
++    @Query("DELETE FROM jar_configs")
++    suspend fun deleteAll()
++    
++    @Query("SELECT COUNT(*) FROM jar_configs")
++    suspend fun count(): Int
++}
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt
+new file mode 100644
+index 0000000..206d273
+--- /dev/null
++++ b/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt
+@@ -0,0 +1,53 @@
++package com.oatrice.jarwise.data.repository
++
++import com.oatrice.jarwise.data.JarConfig
++import com.oatrice.jarwise.data.JarConfigDao
++import kotlinx.coroutines.flow.Flow
++
++/**
++ * Repository for managing jar configurations
++ */
++class JarConfigRepository(private val jarConfigDao: JarConfigDao) {
++    
++    /**
++     * Get all jar configs as Flow (reactive updates)
++     */
++    fun getAllJarConfigsFlow(): Flow<List<JarConfig>> = jarConfigDao.getAllFlow()
++    
++    /**
++     * Get all jar configs (one-shot)
++     */
++    suspend fun getAllJarConfigs(): List<JarConfig> = jarConfigDao.getAll()
++    
++    /**
++     * Get jar config by ID
++     */
++    suspend fun getJarConfigById(id: String): JarConfig? = jarConfigDao.getById(id)
++    
++    /**
++     * Update a single jar config
++     */
++    suspend fun updateJarConfig(config: JarConfig) = jarConfigDao.update(config)
++    
++    /**
++     * Save all jar configs (replace all)
++     */
++    suspend fun saveAllJarConfigs(configs: List<JarConfig>) = jarConfigDao.insertAll(configs)
++    
++    /**
++     * Reset to default 6 Jars configuration
++     */
++    suspend fun resetToDefaults() {
++        jarConfigDao.deleteAll()
++        jarConfigDao.insertAll(JarConfig.DEFAULTS)
++    }
++    
++    /**
++     * Initialize default jars if database is empty
++     */
++    suspend fun initializeDefaultsIfEmpty() {
++        if (jarConfigDao.count() == 0) {
++            jarConfigDao.insertAll(JarConfig.DEFAULTS)
++        }
++    }
++}
+diff --git a/app/src/main/java/com/oatrice/jarwise/ui/DashboardScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/DashboardScreen.kt
+index 695d662..4107fa4 100644
+--- a/app/src/main/java/com/oatrice/jarwise/ui/DashboardScreen.kt
++++ b/app/src/main/java/com/oatrice/jarwise/ui/DashboardScreen.kt
+@@ -103,6 +103,7 @@ fun DashboardScreen(
+     onNavigateToImport: () -> Unit = {},
+     onNavigateToAdd: () -> Unit = {},
+     onNavigateToSettings: () -> Unit = {},
++    onNavigateToManageJars: () -> Unit = {},
+     onNavigate: (NavPage) -> Unit = {}
+ ) {
+     // Scroll state for visibility tracking
+@@ -198,8 +199,8 @@ fun DashboardScreen(
+                         verticalAlignment = Alignment.CenterVertically
+                     ) {
+                         Text(text = "Your Jars", style = MaterialTheme.typography.titleMedium.copy(color = Gray100))
+-                        TextButton(onClick = { /* View All */ }) {
+-                            Text("View All", color = Blue500)
++                        TextButton(onClick = onNavigateToManageJars) {
++                            Text("Manage", color = Blue500)
+                         }
+                     }
+                 }
+diff --git a/app/src/main/java/com/oatrice/jarwise/ui/MainViewModel.kt b/app/src/main/java/com/oatrice/jarwise/ui/MainViewModel.kt
+index f842c53..f7007d9 100644
+--- a/app/src/main/java/com/oatrice/jarwise/ui/MainViewModel.kt
++++ b/app/src/main/java/com/oatrice/jarwise/ui/MainViewModel.kt
+@@ -6,6 +6,9 @@ import androidx.lifecycle.viewModelScope
+ import com.oatrice.jarwise.data.Transaction
+ import com.oatrice.jarwise.data.TransactionDao
+ import com.oatrice.jarwise.data.repository.CurrencyRepository
++import com.oatrice.jarwise.data.repository.JarConfigRepository
++import com.oatrice.jarwise.model.Jar
++import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
+ import com.oatrice.jarwise.utils.TransactionDisplayUtils
+ import kotlinx.coroutines.flow.SharingStarted
+ import kotlinx.coroutines.flow.combine
+@@ -16,9 +19,16 @@ import java.util.*
+ 
+ class MainViewModel(
+     private val dao: TransactionDao,
+-    private val currencyRepository: CurrencyRepository
++    private val currencyRepository: CurrencyRepository,
++    private val jarConfigRepository: JarConfigRepository
+ ) : ViewModel() {
+ 
++    init {
++        viewModelScope.launch {
++            jarConfigRepository.initializeDefaultsIfEmpty()
++        }
++    }
++
+     val transactions = dao.getAll().stateIn(
+         scope = viewModelScope,
+         started = SharingStarted.WhileSubscribed(5000),
+@@ -40,6 +50,39 @@ class MainViewModel(
+         initialValue = "..."
+     )
+ 
++    // Real Jars Data Integrator
++    val jars = combine(
++        jarConfigRepository.getAllJarConfigsFlow(),
++        transactions
++    ) { configs, txs ->
++        if (configs.isEmpty()) {
++            emptyList()
++        } else {
++            configs.map { config ->
++                val balance = txs.filter { it.jarId == config.id }.sumOf { it.amount }
++                // Simple level/goal logic for MVP
++                val level = (balance / 1000).toInt().coerceAtLeast(1)
++                val goal = 5000.0 // Hardcoded goal for now (Issue #67)
++
++                Jar(
++                    id = config.id,
++                    name = config.name,
++                    current = balance,
++                    goal = goal,
++                    level = level,
++                    icon = ManageJarsViewModel.getIconFromName(config.iconName),
++                    color = ManageJarsViewModel.getColorFromName(config.colorName),
++                    shadowColor = ManageJarsViewModel.getColorFromName(config.colorName), // Reuse same color for shadow/bar for now
++                    barColor = ManageJarsViewModel.getColorFromName(config.colorName)
++                )
++            }
++        }
++    }.stateIn(
++        scope = viewModelScope,
++        started = SharingStarted.WhileSubscribed(5000),
++        initialValue = emptyList()
++    )
++
+     fun saveTransaction(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
+         viewModelScope.launch {
+             val transaction = Transaction(
+@@ -81,12 +124,13 @@ class MainViewModel(
+ 
+     class Factory(
+         private val dao: TransactionDao,
+-        private val currencyRepository: CurrencyRepository
++        private val currencyRepository: CurrencyRepository,
++        private val jarConfigRepository: JarConfigRepository
+     ) : ViewModelProvider.Factory {
+         @Suppress("UNCHECKED_CAST")
+         override fun <T : ViewModel> create(modelClass: Class<T>): T {
+             if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
+-                return MainViewModel(dao, currencyRepository) as T
++                return MainViewModel(dao, currencyRepository, jarConfigRepository) as T
+             }
+             throw IllegalArgumentException("Unknown ViewModel class")
+         }
+diff --git a/app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsScreen.kt
+new file mode 100644
+index 0000000..aae5db5
+--- /dev/null
++++ b/app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsScreen.kt
+@@ -0,0 +1,301 @@
++package com.oatrice.jarwise.ui.managejars
++
++import androidx.compose.animation.*
++import androidx.compose.foundation.background
++import androidx.compose.foundation.clickable
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.lazy.LazyColumn
++import androidx.compose.foundation.lazy.itemsIndexed
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.rounded.*
++import androidx.compose.material3.*
++import androidx.compose.runtime.*
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.draw.clip
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.unit.dp
++import androidx.compose.ui.unit.sp
++import com.oatrice.jarwise.ui.theme.*
++
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++fun ManageJarsScreen(
++    viewModel: ManageJarsViewModel,
++    onBack: () -> Unit
++) {
++    val jars by viewModel.jars.collectAsState()
++    val selectedJarId by viewModel.selectedJarId.collectAsState()
++    val totalPercentage by viewModel.totalPercentage.collectAsState()
++    val isValid by viewModel.isValid.collectAsState()
++    val showResetDialog by viewModel.showResetDialog.collectAsState()
++
++    Scaffold(
++        topBar = {
++            TopAppBar(
++                title = { Text("Manage Jars", fontWeight = FontWeight.Bold) },
++                navigationIcon = {
++                    IconButton(onClick = onBack) {
++                        Icon(Icons.Rounded.ArrowBack, contentDescription = "Back")
++                    }
++                },
++                actions = {
++                    TextButton(onClick = { viewModel.showResetConfirmation() }) {
++                        Icon(Icons.Rounded.Refresh, contentDescription = "Reset", modifier = Modifier.size(18.dp))
++                        Spacer(modifier = Modifier.width(4.dp))
++                        Text("Reset")
++                    }
++                    Button(
++                        onClick = { viewModel.save(onBack) },
++                        enabled = isValid,
++                        colors = ButtonDefaults.buttonColors(
++                            containerColor = if (isValid) Green50
 ... (Diff truncated for size) ...
 
 PR TEMPLATE:

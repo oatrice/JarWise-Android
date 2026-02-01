@@ -1,5 +1,6 @@
 package com.oatrice.jarwise.ui.managejars
 
+import com.oatrice.jarwise.data.Allocation
 import com.oatrice.jarwise.data.repository.JarConfigRepository
 import com.oatrice.jarwise.utils.MainDispatcherRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,29 +25,35 @@ class ManageJarsViewModelTest {
 
     private lateinit var viewModel: ManageJarsViewModel
     private lateinit var fakeDao: FakeJarConfigDao
-    private lateinit var repository: JarConfigRepository
 
     @Before
-    fun setup() {
+    fun setup() = runTest {
         fakeDao = FakeJarConfigDao()
-        repository = JarConfigRepository(fakeDao)
-        viewModel = ManageJarsViewModel(repository)
+        
+        // Seed initial data
+        val defaults = listOf(
+            Allocation(id = 1, userId = "local_user", name = "Necessities", targetPercent = 55, sortOrder = 1, level = 0, parentId = null),
+            Allocation(id = 2, userId = "local_user", name = "Education", targetPercent = 10, sortOrder = 2, level = 0, parentId = null),
+            Allocation(id = 3, userId = "local_user", name = "Savings", targetPercent = 10, sortOrder = 3, level = 0, parentId = null),
+            Allocation(id = 4, userId = "local_user", name = "Play", targetPercent = 10, sortOrder = 4, level = 0, parentId = null),
+            Allocation(id = 5, userId = "local_user", name = "Investment", targetPercent = 10, sortOrder = 5, level = 0, parentId = null),
+            Allocation(id = 6, userId = "local_user", name = "Give", targetPercent = 5, sortOrder = 6, level = 0, parentId = null)
+        )
+        fakeDao.insertAll(defaults)
+        
+        viewModel = ManageJarsViewModel(fakeDao)
     }
+
+
 
     @Test
     fun `initial state should load defaults`() = runTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.jars.collect()
         }
-
-        // Wait for flow to emit defaults
-        val jars = viewModel.jars.value
         
-        // If empty, it might need time or dispatch
-        if (jars.isEmpty()) {
-            // Wait for update (using first filter) or use advanceUntilIdle if needed
-            // But Unconfined should be fast enough if collected
-        }
+        // Wait for potential emission
+        advanceUntilIdle()
 
         assertEquals(6, viewModel.jars.value.size)
         assertEquals("Necessities", viewModel.jars.value[0].name)
@@ -140,7 +147,7 @@ class ManageJarsViewModelTest {
         // Then
         assertTrue("Save callback should be called", successCalled)
         val savedData = fakeDao.getAll()
-        assertEquals(50, savedData.find { it.id == jar1 }?.percentage)
-        assertEquals(15, savedData.find { it.id == jar2 }?.percentage)
+        assertEquals(50, savedData.find { it.id == jar1 }?.targetPercent)
+        assertEquals(15, savedData.find { it.id == jar2 }?.targetPercent)
     }
 }
