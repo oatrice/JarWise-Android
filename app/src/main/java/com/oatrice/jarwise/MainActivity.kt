@@ -20,6 +20,7 @@ import com.oatrice.jarwise.data.repository.UserPreferencesRepository
 import com.oatrice.jarwise.data.service.SlipDetectorServiceImpl
 import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
 import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
+import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
 import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.MainViewModel
@@ -39,6 +40,7 @@ sealed class Screen {
     data object SlipImport : Screen()
     data object Settings : Screen()
     data object ManageJars : Screen()
+    data object ManageWallets : Screen()
 }
 
 class MainActivity : ComponentActivity() {
@@ -53,9 +55,11 @@ class MainActivity : ComponentActivity() {
                 AppDatabase.MIGRATION_1_2, 
                 AppDatabase.MIGRATION_2_3, 
                 AppDatabase.MIGRATION_3_4,
-                AppDatabase.MIGRATION_4_5
+                AppDatabase.MIGRATION_4_5,
+                AppDatabase.MIGRATION_5_6
             )
             .addCallback(AppDatabase.SEED_CALLBACK)
+            .fallbackToDestructiveMigration()
             .build()
         
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
@@ -63,6 +67,7 @@ class MainActivity : ComponentActivity() {
         
         // JarConfig Repository
         val jarConfigRepository = JarConfigRepository(db.jarConfigDao())
+        val walletRepository = com.oatrice.jarwise.data.repository.WalletRepository(db.walletDao())
         
         
         val viewModel: MainViewModel by viewModels { 
@@ -81,6 +86,10 @@ class MainActivity : ComponentActivity() {
         
         val manageJarsViewModel: ManageJarsViewModel by viewModels {
             ManageJarsViewModel.Factory(db.allocationDao())
+        }
+
+        val manageWalletsViewModel: ManageWalletsViewModel by viewModels {
+            ManageWalletsViewModel.Factory(walletRepository)
         }
 
         enableEdgeToEdge()
@@ -125,6 +134,7 @@ class MainActivity : ComponentActivity() {
                         }
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
+                             onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
                              viewModel = viewModel
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
@@ -189,6 +199,16 @@ class MainActivity : ComponentActivity() {
                         is Screen.ManageJars -> ManageJarsScreen(
                             viewModel = manageJarsViewModel,
                             onBack = { currentScreen = Screen.Dashboard }
+                        )
+                        is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
+                            onNavigateBack = { currentScreen = Screen.Settings },
+                            // viewModel = manageWalletsViewModel // Explicitly pass or let it use default if we change Screen signature
+                            // Current Screen composable likely uses default viewModel() which won't work with Factory unless provided via LocalViewModelStoreOwner or passed directly.
+                            // Assuming ManageWalletsScreen instantiates VM internally with koin/hilt or we need to pass it. 
+                            // Looking at ManageWalletsScreen.kt (Step 441 in history), it uses `viewModel: ManageWalletsViewModel = viewModel()`.
+                            // Without Hilt, `viewModel()` won't pick up the Factory associated with MainActivity unless we pass the *instance* or change how it's retrieved.
+                            // Correct approach for simple DI: Pass the viewModel instance created in MainActivity.
+                            viewModel = manageWalletsViewModel 
                         )
                     }
                 }

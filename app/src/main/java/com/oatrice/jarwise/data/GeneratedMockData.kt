@@ -11,6 +11,45 @@ import com.oatrice.jarwise.ui.theme.*
 // Generated at: 2026-01-31T11:24:59.073Z
 
 object GeneratedMockData {
+    val wallets = listOf(
+        com.oatrice.jarwise.model.Wallet(
+            id = "101",
+            name = "Bank Account",
+            balance = 15430.00,
+            color = Blue500,
+            icon = Icons.Rounded.AccountBalance,
+            parentId = null,
+            level = 0
+        ),
+        com.oatrice.jarwise.model.Wallet(
+            id = "102",
+            name = "K-Bank Savings",
+            balance = 12000.00,
+            color = Green500,
+            icon = Icons.Rounded.Savings,
+            parentId = "101",
+            level = 1
+        ),
+        com.oatrice.jarwise.model.Wallet(
+            id = "103",
+            name = "SCB Checking",
+            balance = 3430.00,
+            color = Purple500,
+            icon = Icons.Rounded.CreditCard,
+            parentId = "101",
+            level = 1
+        ),
+        com.oatrice.jarwise.model.Wallet(
+            id = "104",
+            name = "Cash Wallet",
+            balance = 1250.00,
+            color = Yellow500,
+            icon = Icons.Rounded.Wallet,
+            parentId = null,
+            level = 0
+        )
+    )
+
     val jars = listOf(
         Jar(
             id = "1",

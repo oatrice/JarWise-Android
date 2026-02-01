@@ -1,119 +1,118 @@
 # Luma Code Review Report
 
-**Date:** 2026-01-31 21:33:23
-**Files Reviewed:** ['app/src/main/java/com/oatrice/jarwise/data/AllocationDao.kt', 'app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsViewModel.kt', 'app/src/main/java/com/oatrice/jarwise/MainActivity.kt', 'draft_pr_prompt.md', 'app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt', 'app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsScreen.kt', 'app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt', 'app/src/main/java/com/oatrice/jarwise/data/Allocation.kt', 'app/src/test/java/com/oatrice/jarwise/data/AllocationDaoTest.kt', 'app/src/test/java/com/oatrice/jarwise/data/MigrationTest.kt', '.luma_state.json', 'app/schemas/com.oatrice.jarwise.data.AppDatabase/5.json']
+**Date:** 2026-02-01 18:59:37
+**Files Reviewed:** ['app/src/main/java/com/oatrice/jarwise/ui/managewallets/ManageWalletsViewModel.kt', 'app/src/main/java/com/oatrice/jarwise/data/WalletEntity.kt', '.luma_state.json', 'app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt', 'app/src/main/java/com/oatrice/jarwise/MainActivity.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt', 'app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt', 'app/src/main/java/com/oatrice/jarwise/ui/managewallets/AddEditWalletDialog.kt', 'app/src/main/java/com/oatrice/jarwise/model/Models.kt', 'gradle/libs.versions.toml', 'app/build.gradle.kts', 'app/src/test/java/com/oatrice/jarwise/ui/managewallets/ManageWalletsViewModelTest.kt', 'app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt', 'app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt', 'app/src/main/java/com/oatrice/jarwise/ui/managewallets/ManageWalletsScreen.kt', 'app/schemas/com.oatrice.jarwise.data.AppDatabase/6.json']
 
 ## 📝 Reviewer Feedback
 
-There is a critical data loss bug in the `ManageJarsViewModel` that will reset the `sortOrder` of all allocations every time the user saves their changes.
+The code changes introduce hierarchical wallet management, which is a significant feature. The core logic in the ViewModel, database migration, and UI implementation are well-executed. However, there is a critical error in the unit tests that prevents them from compiling.
 
-### **Issue: `sortOrder` is not preserved on save**
+**File**: `app/src/test/java/com/oatrice/jarwise/ui/managewallets/ManageWalletsViewModelTest.kt`
 
-In `ManageJarsViewModel.kt`, the `save()` function reconstructs `Allocation` objects from `EditableJar` objects before updating them in the database. However, the `EditableJar` data class does not contain the `sortOrder` field.
+**Issue**:
+The `ManageWalletsViewModel` is instantiated without its required dependency in the test's `setup` function.
 
-When the `Allocation` object is created inside the `save` function, the `sortOrder` field is omitted. Because the `Allocation` data class has a default value (`sortOrder: Int = 0`), every item updated will have its `sortOrder` reset to `0`. This will break the user-defined ordering of jars and categories.
-
-**File:** `app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsViewModel.kt`
-
-**Problematic Code in `save()`:**
+**Problematic Code**:
 ```kotlin
-// ...
-val allocation = Allocation(
-    id = editable.id,
-    userId = editable.userId,
-    name = editable.name,
-    parentId = editable.parentId,
-    level = editable.level,
-    targetPercent = if (editable.level == 0) editable.percentage else null,
-    icon = editable.iconName,
-    color = editable.colorName,
-    isSystemDefault = editable.isSystemDefault,
-    isActive = true
-    // sortOrder is missing here!
-)
-allocationDao.update(allocation)
-// ...
+@Before
+fun setup() {
+    Dispatchers.setMain(testDispatcher)
+    viewModel = ManageWalletsViewModel() // This will not compile
+}
 ```
 
-### **Fix**
+The `ManageWalletsViewModel` constructor requires an instance of `WalletRepository`:
+`class ManageWalletsViewModel(private val walletRepository: WalletRepository) : ViewModel()`
 
-To fix this, you need to add `sortOrder` to the `EditableJar` data class and ensure it's mapped correctly throughout the ViewModel.
+**Fix**:
+To fix this, you need to provide a fake or mock implementation of `WalletRepository` for your tests. This allows you to control the data and verify the ViewModel's logic in isolation.
 
-1.  **Update `EditableJar` data class:** Add the `sortOrder` property.
+**Example Fix**:
 
-    **File:** `app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsViewModel.kt`
-    ```kotlin
-    data class EditableJar(
-        val id: Long,
-        val userId: String,
-        val name: String,
-        val percentage: Int, // Represents targetPercent
-        val colorName: String,
-        val iconName: String,
-        val color: Color,
-        val icon: ImageVector,
-        val parentId: Long?,
-        val level: Int,
-        val isSystemDefault: Boolean,
-        val sortOrder: Int // <-- ADD THIS
-    )
-    ```
+1.  Create a simple fake repository that simulates the database behavior using an in-memory list.
+2.  Instantiate the ViewModel with this fake repository.
 
-2.  **Update `toEditableJar()` extension function:** Map the `sortOrder` from the `Allocation` entity.
+```kotlin
+import com.oatrice.jarwise.data.repository.WalletRepository
+import com.oatrice.jarwise.model.Wallet
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import org.mockito.Mockito.mock // Or use a fake DAO
 
-    **File:** `app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsViewModel.kt`
-    ```kotlin
-    private fun Allocation.toEditableJar() = EditableJar(
-        id = id,
-        userId = userId,
-        name = name,
-        percentage = targetPercent ?: 0,
-        colorName = color,
-        iconName = icon,
-        color = getColorFromName(color),
-        icon = getIconFromName(icon),
-        parentId = parentId,
-        level = level,
-        isSystemDefault = isSystemDefault,
-        sortOrder = sortOrder // <-- ADD THIS
-    )
-    ```
+// A simple fake repository for testing
+class FakeWalletRepository : WalletRepository(mock(com.oatrice.jarwise.data.WalletDao::class.java)) {
+    private val walletsData = MutableStateFlow<List<Wallet>>(emptyList())
 
-3.  **Update the `save()` function:** Include `sortOrder` when reconstructing the `Allocation` object.
+    override val wallets: Flow<List<Wallet>> = walletsData
 
-    **File:** `app/src/main/java/com/oatrice/jarwise/ui/managejars/ManageJarsViewModel.kt`
-    ```kotlin
-    fun save(onSuccess: () -> Unit) {
-        // ...
-        viewModelScope.launch {
-            _jars.value.forEach { editable ->
-                val allocation = Allocation(
-                    id = editable.id,
-                    userId = editable.userId,
-                    name = editable.name,
-                    parentId = editable.parentId,
-                    level = editable.level,
-                    targetPercent = if (editable.level == 0) editable.percentage else null,
-                    icon = editable.iconName,
-                    color = editable.colorName,
-                    isSystemDefault = editable.isSystemDefault,
-                    isActive = true,
-                    sortOrder = editable.sortOrder // <-- ADD THIS
-                )
-                allocationDao.update(allocation)
-            }
-            onSuccess()
+    override suspend fun insertWallet(wallet: Wallet) {
+        val currentList = walletsData.value.toMutableList()
+        // In a real test, you might want to handle ID generation if the test depends on it
+        val walletToInsert = if (wallet.id.isBlank()) wallet.copy(id = System.nanoTime().toString()) else wallet
+        currentList.add(walletToInsert)
+        walletsData.value = currentList
+    }
+
+    override suspend fun updateWallet(wallet: Wallet) {
+        val currentList = walletsData.value.toMutableList()
+        val index = currentList.indexOfFirst { it.id == wallet.id }
+        if (index != -1) {
+            currentList[index] = wallet
+            walletsData.value = currentList
         }
     }
-    ```
+    
+    override suspend fun initializeDefaultsIfEmpty() {
+        // Can be left empty or implemented if tests rely on default data
+    }
+
+    // Implement other methods like deleteWallet if needed by tests
+}
+
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class ManageWalletsViewModelTest {
+
+    private lateinit var viewModel: ManageWalletsViewModel
+    private lateinit var fakeRepository: FakeWalletRepository // Declare the fake
+    private val testDispatcher = StandardTestDispatcher()
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+        fakeRepository = FakeWalletRepository() // Instantiate the fake
+        viewModel = ManageWalletsViewModel(fakeRepository) // Pass the dependency
+    }
+
+    // ... rest of your tests ...
+    
+    // Example of how to use the fake repository in a test
+    @Test
+    fun `adding a child wallet correctly sets its level`() = runTest(testDispatcher) {
+        // Setup: Parent (L0)
+        val parent = createWallet(id = "parent", level = 0)
+        fakeRepository.insertWallet(parent) // Use the fake to set up state
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Act: Add Child with parentId
+        val child = createWallet(id = "child", parentId = "parent", level = 0)
+        viewModel.addWallet(child)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        // Assert: Child should have level 1
+        val addedChild = viewModel.wallets.value.find { it.id == "child" }
+        assertEquals(1, addedChild?.level)
+    }
+}
+```
+
+Once the test file is fixed to correctly instantiate the `ManageWalletsViewModel`, the rest of the implementation appears correct and robust.
 
 ## 🧪 Test Suggestions
 
-Here are 3 critical, edge-case test cases that should be added or verified based on the code changes:
+*   **Circular Dependency:** Create a three-level hierarchy (e.g., Wallet A -> Wallet B -> Wallet C). Attempt to update the top-level wallet (A) by setting its parent to its own descendant (C). The operation must be rejected, and the "Circular Dependency" error should be triggered.
 
-*   **Orphaned Category:** Create a category (an `Allocation` with a `parentId`) in the database, but ensure its `parentId` points to a non-existent jar ID. The test should verify that the application does not crash and that this orphaned category is correctly excluded from the UI list, as the new `organizeJarsAndCategories` logic would not be able to find its parent in the `topLevelJars` list.
+*   **Maximum Depth Violation on Reparenting:** Create two separate wallet trees: Tree 1 (A -> B) and Tree 2 (C -> D). Attempt to move the root of Tree 2 (C) to become a child of the deepest node in Tree 1 (B). This would create a four-level hierarchy (A -> B -> C -> D), which should be blocked by the "Maximum hierarchy depth" validation.
 
-*   **Demoting the Last Jar:** With only one top-level jar remaining in the database, attempt to demote it to a category. The test should verify that the UI either prevents this action (as a category must have a parent) or, if the action is allowed, that the resulting UI correctly displays an empty list, since there are no longer any top-level jars to render.
-
-*   **Circular Dependency (Self-Parenting):** Attempt to demote a jar and select itself as the new parent. The UI logic should prevent this action. A test should verify that the `demoteToCategory` function is not called with an `id` and `newParentId` that are identical, as this would cause the jar to become an orphan and disappear from the view.
+*   **Reparenting to a Non-Existent Parent:** Create a wallet (A) that has a parent. Attempt to update wallet A by changing its `parentId` to an ID that does not exist in the current list of wallets. The update should be processed gracefully, resulting in wallet A becoming a root-level item (level 0) without causing a crash.
 

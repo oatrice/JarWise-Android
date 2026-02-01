@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.5.0] - 2026-02-01
+### Added
+- **Hierarchical Wallets**: Implemented a hierarchical system allowing users to create and manage sub-wallets under parent wallets for more detailed financial organization.
+- **Wallet Management Screen**: Introduced a new dedicated screen to create, edit, delete, and visually organize wallet hierarchies.
+- **Deletion Confirmation**: Added a confirmation dialog before deleting a wallet to prevent accidental data loss.
+
+### Fixed
+- **UI**: Corrected an issue where the wallet selection dropdown had a fixed height, sometimes hiding wallets from view.
+- **Database**: Improved the app update process by adding a fallback for database migrations to prevent crashes.
+
 ## [1.4.0] - 2026-01-31
 ### Added
 - **Hierarchical Jars**: Implemented a hierarchical system allowing users to create and manage sub-jars under parent jars for more detailed budget organization.

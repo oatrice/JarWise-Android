@@ -25,3 +25,13 @@ data class Transaction(
     val color: Color, // Icon background tint
     val iconTint: Color // Icon foreground color
 )
+
+data class Wallet(
+    val id: String,
+    val name: String,
+    val balance: Double,
+    val color: Color,
+    val icon: ImageVector,
+    val parentId: String? = null,
+    val level: Int = 0
+)
