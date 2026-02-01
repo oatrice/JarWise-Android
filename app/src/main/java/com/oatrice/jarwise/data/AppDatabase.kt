@@ -61,6 +61,7 @@ abstract class AppDatabase : RoomDatabase() {
 
                 // Create Index
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_allocations_userId_parentId` ON `allocations` (`userId`, `parentId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_allocations_parentId` ON `allocations` (`parentId`)")
 
                 // Migrate data from jar_configs to allocations (as system default jars)
                 // Note: jar_configs.id is String '1'-'6', we need to map to Long id

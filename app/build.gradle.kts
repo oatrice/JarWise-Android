@@ -49,9 +49,15 @@ android {
         }
     }
 
-    sourceSets {
-        getByName("test") {
-            assets.srcDirs("$projectDir/schemas")
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.testLogging {
+                    events("passed", "skipped", "failed", "standardOut", "standardError")
+                    showStandardStreams = true
+                }
+            }
         }
     }
 }
