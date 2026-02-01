@@ -5,11 +5,12 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Transaction::class, JarConfig::class, Allocation::class], version = 5, exportSchema = true)
+@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 6, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun jarConfigDao(): JarConfigDao
     abstract fun allocationDao(): AllocationDao
+    abstract fun walletDao(): WalletDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -64,8 +65,6 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_allocations_parentId` ON `allocations` (`parentId`)")
 
                 // Migrate data from jar_configs to allocations (as system default jars)
-                // Note: jar_configs.id is String '1'-'6', we need to map to Long id
-                // We'll migrate them as new allocations with level=0, parentId=NULL
                 db.execSQL("""
                     INSERT INTO allocations (userId, name, level, targetPercent, icon, color, sortOrder, isSystemDefault, isActive)
                     SELECT 
@@ -79,6 +78,23 @@ abstract class AppDatabase : RoomDatabase() {
                         1, 
                         1 
                     FROM jar_configs
+                """.trimIndent())
+            }
+        }
+
+        // Migration for Wallets (New Version 6)
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS wallets (
+                        id TEXT PRIMARY KEY NOT NULL,
+                        name TEXT NOT NULL,
+                        balance REAL NOT NULL,
+                        colorArgb INTEGER NOT NULL,
+                        iconName TEXT NOT NULL,
+                        parentId TEXT,
+                        level INTEGER NOT NULL
+                    )
                 """.trimIndent())
             }
         }

@@ -24,7 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+// import androidx.lifecycle.viewmodel.compose.viewModel // Unused
 import com.oatrice.jarwise.model.Wallet
 import com.oatrice.jarwise.ui.theme.*
 import androidx.compose.material.icons.rounded.Wallet
@@ -33,10 +33,10 @@ import androidx.compose.material.icons.rounded.Wallet
 @Composable
 fun ManageWalletsScreen(
     onNavigateBack: () -> Unit,
-    vm: ManageWalletsViewModel = viewModel()
+    viewModel: ManageWalletsViewModel
 ) {
-    val wallets by vm.wallets.collectAsState()
-    val uiEvent by vm.uiEvent.collectAsState()
+    val wallets by viewModel.wallets.collectAsState()
+    val uiEvent by viewModel.uiEvent.collectAsState()
     
     // Handle UI Events (Error Toasts/Snackbars)
     val snackbarHostState = remember { SnackbarHostState() }
@@ -45,7 +45,7 @@ fun ManageWalletsScreen(
             when (event) {
                 is ManageWalletsViewModel.UiEvent.ShowError -> {
                     snackbarHostState.showSnackbar(event.message)
-                    vm.clearEvent()
+                    viewModel.clearEvent()
                 }
             }
         }
@@ -65,7 +65,7 @@ fun ManageWalletsScreen(
             onSave = { name, parentId ->
                 if (editingWallet == null) {
                     // Add New
-                    vm.addWallet(
+                    viewModel.addWallet(
                         Wallet(
                             id = "", // ID generated in VM
                             name = name,
@@ -78,7 +78,7 @@ fun ManageWalletsScreen(
                     )
                 } else {
                     // Update Existing
-                    vm.updateWallet(
+                    viewModel.updateWallet(
                         editingWallet!!.copy(
                             name = name,
                             parentId = parentId
@@ -129,7 +129,7 @@ fun ManageWalletsScreen(
             items(displayList) { wallet ->
                 WalletTreeItem(
                     wallet = wallet,
-                    onDelete = { vm.deleteWallet(wallet.id) },
+                    onDelete = { viewModel.deleteWallet(wallet.id) },
                     onEdit = { 
                         editingWallet = wallet
                         showAddEditDialog = true
