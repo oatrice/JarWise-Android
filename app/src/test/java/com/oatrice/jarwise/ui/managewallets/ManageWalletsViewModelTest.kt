@@ -16,6 +16,9 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 
 import com.oatrice.jarwise.data.repository.WalletRepository
 import kotlinx.coroutines.flow.Flow
@@ -60,13 +63,19 @@ class ManageWalletsViewModelTest {
 
     private lateinit var viewModel: ManageWalletsViewModel
     private lateinit var fakeRepository: FakeWalletRepository
-    private val testDispatcher = StandardTestDispatcher()
+    private val testDispatcher = UnconfinedTestDispatcher()
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         fakeRepository = FakeWalletRepository()
         viewModel = ManageWalletsViewModel(fakeRepository)
+    }
+
+    private fun kotlinx.coroutines.test.TestScope.startCollectingWallets() {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
+            viewModel.wallets.collect()
+        }
     }
 
     @After
@@ -88,6 +97,7 @@ class ManageWalletsViewModelTest {
 
     @Test
     fun `adding a child wallet correctly sets its level`() = runTest(testDispatcher) {
+        startCollectingWallets()
         // Setup: Parent (L0)
         val parent = createWallet(id = "parent", level = 0)
         viewModel.addWallet(parent)
@@ -105,6 +115,7 @@ class ManageWalletsViewModelTest {
 
     @Test
     fun `re-parenting a wallet updates its level correctly`() = runTest(testDispatcher) {
+        startCollectingWallets()
         // Setup: Parent (L0) and Child (L0 initially)
         val parent = createWallet(id = "parent", level = 0)
         val child = createWallet(id = "child", level = 0)
@@ -133,6 +144,7 @@ class ManageWalletsViewModelTest {
 
     @Test
     fun `re-parenting updates children recursively`() = runTest(testDispatcher) {
+        startCollectingWallets()
         // Setup: Root -> Parent -> Child
         // Initially: All separate
         val root = createWallet(id = "root", level = 0)
@@ -171,6 +183,7 @@ class ManageWalletsViewModelTest {
 
     @Test
     fun `circular dependency is detected and blocked`() = runTest(testDispatcher) {
+        startCollectingWallets()
         // A -> B
         val a = createWallet("A", level = 0)
         val b = createWallet("B", parentId = "A", level = 1)
@@ -194,6 +207,7 @@ class ManageWalletsViewModelTest {
 
     @Test
     fun `max depth exceeded is blocked`() = runTest(testDispatcher) {
+        startCollectingWallets()
         // 0 -> 1 -> 2 (Max is 2, Depth 3 levels: 0, 1, 2)
         // If we try to add another level, it should fail
         

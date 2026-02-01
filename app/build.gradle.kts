@@ -130,6 +130,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation("org.mockito:mockito-core:5.10.0")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.2.1")
 }
 
 ksp {

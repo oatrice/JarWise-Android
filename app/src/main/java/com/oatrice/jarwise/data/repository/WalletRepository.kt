@@ -14,21 +14,21 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 
-class WalletRepository(private val walletDao: WalletDao) {
+open class WalletRepository(private val walletDao: WalletDao) {
 
-    val wallets: Flow<List<Wallet>> = walletDao.getAllWallets().map { entities ->
+    open val wallets: Flow<List<Wallet>> = walletDao.getAllWallets().map { entities ->
         entities.map { it.toWallet() }
     }
 
-    suspend fun insertWallet(wallet: Wallet) {
+    open suspend fun insertWallet(wallet: Wallet) {
         walletDao.insertWallet(wallet.toEntity())
     }
 
-    suspend fun updateWallet(wallet: Wallet) {
+    open suspend fun updateWallet(wallet: Wallet) {
         walletDao.updateWallet(wallet.toEntity())
     }
 
-    suspend fun deleteWallet(id: String) {
+    open suspend fun deleteWallet(id: String) {
         walletDao.deleteWallet(id)
     }
 
@@ -76,7 +76,7 @@ class WalletRepository(private val walletDao: WalletDao) {
     /**
      * Initialize default wallets if database is empty
      */
-    suspend fun initializeDefaultsIfEmpty() {
+    suspend open fun initializeDefaultsIfEmpty() {
         val currentWallets = walletDao.getAllWallets().first()
         if (currentWallets.isEmpty()) { 
              val defaults = listOf(
