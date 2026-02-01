@@ -10,6 +10,7 @@ ISSUE: {
 
 GIT CONTEXT:
 COMMITS:
+e0b9588 feat: [Web | Android] Support Hierarchical Wallets (Sub-...
 8c6a50d feat: [Web | Android] Support Hierarchical Wallets (Sub-...
 8f64d86 ✨ feat(wallet): adds hierarchical wallet management and fixes UI/database issues
 fb71ef8 🐛 fix(test): correct viewmodel instantiation in tests
@@ -39,10 +40,11 @@ STATS:
  .../ui/managewallets/ManageWalletsViewModel.kt     | 149 ++++
  .../ui/managewallets/ManageWalletsViewModelTest.kt | 228 ++++++
  code_review.md                                     | 197 +++--
- draft_pr_prompt.md                                 | 797 +++++++++++----------
+ draft_pr_body.md                                   | 182 +++--
+ draft_pr_prompt.md                                 | 800 +++++++++++----------
  draft_pr_prompt.txt                                |  68 --
  gradle/libs.versions.toml                          |   1 +
- 20 files changed, 1916 insertions(+), 575 deletions(-)
+ 21 files changed, 2054 insertions(+), 622 deletions(-)
 
 KEY FILE DIFFS:
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
