@@ -3,18 +3,19 @@
   "project_key": "3",
   "phase": "coding",
   "active_issue": {
-    "number": 67,
-    "title": "[Feature] Hierarchical Accounts & Categories (Sub-Wallet, Sub-Jar)",
-    "html_url": "https://github.com/oatrice/JarWise-Root/issues/67",
-    "body": "# 🎯 Objective\nImplement hierarchical structure for Accounts (Wallets) and Categories (Jars), enabling sub-items, flexible reorganization, and Promote/Demote functionality.\n\n## 📝 Core Features\n\n### Dynamic Jars (Not Fixed 6)\n- [ ] **Custom Jars**: User can add/delete Jars beyond the default 6\n- [ ] **Default 6**: Pre-seed NEC, PLAY, EDU, FFA, GIVE, LTSS but allow modification\n- [ ] **% Target**: Optional - sum doesn't have to equal 100%\n\n### Nested Structure\n- [ ] **Parent-Child Relationships**: Jars → Categories → Sub-Categories\n- [ ] **Unlimited Depth**: (Consider limiting to 2-3 levels for UX)\n- [ ] **CRUD Operations**: Add, Edit, Delete at any level\n\n### Hierarchy Operations\n- [ ] **Promote**: Move Category up to become a Jar (with Goal support)\n- [ ] **Demote**: Move Jar down to become Category under another Jar\n- [ ] **Reorder**: Change sort order within same level\n- [ ] **Re-parent**: Move item under different parent\n\n## 🔄 Promote/Demote Use Case\n\n**Example: PLAY-EXTRA (Travel Expenses)**\n- Initially: Category under PLAY\n- Problem: Large travel expenses bloat PLAY report\n- Solution: **Promote to Jar** → EXTRA becomes separate Jar with own Goal\n- Reversible: Can **Demote back** to Category if needed\n\n### Transaction Handling\n| Action | Transaction Impact |\n|--------|-------------------|\n| Promote (Cat → Jar) | Update jar_id to new Jar ID |\n| Demote (Jar → Cat) | Update jar_id back to Parent Jar |\n| Delete Jar/Cat | Require re-assignment before delete |\n\n## 📐 Proposed Schema (Unified Allocations)\n\n```sql\nCREATE TABLE allocations (\n    id INTEGER PRIMARY KEY AUTOINCREMENT,\n    name VARCHAR(50) NOT NULL,\n    parent_id INTEGER,           -- NULL = top-level Jar\n    level INTEGER DEFAULT 0,     -- 0 = Jar, 1 = Category\n    target_percent INTEGER,      -- Only for level=0 (Jars)\n    icon VARCHAR(50),\n    color VARCHAR(20),\n    sort_order INTEGER DEFAULT 0,\n    is_system_default BOOLEAN DEFAULT 0,\n    is_active BOOLEAN DEFAULT 1,\n    FOREIGN KEY (parent_id) REFERENCES allocations(id)\n);\n```\n\n## 🔗 Related Issues\n- #57 (Custom Jars/Wallets)\n- #65 (Money Manager Migration - needs dynamic structure)\n- #68 (Report Filter - filter by Jar/Category)\n\n## 🔗 References\n- Feature ID: `HIER-01`",
-    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgklQYs",
+    "number": 69,
+    "title": "[Web | Android] Support Hierarchical Wallets (Sub-accounts)",
+    "html_url": "https://github.com/oatrice/JarWise-Root/issues/69",
+    "body": "# Feature: Support Hierarchical Wallets (Sub-accounts)\n\n## Overview\nEnable users to organize their wallets (accounts) in a hierarchical structure, allowing for sub-accounts (e.g., \"Bank Account\" -> \"Savings\" | \"Checking\"). This enhances the flexibility of financial tracking.\n\n## Core Objective\n- Implement `parentId` logic for Wallet Allocations.\n- Provide a UI for managing this hierarchy.\n\n## Implementation Phases\n### Phase 1: Web Mock UI (Priority)\n- [ ] Create Mock UI for creating sub-wallets.\n- [ ] Visual tree representation of wallets.\n- [ ] Drag-and-drop or parent selection support.\n\n### Phase 2: Android Implementation (Future)\n- [ ] Update `ManageWalletsViewModel` to support hierarchy.\n- [ ] Update UI to display tree structure.\n\n## Technical Details\n- **Schema:** Uses existing `Allocation` table (`parentId` field).\n- **Type:** `Allocation.type` (implied constraints) or separated UI logic.\n\n## Acceptance Criteria\n- [ ] User can create a Wallet under another Wallet.\n- [ ] Hierarchy is visually distinct in the management list.\n- [ ] Deleting a parent prompt for reassignment (aligned with Jar logic).\n",
+    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgkl3lI",
     "project_id": "PVT_kwHOATfKEM4BMuLi",
     "repository": "oatrice/JarWise-Root"
   },
-  "active_branch": "feat/67-hierarchical-accounts-categories",
-  "started_at": "2026-01-31T17:38:53.821567",
+  "active_branch": "feat/69-hierarchical-wallets",
+  "started_at": "2026-02-01T12:02:25.385195",
   "checklist": {},
+  "context": {},
   "pr_url": null,
   "pr_number": null,
-  "last_updated": "2026-01-31T17:38:55.362234"
+  "last_updated": "2026-02-01T12:02:27.333732"
 }
