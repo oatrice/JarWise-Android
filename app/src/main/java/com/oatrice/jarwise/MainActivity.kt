@@ -56,6 +56,7 @@ class MainActivity : ComponentActivity() {
                 AppDatabase.MIGRATION_4_5
             )
             .addCallback(AppDatabase.SEED_CALLBACK)
+            .fallbackToDestructiveMigration()
             .build()
         
         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
