@@ -33,6 +33,13 @@ fun ManageJarsScreen(
     val isValid by viewModel.isValid.collectAsState()
     val showResetDialog by viewModel.showResetDialog.collectAsState()
 
+    DisposableEffect(Unit) {
+        viewModel.setBackupPaused(true)
+        onDispose {
+            viewModel.setBackupPaused(false)
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

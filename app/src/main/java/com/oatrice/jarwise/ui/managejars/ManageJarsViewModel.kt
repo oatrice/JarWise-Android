@@ -61,13 +61,11 @@ class ManageJarsViewModel(
     private val currentUserId = "local_user"
 
     init {
-        backupManager.setAutoBackupPaused(true)
         loadAllocations()
     }
-    
-    override fun onCleared() {
-        super.onCleared()
-        backupManager.setAutoBackupPaused(false)
+
+    fun setBackupPaused(paused: Boolean) {
+        backupManager.setAutoBackupPaused(paused)
     }
 
     private fun loadAllocations() {
@@ -158,7 +156,6 @@ class ManageJarsViewModel(
                 )
                 allocationDao.update(allocation)
             }
-            backupManager.triggerManualBackup()
             onSuccess()
         }
     }
