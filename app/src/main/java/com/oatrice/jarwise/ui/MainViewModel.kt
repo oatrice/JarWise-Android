@@ -20,7 +20,8 @@ import java.util.*
 class MainViewModel(
     private val dao: TransactionDao,
     private val currencyRepository: CurrencyRepository,
-    private val jarConfigRepository: JarConfigRepository
+    private val jarConfigRepository: JarConfigRepository,
+    private val logger: com.oatrice.jarwise.utils.AppLogger
 ) : ViewModel() {
 
     init {
@@ -93,6 +94,7 @@ class MainViewModel(
                 date = date ?: getCurrentIsoDate()
             )
             dao.insert(transaction)
+            logger.d("Transaction", "Saved new transaction")
         }
     }
 

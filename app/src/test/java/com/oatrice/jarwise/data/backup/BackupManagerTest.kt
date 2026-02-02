@@ -12,10 +12,13 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import java.io.File
 
+import com.oatrice.jarwise.utils.AppLogger
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class BackupManagerTest {
 
     private val cloudStorageService: CloudStorageService = mock()
+    private val logger: AppLogger = mock()
     private val authService: AuthService = mock() // We will likely need this later, but kept minimal for now
     private val testDispatcher = StandardTestDispatcher()
     private val testScope = TestScope(testDispatcher)
@@ -30,7 +33,8 @@ class BackupManagerTest {
         val manager = BackupManager(
             cloudStorageService = cloudStorageService,
             externalScope = this,
-            dbFileProvider = { dbFile }
+            dbFileProvider = { dbFile },
+            logger = logger
         )
 
         manager.triggerBackup()
@@ -49,7 +53,8 @@ class BackupManagerTest {
         val manager = BackupManager(
             cloudStorageService = cloudStorageService,
             externalScope = this,
-             dbFileProvider = { dbFile }
+             dbFileProvider = { dbFile },
+             logger = logger
         )
 
         manager.triggerBackup()
@@ -70,7 +75,8 @@ class BackupManagerTest {
         val manager = BackupManager(
             cloudStorageService = cloudStorageService,
             externalScope = this,
-             dbFileProvider = { dbFile }
+             dbFileProvider = { dbFile },
+             logger = logger
         )
 
         // Mock success
@@ -93,7 +99,8 @@ class BackupManagerTest {
         val manager = BackupManager(
             cloudStorageService = cloudStorageService,
             externalScope = this,
-             dbFileProvider = { dbFile }
+             dbFileProvider = { dbFile },
+             logger = logger
         )
 
         // Mock failure

@@ -20,7 +20,8 @@ sealed class SyncStatus {
 class BackupManager(
     private val cloudStorageService: CloudStorageService,
     private val externalScope: CoroutineScope,
-    private val dbFileProvider: () -> File
+    private val dbFileProvider: () -> File,
+    private val logger: com.oatrice.jarwise.utils.AppLogger
 ) {
     private var backupJob: Job? = null
     private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
@@ -41,12 +42,15 @@ class BackupManager(
     }
 
     private suspend fun performBackup() {
+        logger.d("BackupManager", "Start backup")
         _syncStatus.value = SyncStatus.Syncing
         val file = dbFileProvider()
         val result = cloudStorageService.uploadBackup(file)
         result.onSuccess {
+            logger.d("BackupManager", "End backup")
             _syncStatus.value = SyncStatus.Success(System.currentTimeMillis())
         }.onFailure {
+            logger.e("BackupManager", "Backup failed", it)
             _syncStatus.value = SyncStatus.Error(it.message ?: "Unknown error")
         }
     }

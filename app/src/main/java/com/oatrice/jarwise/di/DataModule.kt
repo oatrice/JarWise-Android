@@ -44,7 +44,8 @@ val dataModule = module {
         com.oatrice.jarwise.data.backup.BackupManager(
             cloudStorageService = get(),
             externalScope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob()),
-            dbFileProvider = { androidContext().getDatabasePath("jarwise-db") }
+            dbFileProvider = { androidContext().getDatabasePath("jarwise-db") },
+            logger = get()
         ) 
     }
 }
