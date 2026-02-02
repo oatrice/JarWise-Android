@@ -137,13 +137,5 @@ class ManageWalletsViewModel(
     }
     
     // View Model Factory
-    class Factory(private val repository: com.oatrice.jarwise.data.repository.WalletRepository) : androidx.lifecycle.ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ManageWalletsViewModel::class.java)) {
-                return ManageWalletsViewModel(repository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
+
 }

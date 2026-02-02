@@ -4,10 +4,7 @@
 ![Jetpack Compose](https://img.shields.io/badge/Compose_BOM-2024.02.01-4285F4?style=for-the-badge&logo=android&logoColor=white)
 ![Android](https://img.shields.io/badge/Android_SDK-34-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
-
-
-
-- **Architecture**: MVVM + Clean Architecture
+- **Architecture**: MVVM + Clean Architecture + Koin
 
 **Modules**:
 - `:app`: Main application

@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.6.0] - 2026-02-02
+### Changed
+- **Architectural Improvement**: Refactored the app's internal structure to use Koin for dependency injection. This foundational change improves stability and makes it easier to add new features in the future.
+
 ## [1.5.0] - 2026-02-01
 ### Added
 - **Hierarchical Wallets**: Implemented a hierarchical system allowing users to create and manage sub-wallets under parent wallets for more detailed financial organization.

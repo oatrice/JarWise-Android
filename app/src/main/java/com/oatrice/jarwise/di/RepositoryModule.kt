@@ -1,0 +1,13 @@
+package com.oatrice.jarwise.di
+
+import com.oatrice.jarwise.data.repository.*
+import org.koin.android.ext.koin.androidContext
+import org.koin.dsl.module
+
+val repositoryModule = module {
+    single { UserPreferencesRepository(androidContext()) }
+    single { CurrencyRepository(get()) }
+    single { JarConfigRepository(get()) }
+    single { WalletRepository(get()) }
+    single { SlipRepository(androidContext()) }
+}

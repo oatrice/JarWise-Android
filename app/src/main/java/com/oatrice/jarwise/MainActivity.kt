@@ -10,17 +10,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.room.Room
-import com.oatrice.jarwise.data.AppDatabase
-
-import com.oatrice.jarwise.data.GeneratedMockData
-import com.oatrice.jarwise.data.repository.CurrencyRepository
-import com.oatrice.jarwise.data.repository.JarConfigRepository
-import com.oatrice.jarwise.data.repository.UserPreferencesRepository
-import com.oatrice.jarwise.data.service.SlipDetectorServiceImpl
 import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
 import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
 import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.MainViewModel
@@ -47,50 +40,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        val db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "jarwise-db"
-        )
-            .addMigrations(
-                AppDatabase.MIGRATION_1_2, 
-                AppDatabase.MIGRATION_2_3, 
-                AppDatabase.MIGRATION_3_4,
-                AppDatabase.MIGRATION_4_5,
-                AppDatabase.MIGRATION_5_6
-            )
-            .addCallback(AppDatabase.SEED_CALLBACK)
-            .fallbackToDestructiveMigration()
-            .build()
-        
-        val userPreferencesRepository = UserPreferencesRepository(applicationContext)
-        val currencyRepository = CurrencyRepository(userPreferencesRepository)
-        
-        // JarConfig Repository
-        val jarConfigRepository = JarConfigRepository(db.jarConfigDao())
-        val walletRepository = com.oatrice.jarwise.data.repository.WalletRepository(db.walletDao())
-        
-        
-        val viewModel: MainViewModel by viewModels { 
-            MainViewModel.Factory(
-                db.transactionDao(), 
-                currencyRepository,
-                jarConfigRepository
-            ) 
-        }
-
-        val slipRepository = com.oatrice.jarwise.data.repository.SlipRepository(applicationContext)
-        val slipDetector = SlipDetectorServiceImpl(applicationContext)
-        val slipViewModel: SlipViewModel by viewModels { 
-            SlipViewModel.Factory(slipRepository, slipDetector) 
-        }
-        
-        val manageJarsViewModel: ManageJarsViewModel by viewModels {
-            ManageJarsViewModel.Factory(db.allocationDao())
-        }
-
-        val manageWalletsViewModel: ManageWalletsViewModel by viewModels {
-            ManageWalletsViewModel.Factory(walletRepository)
-        }
+        val viewModel: MainViewModel by viewModel()
+        val slipViewModel: SlipViewModel by viewModel()
+        val manageJarsViewModel: ManageJarsViewModel by viewModel()
+        val manageWalletsViewModel: ManageWalletsViewModel by viewModel()
 
         enableEdgeToEdge()
         setContent {
