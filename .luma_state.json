@@ -3,19 +3,19 @@
   "project_key": "3",
   "phase": "coding",
   "active_issue": {
-    "number": 69,
-    "title": "[Web | Android] Support Hierarchical Wallets (Sub-accounts)",
-    "html_url": "https://github.com/oatrice/JarWise-Root/issues/69",
-    "body": "# Feature: Support Hierarchical Wallets (Sub-accounts)\n\n## Overview\nEnable users to organize their wallets (accounts) in a hierarchical structure, allowing for sub-accounts (e.g., \"Bank Account\" -> \"Savings\" | \"Checking\"). This enhances the flexibility of financial tracking.\n\n## Core Objective\n- Implement `parentId` logic for Wallet Allocations.\n- Provide a UI for managing this hierarchy.\n\n## Implementation Phases\n### Phase 1: Web Mock UI (Priority)\n- [ ] Create Mock UI for creating sub-wallets.\n- [ ] Visual tree representation of wallets.\n- [ ] Drag-and-drop or parent selection support.\n\n### Phase 2: Android Implementation (Future)\n- [ ] Update `ManageWalletsViewModel` to support hierarchy.\n- [ ] Update UI to display tree structure.\n\n## Technical Details\n- **Schema:** Uses existing `Allocation` table (`parentId` field).\n- **Type:** `Allocation.type` (implied constraints) or separated UI logic.\n\n## Acceptance Criteria\n- [ ] User can create a Wallet under another Wallet.\n- [ ] Hierarchy is visually distinct in the management list.\n- [ ] Deleting a parent prompt for reassignment (aligned with Jar logic).\n",
-    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgkl3lI",
+    "number": 34,
+    "title": "[Android] Implement Koin lib",
+    "html_url": "https://github.com/oatrice/JarWise-Root/issues/34",
+    "body": "<!-- \n  Title Format: [Platform] Short Description\n  Examples:\n    - [Web] Add dark mode toggle\n    - [Android] Implement biometric login\n    - [Web | Android] Sync transaction history API\n    - [All] Update shared design tokens\n-->\n\n# 🎯 Objective\n<!-- Describe the goal of this task -->\n\n## 📝 Specifications\n- [ ] Requirement 1\n- [ ] Requirement 2\n\n## 🔗 References\n- **Feature ID**: <!-- e.g. CORE-01 (See FEATURES.md) -->\n- **Related Docs**: <!-- Link to relevant docs -->\n\n## 🏗️ Implementation Guidelines\n<!-- Tech stack specific instructions (e.g. \"Use generatedMockData.ts\") -->\n",
+    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgjz4Lc",
     "project_id": "PVT_kwHOATfKEM4BMuLi",
     "repository": "oatrice/JarWise-Root"
   },
-  "active_branch": "feat/69-hierarchical-wallets",
-  "started_at": "2026-02-01T19:25:38.148499",
+  "active_branch": "feat/34-implement-koin-lib",
+  "started_at": "2026-02-02T12:21:37.925360",
   "checklist": {},
   "context": {},
   "pr_url": null,
   "pr_number": null,
-  "last_updated": "2026-02-01T19:25:38.148811"
+  "last_updated": "2026-02-02T12:21:40.589276"
 }
