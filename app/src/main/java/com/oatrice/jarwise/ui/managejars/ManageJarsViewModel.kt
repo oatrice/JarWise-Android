@@ -32,7 +32,8 @@ data class EditableJar(
 )
 
 class ManageJarsViewModel(
-    private val allocationDao: AllocationDao
+    private val allocationDao: AllocationDao,
+    private val backupManager: com.oatrice.jarwise.data.backup.BackupManager
 ) : ViewModel() {
 
     private val _jars = MutableStateFlow<List<EditableJar>>(emptyList())
@@ -60,7 +61,13 @@ class ManageJarsViewModel(
     private val currentUserId = "local_user"
 
     init {
+        backupManager.setAutoBackupPaused(true)
         loadAllocations()
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        backupManager.setAutoBackupPaused(false)
     }
 
     private fun loadAllocations() {
@@ -151,6 +158,7 @@ class ManageJarsViewModel(
                 )
                 allocationDao.update(allocation)
             }
+            backupManager.triggerManualBackup()
             onSuccess()
         }
     }

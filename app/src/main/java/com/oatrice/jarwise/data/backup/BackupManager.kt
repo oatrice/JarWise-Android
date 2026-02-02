@@ -31,7 +31,24 @@ class BackupManager(
         private const val DEBOUNCE_DELAY_MS = 10000L
     }
 
+    private var isAutoBackupPaused = false
+    private var isBackupPending = false
+
+    fun setAutoBackupPaused(paused: Boolean) {
+        if (isAutoBackupPaused == paused) return
+        isAutoBackupPaused = paused
+        if (!paused && isBackupPending) {
+            isBackupPending = false
+            triggerAutoBackup()
+        }
+    }
+
     fun triggerAutoBackup() {
+        if (isAutoBackupPaused) {
+            isBackupPending = true
+            return
+        }
+        
         // Cancel previous job if it exists (debounce reset)
         backupJob?.cancel()
         
@@ -44,6 +61,7 @@ class BackupManager(
     fun triggerManualBackup() {
         // Cancel any pending auto backup to avoid double upload if user clicks just after edit
         backupJob?.cancel()
+        isBackupPending = false
         
         externalScope.launch {
             performBackup()

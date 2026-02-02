@@ -25,6 +25,7 @@ class ManageJarsViewModelTest {
 
     private lateinit var viewModel: ManageJarsViewModel
     private lateinit var fakeDao: FakeJarConfigDao
+    private val backupManager: com.oatrice.jarwise.data.backup.BackupManager = org.mockito.kotlin.mock()
 
     @Before
     fun setup() = runTest {
@@ -41,7 +42,7 @@ class ManageJarsViewModelTest {
         )
         fakeDao.insertAll(defaults)
         
-        viewModel = ManageJarsViewModel(fakeDao)
+        viewModel = ManageJarsViewModel(fakeDao, backupManager)
     }
 
 
