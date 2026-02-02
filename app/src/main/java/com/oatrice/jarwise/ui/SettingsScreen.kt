@@ -122,42 +122,44 @@ fun SettingsScreen(
             }
 
             // --- Backup & Sync Section ---
-            Text(
-                text = "Backup & Sync",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-            
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(bottom = 12.dp)
-                    ) {
-                        val (icon, tint, message) = when (val status = syncStatus) {
-                            is SyncStatus.Idle -> Triple(Icons.Rounded.CloudDone, MaterialTheme.colorScheme.primary, "Up to date")
-                            is SyncStatus.Syncing -> Triple(Icons.Rounded.Sync, MaterialTheme.colorScheme.primary, "Syncing...")
-                            is SyncStatus.Success -> {
-                                val date = java.text.SimpleDateFormat("dd MMM HH:mm", java.util.Locale.getDefault()).format(java.util.Date(status.lastSyncedTime))
-                                Triple(Icons.Rounded.CloudDone, MaterialTheme.colorScheme.primary, "Last synced: $date")
+            if (currentUser != null) {
+                Text(
+                    text = "Backup & Sync",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        ) {
+                            val (icon, tint, message) = when (val status = syncStatus) {
+                                is SyncStatus.Idle -> Triple(Icons.Rounded.CloudDone, MaterialTheme.colorScheme.primary, "Up to date")
+                                is SyncStatus.Syncing -> Triple(Icons.Rounded.Sync, MaterialTheme.colorScheme.primary, "Syncing...")
+                                is SyncStatus.Success -> {
+                                    val date = java.text.SimpleDateFormat("dd MMM HH:mm", java.util.Locale.getDefault()).format(java.util.Date(status.lastSyncedTime))
+                                    Triple(Icons.Rounded.CloudDone, MaterialTheme.colorScheme.primary, "Last synced: $date")
+                                }
+                                is SyncStatus.Error -> Triple(Icons.Rounded.Error, MaterialTheme.colorScheme.error, "Error: ${status.message}")
                             }
-                            is SyncStatus.Error -> Triple(Icons.Rounded.Error, MaterialTheme.colorScheme.error, "Error: ${status.message}")
+                            
+                            Icon(imageVector = icon, contentDescription = null, tint = tint)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = message, style = MaterialTheme.typography.bodyMedium)
                         }
                         
-                        Icon(imageVector = icon, contentDescription = null, tint = tint)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = message, style = MaterialTheme.typography.bodyMedium)
-                    }
-                    
-                    Button(
-                        onClick = { settingsViewModel.triggerBackup() },
-                        enabled = syncStatus !is SyncStatus.Syncing,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Back up now")
+                        Button(
+                            onClick = { settingsViewModel.triggerBackup() },
+                            enabled = syncStatus !is SyncStatus.Syncing,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Back up now")
+                        }
                     }
                 }
             }

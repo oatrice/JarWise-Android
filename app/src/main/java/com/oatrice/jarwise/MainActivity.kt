@@ -14,6 +14,7 @@ import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
 import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
 import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.android.ext.android.inject
 import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.MainViewModel
@@ -45,11 +46,16 @@ class MainActivity : ComponentActivity() {
         val slipViewModel: SlipViewModel by viewModel()
         val manageJarsViewModel: ManageJarsViewModel by viewModel()
         val manageWalletsViewModel: ManageWalletsViewModel by viewModel()
+        
+        // Inject AuthService to check login status
+        val authService: com.oatrice.jarwise.data.auth.AuthService by inject()
 
         enableEdgeToEdge()
         setContent {
             JarWiseTheme {
-                var currentScreen by remember { mutableStateOf<Screen>(Screen.Login) }
+                // Determine initial screen based on auth state
+                val initialScreen = if (authService.currentUser.value != null) Screen.Dashboard else Screen.Login
+                var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
                 val transactions by viewModel.transactions.collectAsState()
                 val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
