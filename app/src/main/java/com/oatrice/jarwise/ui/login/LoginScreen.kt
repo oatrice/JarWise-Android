@@ -19,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -109,9 +111,14 @@ fun LoginContent(
                         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp, Alignment.CenterVertically)
                     ) {
                         Text("Welcome back, ${state.user.name}!")
-                        LaunchedEffectVerify(onLoginSuccess)
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp)) // Optional: show loading while redirecting
+                        LaunchedEffect(Unit) {
+                            delay(1000) // Show success message for 1s
+                            onLoginSuccess()
+                        }
                     }
                 }
+
             }
         }
     }
@@ -139,9 +146,4 @@ fun LoginScreenPreviewLoading() {
     }
 }
 
-@Composable
-fun LaunchedEffectVerify(onSuccess: () -> Unit) {
-   Button(onClick = onSuccess) {
-       Text("Continue")
-   }
-}
+
