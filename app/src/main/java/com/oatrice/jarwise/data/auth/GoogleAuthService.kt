@@ -40,7 +40,7 @@ class GoogleAuthService(private val context: Context) : AuthService {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestProfile()
-             //.requestScopes(Scope(DriveScopes.DRIVE_FILE), Scope(DriveScopes.DRIVE_APPDATA)) // Future
+            .requestScopes(com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_FILE), com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_APPDATA))
             .build()
         val client = GoogleSignIn.getClient(context, gso)
         return client.signInIntent
@@ -57,8 +57,14 @@ class GoogleAuthService(private val context: Context) : AuthService {
                 photoUrl = account.photoUrl?.toString()
             )
             _currentUser.value = user
+            android.util.Log.d("GoogleAuthService", "Sign-in successful: ${user.email} (${user.name})")
             Result.success(user)
         } catch (e: Exception) {
+            if (e is com.google.android.gms.common.api.ApiException) {
+                android.util.Log.e("GoogleAuthService", "Sign-in failed code: ${e.statusCode}, message: ${e.message}")
+            } else {
+                android.util.Log.e("GoogleAuthService", "Sign-in failed", e)
+            }
             Result.failure(e)
         }
     }

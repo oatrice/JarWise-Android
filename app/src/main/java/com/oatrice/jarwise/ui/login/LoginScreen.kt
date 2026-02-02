@@ -1,5 +1,9 @@
 package com.oatrice.jarwise.ui.login
 
+import android.app.Activity
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +30,19 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Activity Result Launcher for Google Sign-In
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            viewModel.handleSignInResult(result.data)
+        } else {
+             // Handle cancellation or error if needed
+             // viewModel.handleSignInError() 
+             Log.d("LoginScreen", "Sign in cancelled or failed result code: ${result.resultCode}")
+        }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -56,7 +73,17 @@ fun LoginScreen(
                             )
                         }
 
-                        Button(onClick = { viewModel.onSignInClick() }) {
+                        Button(onClick = { 
+                            // Check if we are using Real or Mock service
+                            // Ideally VM abstraction covers this, but for Phase 1.5 practical implementation:
+                            val intent = viewModel.getSignInIntent()
+                            if (intent.action != null || intent.component != null) {
+                                launcher.launch(intent)
+                            } else {
+                                // Fallback to mock logic
+                                viewModel.onSignInClick()
+                            }
+                        }) {
                             Text(text = "Sign in with Google")
                         }
                     }
@@ -67,9 +94,6 @@ fun LoginScreen(
                     )
                 }
                 is LoginUiState.Success -> {
-                    // Start effect to navigate away, or show success UI briefly
-                    // In a real app, we might trigger a LaunchedEffect here calling onLoginSuccess()
-                    // based on state change.
                     LaunchedEffectVerify(onLoginSuccess)
                     Text("Welcome back, ${state.user.name}!")
                 }
@@ -78,11 +102,8 @@ fun LoginScreen(
     }
 }
 
-// Separate function to act as a side-effect trigger (stub for now)
 @Composable
 fun LaunchedEffectVerify(onSuccess: () -> Unit) {
-   // In real app: LaunchedEffect(Unit) { onSuccess() }
-   // keeping it simple for compilation check
    Button(onClick = onSuccess) {
        Text("Continue")
    }
