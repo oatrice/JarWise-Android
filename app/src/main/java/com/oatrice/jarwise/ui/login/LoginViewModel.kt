@@ -47,6 +47,10 @@ class LoginViewModel(
             }
         }
     }
+    
+    fun handleSignInCancelled() {
+        _uiState.value = LoginUiState.Error("Sign in cancelled")
+    }
 
     fun onSignInClick() {
         // If Mock, just do direct sign in (simulated)

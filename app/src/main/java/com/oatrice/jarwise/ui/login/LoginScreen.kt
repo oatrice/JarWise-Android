@@ -41,6 +41,7 @@ fun LoginScreen(
             viewModel.handleSignInResult(result.data)
         } else {
              Log.d("LoginScreen", "Sign in cancelled or failed result code: ${result.resultCode}")
+             viewModel.handleSignInCancelled()
         }
     }
 

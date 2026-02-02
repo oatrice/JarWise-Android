@@ -62,10 +62,16 @@ class GoogleAuthService(private val context: Context) : AuthService {
         } catch (e: Exception) {
             if (e is com.google.android.gms.common.api.ApiException) {
                 android.util.Log.e("GoogleAuthService", "Sign-in failed code: ${e.statusCode}, message: ${e.message}")
+                val message = when (e.statusCode) {
+                    com.google.android.gms.common.api.CommonStatusCodes.NETWORK_ERROR -> "Network error. Please check your connection."
+                    com.google.android.gms.common.api.CommonStatusCodes.INVALID_ACCOUNT -> "Invalid account."
+                    else -> "Sign-in failed: ${e.message}"
+                }
+                Result.failure<AuthUser>(Exception(message))
             } else {
                 android.util.Log.e("GoogleAuthService", "Sign-in failed", e)
+                Result.failure<AuthUser>(e)
             }
-            Result.failure(e)
         }
     }
 
