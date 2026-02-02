@@ -38,12 +38,32 @@ fun LoginScreen(
         if (result.resultCode == Activity.RESULT_OK) {
             viewModel.handleSignInResult(result.data)
         } else {
-             // Handle cancellation or error if needed
-             // viewModel.handleSignInError() 
              Log.d("LoginScreen", "Sign in cancelled or failed result code: ${result.resultCode}")
         }
     }
 
+    LoginContent(
+        uiState = uiState,
+        onSignInClick = {
+            // Check if we are using Real or Mock service
+            val intent = viewModel.getSignInIntent()
+            if (intent.action != null || intent.component != null) {
+                launcher.launch(intent)
+            } else {
+                // Fallback to mock logic
+                viewModel.onSignInClick()
+            }
+        },
+        onLoginSuccess = onLoginSuccess
+    )
+}
+
+@Composable
+fun LoginContent(
+    uiState: LoginUiState,
+    onSignInClick: () -> Unit,
+    onLoginSuccess: () -> Unit = {} // Default empty for preview simplicity if needed, but logic handles it
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background
@@ -73,17 +93,7 @@ fun LoginScreen(
                             )
                         }
 
-                        Button(onClick = { 
-                            // Check if we are using Real or Mock service
-                            // Ideally VM abstraction covers this, but for Phase 1.5 practical implementation:
-                            val intent = viewModel.getSignInIntent()
-                            if (intent.action != null || intent.component != null) {
-                                launcher.launch(intent)
-                            } else {
-                                // Fallback to mock logic
-                                viewModel.onSignInClick()
-                            }
-                        }) {
+                        Button(onClick = onSignInClick) {
                             Text(text = "Sign in with Google")
                         }
                     }
@@ -94,11 +104,38 @@ fun LoginScreen(
                     )
                 }
                 is LoginUiState.Success -> {
-                    LaunchedEffectVerify(onLoginSuccess)
-                    Text("Welcome back, ${state.user.name}!")
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp, Alignment.CenterVertically)
+                    ) {
+                        Text("Welcome back, ${state.user.name}!")
+                        LaunchedEffectVerify(onLoginSuccess)
+                    }
                 }
             }
         }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun LoginScreenPreviewIdle() {
+    MaterialTheme {
+        LoginContent(
+            uiState = LoginUiState.Idle,
+            onSignInClick = {}
+        )
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(showBackground = true)
+@Composable
+fun LoginScreenPreviewLoading() {
+    MaterialTheme {
+        LoginContent(
+            uiState = LoginUiState.Loading,
+            onSignInClick = {}
+        )
     }
 }
 
