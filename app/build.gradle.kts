@@ -146,6 +146,7 @@ dependencies {
     implementation(libs.google.api.services.drive)
     implementation(libs.google.auth.library.oauth2.http)
     implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.google.http.client.android)
 }
 
 ksp {

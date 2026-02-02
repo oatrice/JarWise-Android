@@ -17,7 +17,7 @@ class JarWiseApplication : Application() {
         super.onCreate()
 
         if (GlobalContext.getOrNull() == null) {
-            startKoin {
+            val koinApp = startKoin {
                 androidLogger()
                 androidContext(this@JarWiseApplication)
                 modules(
@@ -28,6 +28,21 @@ class JarWiseApplication : Application() {
                     authModule
                 )
             }
+            
+            // Setup Auto Backup
+            val koin = koinApp.koin
+            val db = koin.get<com.oatrice.jarwise.data.AppDatabase>()
+            val backupManager = koin.get<com.oatrice.jarwise.data.backup.BackupManager>()
+            
+            db.invalidationTracker.addObserver(
+                object : androidx.room.InvalidationTracker.Observer(
+                    "transactions", "allocations", "wallets"
+                ) {
+                    override fun onInvalidated(tables: Set<String>) {
+                        backupManager.triggerBackup()
+                    }
+                }
+            )
         }
     }
 }
