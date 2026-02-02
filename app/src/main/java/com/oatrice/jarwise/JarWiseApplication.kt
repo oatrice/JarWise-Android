@@ -39,7 +39,7 @@ class JarWiseApplication : Application() {
                     "transactions", "allocations", "wallets"
                 ) {
                     override fun onInvalidated(tables: Set<String>) {
-                        backupManager.triggerBackup()
+                        backupManager.triggerAutoBackup()
                     }
                 }
             )

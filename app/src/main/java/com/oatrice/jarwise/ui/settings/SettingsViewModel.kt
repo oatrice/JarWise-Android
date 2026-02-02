@@ -15,14 +15,7 @@ class SettingsViewModel(
     val syncStatus = backupManager.syncStatus
 
     fun triggerBackup() {
-        // We might want an explicit "force" backup method later, 
-        // but for now triggerBackup checks debounce. 
-        // If user spams click, debounce resets, which is fine, or we can add immediate implementation.
-        // Given BackupManager implementation, triggerBackup starts a 10s timer.
-        // The user likely expects IMMEDIATE backup when clicking the button.
-        // I should probably add a forceBackup() or immediateBackup() to BackupManager later.
-        // For now, let's just call triggerBackup() and maybe I'll refactor BackupManager to allow immediate execution.
-        backupManager.triggerBackup() 
+        backupManager.triggerManualBackup() 
     }
 
     fun signOut() {

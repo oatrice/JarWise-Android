@@ -37,7 +37,7 @@ class BackupManagerTest {
             logger = logger
         )
 
-        manager.triggerBackup()
+        manager.triggerAutoBackup()
 
         // Advance time by 9 seconds (less than 10s debounce)
         advanceTimeBy(9000)
@@ -57,11 +57,11 @@ class BackupManagerTest {
              logger = logger
         )
 
-        manager.triggerBackup()
+        manager.triggerAutoBackup()
         advanceTimeBy(5000) // 5s passed
         verifyNoInteractions(cloudStorageService)
 
-        manager.triggerBackup() // RESET timer
+        manager.triggerAutoBackup() // RESET timer
         advanceTimeBy(6000) // 6s passed since restart (total 11s from start)
         // Should STILL be no interaction because timer restarted
         verifyNoInteractions(cloudStorageService)
@@ -83,7 +83,7 @@ class BackupManagerTest {
         org.mockito.kotlin.whenever(cloudStorageService.uploadBackup(dbFile))
             .thenReturn(Result.success("fileId"))
 
-        manager.triggerBackup()
+        manager.triggerAutoBackup()
         
         // Initial state should be Idle/Unknown ideally, but we test change
         
@@ -107,7 +107,7 @@ class BackupManagerTest {
         org.mockito.kotlin.whenever(cloudStorageService.uploadBackup(dbFile))
             .thenReturn(Result.failure(Exception("Network error")))
 
-        manager.triggerBackup()
+        manager.triggerAutoBackup()
         advanceTimeBy(10001)
         
         assert(manager.syncStatus.value is SyncStatus.Error)

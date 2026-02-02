@@ -31,12 +31,21 @@ class BackupManager(
         private const val DEBOUNCE_DELAY_MS = 10000L
     }
 
-    fun triggerBackup() {
+    fun triggerAutoBackup() {
         // Cancel previous job if it exists (debounce reset)
         backupJob?.cancel()
         
         backupJob = externalScope.launch {
             delay(DEBOUNCE_DELAY_MS)
+            performBackup()
+        }
+    }
+
+    fun triggerManualBackup() {
+        // Cancel any pending auto backup to avoid double upload if user clicks just after edit
+        backupJob?.cancel()
+        
+        externalScope.launch {
             performBackup()
         }
     }
