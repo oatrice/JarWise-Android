@@ -11,7 +11,10 @@ import com.oatrice.jarwise.data.auth.AuthService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.text.SimpleDateFormat
 import java.util.Collections
+import java.util.Date
+import java.util.Locale
 
 class GoogleDriveService(
     private val context: Context,
@@ -39,8 +42,9 @@ class GoogleDriveService(
         try {
             val service = getDriveService() ?: return@withContext Result.failure(Exception("User not signed in"))
             
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
             val fileMetadata = com.google.api.services.drive.model.File()
-            fileMetadata.name = "jarwise_backup.db"
+            fileMetadata.name = "jarwise_backup_$timestamp.db"
             // fileMetadata.parents = listOf("appDataFolder") // If using appDataFolder
 
             val mediaContent = FileContent("application/x-sqlite3", file)
@@ -63,7 +67,7 @@ class GoogleDriveService(
             val service = getDriveService() ?: return@withContext Result.failure(Exception("User not signed in"))
             
             val result = service.files().list()
-                .setQ("name = 'jarwise_backup.db' and trashed = false")
+                .setQ("name contains 'jarwise_backup_' and name contains '.db' and trashed = false")
                 .setSpaces("drive") // or "appDataFolder"
                 .setFields("files(id, name, createdTime, size)")
                 .execute()

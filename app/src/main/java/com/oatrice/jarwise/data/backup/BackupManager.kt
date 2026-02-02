@@ -42,12 +42,12 @@ class BackupManager(
     }
 
     private suspend fun performBackup() {
-        logger.d("BackupManager", "Start backup")
-        _syncStatus.value = SyncStatus.Syncing
         val file = dbFileProvider()
+        logger.d("BackupManager", "Start backup: ${file.name}")
+        _syncStatus.value = SyncStatus.Syncing
         val result = cloudStorageService.uploadBackup(file)
         result.onSuccess {
-            logger.d("BackupManager", "End backup")
+            logger.d("BackupManager", "End backup. File ID: $it")
             _syncStatus.value = SyncStatus.Success(System.currentTimeMillis())
         }.onFailure {
             logger.e("BackupManager", "Backup failed", it)
