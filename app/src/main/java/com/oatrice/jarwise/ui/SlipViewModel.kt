@@ -106,16 +106,5 @@ class SlipViewModel(
         loadBuckets()
     }
 
-    class Factory(
-        private val repository: SlipRepository,
-        private val slipDetector: SlipDetectorService
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(SlipViewModel::class.java)) {
-                return SlipViewModel(repository, slipDetector) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
+
 }
