@@ -38,19 +38,45 @@ class GoogleDriveService(
             .build()
     }
 
+    private fun getOrCreateBackupFolder(service: Drive): String {
+        val folderName = "JarWise backup"
+        
+        // 1. Check if folder exists
+        val result = service.files().list()
+            .setQ("mimeType = 'application/vnd.google-apps.folder' and name = '$folderName' and trashed = false")
+            .setSpaces("drive")
+            .setFields("files(id)")
+            .execute()
+
+        if (result.files.isNotEmpty()) {
+            return result.files[0].id
+        }
+
+        // 2. Create folder if not exists
+        val folderMetadata = com.google.api.services.drive.model.File()
+        folderMetadata.name = folderName
+        folderMetadata.mimeType = "application/vnd.google-apps.folder"
+
+        val folder = service.files().create(folderMetadata)
+            .setFields("id")
+            .execute()
+            
+        return folder.id
+    }
+
     override suspend fun uploadBackup(file: File): Result<String> = withContext(Dispatchers.IO) {
         try {
             val service = getDriveService() ?: return@withContext Result.failure(Exception("User not signed in"))
             
+            // Get or create parent folder
+            val folderId = getOrCreateBackupFolder(service)
+
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
             val fileMetadata = com.google.api.services.drive.model.File()
             fileMetadata.name = "jarwise_backup_$timestamp.db"
-            // fileMetadata.parents = listOf("appDataFolder") // If using appDataFolder
+            fileMetadata.parents = listOf(folderId)
 
             val mediaContent = FileContent("application/x-sqlite3", file)
-            
-            // TODO: check if file exists and update instead of create new one every time?
-            // For MVP: Simple create
             
             val uploadedFile = service.files().create(fileMetadata, mediaContent)
                 .setFields("id")
