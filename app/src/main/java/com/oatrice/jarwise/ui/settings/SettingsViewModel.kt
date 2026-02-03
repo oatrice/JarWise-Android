@@ -7,6 +7,7 @@ import com.oatrice.jarwise.data.backup.BackupManager
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 
 class SettingsViewModel(
     private val authService: AuthService,
@@ -24,13 +25,13 @@ class SettingsViewModel(
         viewModelScope.launch {
             if (clearData) {
                 backupManager.clearLocalData()
-                // Force app restart on next launch or now?
-                // Ideally, we should kill process to reset Room. 
-                // But for now, just clearing file is "enough" as next launch will create new empty DB.
-                // Or we can let UI handle the restart/exit.
             }
             authService.signOut()
             resetState()
+            
+            if (clearData) {
+                _restartAppEvent.emit(Unit)
+            }
         }
     }
 
@@ -49,6 +50,9 @@ class SettingsViewModel(
 
     private val _uiState = kotlinx.coroutines.flow.MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
     val uiState: kotlinx.coroutines.flow.StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    private val _restartAppEvent = kotlinx.coroutines.flow.MutableSharedFlow<Unit>()
+    val restartAppEvent = _restartAppEvent.asSharedFlow()
 
     fun handleSignInResult(intent: android.content.Intent?) {
         viewModelScope.launch {

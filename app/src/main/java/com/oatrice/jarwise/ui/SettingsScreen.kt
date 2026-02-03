@@ -106,11 +106,25 @@ fun SettingsScreen(
         else -> {}
     }
     
+    // Listen for Restart Event (Delete Data)
+    val context = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(Unit) {
+        settingsViewModel.restartAppEvent.collect {
+            kotlinx.coroutines.delay(500) // Small buffer
+            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (intent != null) {
+                context.startActivity(intent)
+                android.os.Process.killProcess(android.os.Process.myPid())
+            }
+        }
+    }
+    
     val currencies = listOf("THB", "USD", "EUR", "JPY")
 
     if (showLogoutDialog) {
         var deleteData by remember { mutableStateOf(false) }
-        val context = androidx.compose.ui.platform.LocalContext.current
 
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
@@ -140,15 +154,6 @@ fun SettingsScreen(
                     onClick = {
                         settingsViewModel.signOut(clearData = deleteData)
                         showLogoutDialog = false
-                        
-                        // If data deleted, we should probably restart or close app to ensure Room doesn't crash
-                        if (deleteData) {
-                            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
-                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
-                            context.startActivity(intent)
-                            android.os.Process.killProcess(android.os.Process.myPid())
-                        }
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {
