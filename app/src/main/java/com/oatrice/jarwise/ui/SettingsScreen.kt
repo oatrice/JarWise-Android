@@ -37,9 +37,73 @@ fun SettingsScreen(
     val selectedCurrency by viewModel.selectedCurrency.collectAsState()
     val currentUser by settingsViewModel.user.collectAsState()
     val syncStatus by settingsViewModel.syncStatus.collectAsState()
+    val uiState by settingsViewModel.uiState.collectAsState()
     
     var expanded by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+
+    // Restore Dialog Handling
+    when (val state = uiState) {
+        is SettingsViewModel.SettingsUiState.RestoreAvailable -> {
+            AlertDialog(
+                onDismissRequest = { /* Force choice */ },
+                title = { Text("Backup Found") },
+                text = { 
+                    Column {
+                        Text("We found a backup from ${state.backupDate}.")
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Do you want to restore it? Current data will be replaced.")
+                    }
+                },
+                confirmButton = {
+                    Button(onClick = { settingsViewModel.onRestoreConfirmed(state.fileId) }) {
+                        Text("Restore")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { settingsViewModel.onRestoreCancelled() }) {
+                        Text("No, start fresh")
+                    }
+                }
+            )
+        }
+        is SettingsViewModel.SettingsUiState.RestoreInProgress -> {
+             AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Restoring...") },
+                text = { 
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Please wait")
+                    }
+                },
+                confirmButton = {}
+            )
+        }
+        is SettingsViewModel.SettingsUiState.RestoreSuccess -> {
+             AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Restore Successful") },
+                text = { Text("App will restart to load your data.") },
+                confirmButton = {
+                    // Logic to restart app same as LoginScreen
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    LaunchedEffect(Unit) {
+                        kotlinx.coroutines.delay(1000)
+                        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                        intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                        intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                        if (intent != null) {
+                            context.startActivity(intent)
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
+                    }
+                }
+            )
+        }
+        else -> {}
+    }
     
     val currencies = listOf("THB", "USD", "EUR", "JPY")
 

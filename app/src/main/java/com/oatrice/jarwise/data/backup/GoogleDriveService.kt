@@ -117,8 +117,12 @@ class GoogleDriveService(
             val service = getDriveService() ?: return@withContext Result.failure(Exception("User not signed in"))
             
             val outputStream = destFile.outputStream()
-            service.files().get(fileId)
-                .executeMediaAndDownloadTo(outputStream)
+            outputStream.use {
+                service.files().get(fileId)
+                    .executeMediaAndDownloadTo(it)
+                it.flush()
+                it.fd.sync() // Ensure write to disk
+            }
             
             Result.success(Unit)
         } catch (e: Exception) {

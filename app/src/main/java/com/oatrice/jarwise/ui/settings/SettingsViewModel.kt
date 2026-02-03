@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.oatrice.jarwise.data.auth.AuthService
 import com.oatrice.jarwise.data.backup.BackupManager
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class SettingsViewModel(
     private val authService: AuthService,
@@ -29,20 +31,60 @@ class SettingsViewModel(
             ?: android.content.Intent()
     }
 
+    sealed class SettingsUiState {
+        data object Idle : SettingsUiState()
+        data class RestoreAvailable(val fileId: String, val backupDate: String) : SettingsUiState()
+        data object RestoreInProgress : SettingsUiState()
+        data object RestoreSuccess : SettingsUiState()
+    }
+
+    private val _uiState = kotlinx.coroutines.flow.MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
+    val uiState: kotlinx.coroutines.flow.StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
     fun handleSignInResult(intent: android.content.Intent?) {
         viewModelScope.launch {
-            if (authService is com.oatrice.jarwise.data.auth.GoogleAuthService) {
-                val result = authService.handleSignInResult(intent)
-                result.onSuccess {
-                    // Logic for post-login (check backup?)
-                    // For now, simpler than LoginViewModel, just link/login.
-                    // If we want to check backup, we'd need to prompt user.
-                    // Given request "Sign in -> Dialog", simplest is assume just login.
-                    // If they have data, it's fine.
+            val result = if (authService is com.oatrice.jarwise.data.auth.GoogleAuthService) {
+                authService.handleSignInResult(intent)
+            } else {
+                (authService as? com.oatrice.jarwise.data.auth.MockAuthService)?.signIn()
+                Result.success(authService.currentUser.value!!)
+            }
+
+            result.onSuccess {
+                // Check for backup
+                val backupResult = backupManager.checkForBackup()
+                val backups = backupResult.getOrNull()
+                if (!backups.isNullOrEmpty()) {
+                    val latest = backups.maxByOrNull { it.createdTime }!!
+                    val date = java.text.SimpleDateFormat("dd MMM yyyy HH:mm", java.util.Locale.getDefault())
+                        .format(java.util.Date(latest.createdTime))
+                    _uiState.value = SettingsUiState.RestoreAvailable(latest.id, date)
                 }
-            } else if (authService is com.oatrice.jarwise.data.auth.MockAuthService) {
-                 authService.signIn()
             }
         }
+    }
+    
+    fun onRestoreConfirmed(fileId: String) {
+        viewModelScope.launch {
+            _uiState.value = SettingsUiState.RestoreInProgress
+            
+            // Re-use logic or call BackupManager
+            val result = backupManager.restoreBackup(fileId)
+            
+            if (result.isSuccess) {
+                _uiState.value = SettingsUiState.RestoreSuccess
+            } else {
+                // error handling? For now reset to Idle or show error
+                _uiState.value = SettingsUiState.Idle
+            }
+        }
+    }
+    
+    fun onRestoreCancelled() {
+        _uiState.value = SettingsUiState.Idle
+    }
+    
+    fun resetState() {
+        _uiState.value = SettingsUiState.Idle
     }
 }
