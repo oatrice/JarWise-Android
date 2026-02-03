@@ -59,6 +59,9 @@ class ManageJarsViewModel(
 
     // TODO: Ideally fetch from User Session
     private val currentUserId = "local_user"
+    
+    // Manage the loading job to clear previous subscriptions on reload/revert
+    private var loadJob: kotlinx.coroutines.Job? = null
 
     init {
         loadAllocations()
@@ -69,7 +72,8 @@ class ManageJarsViewModel(
     }
 
     private fun loadAllocations() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             allocationDao.getAllAllocations(currentUserId).collect { allocations ->
                 // Sort by sorting tree structure (DFS) to ensure visual hierarchy (Parent -> Children)
                 val allItems = allocations.map { it.toEditableJar() }
@@ -129,7 +133,7 @@ class ManageJarsViewModel(
         _showResetDialog.value = false
     }
 
-    fun resetToDefaults() {
+    fun revertUnsavedChanges() {
         loadAllocations() 
         _showResetDialog.value = false
         _selectedJarId.value = null

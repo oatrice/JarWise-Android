@@ -110,7 +110,7 @@ class ManageJarsViewModelTest {
     
 
     @Test
-    fun `resetToDefaults should restore original configuration`() = runTest {
+    fun `revertUnsavedChanges should restore original configuration`() = runTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jars.collect() }
         
         // Given modified state
@@ -119,7 +119,7 @@ class ManageJarsViewModelTest {
         assertEquals("Changed", viewModel.jars.value[0].name)
         
         // When
-        viewModel.resetToDefaults()
+        viewModel.revertUnsavedChanges()
         advanceUntilIdle() // Wait for ensure coroutine execution
         
         // Then

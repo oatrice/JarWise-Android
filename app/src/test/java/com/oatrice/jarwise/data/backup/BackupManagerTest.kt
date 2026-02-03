@@ -13,6 +13,7 @@ import org.mockito.kotlin.verifyNoInteractions
 import java.io.File
 
 import com.oatrice.jarwise.utils.AppLogger
+import org.junit.Assert.assertEquals
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BackupManagerTest {
@@ -155,9 +156,29 @@ class BackupManagerTest {
         
         assert(result.isSuccess)
         verify(cloudStorageService).downloadBackup(org.mockito.kotlin.eq(fileId), org.mockito.kotlin.any())
-        @org.junit.After
+    }
+
+    @Test
+    fun `restoreBackup should return failure if download fails`() = testScope.runTest {
+        val manager = BackupManager(
+            cloudStorageService = cloudStorageService,
+            externalScope = this,
+             dbFileProvider = { dbFile },
+             logger = logger
+        )
+
+        val fileId = "testFileId"
+        org.mockito.kotlin.whenever(cloudStorageService.downloadBackup(org.mockito.kotlin.eq(fileId), org.mockito.kotlin.any()))
+            .thenReturn(Result.failure(Exception("Download failed")))
+
+        val result = manager.restoreBackup(fileId)
+        
+        assert(result.isFailure)
+        assertEquals("Download failed", result.exceptionOrNull()?.message)
+    }
+
+    @org.junit.After
     fun tearDown() {
         tempDir.deleteRecursively()
     }
-}
 }

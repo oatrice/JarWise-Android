@@ -51,9 +51,9 @@ fun ManageJarsScreen(
                 },
                 actions = {
                     TextButton(onClick = { viewModel.showResetConfirmation() }) {
-                        Icon(Icons.Rounded.Refresh, contentDescription = "Reset", modifier = Modifier.size(18.dp))
+                        Icon(Icons.Rounded.Refresh, contentDescription = "Discard Changes", modifier = Modifier.size(18.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Reset")
+                        Text("Revert")
                     }
                     Button(
                         onClick = { viewModel.save(onBack) },
@@ -220,14 +220,14 @@ fun ManageJarsScreen(
         // ... (existing dialog)
         AlertDialog(
             onDismissRequest = { viewModel.hideResetConfirmation() },
-            title = { Text("Reset to Default?") },
-            text = { Text("This will restore all jars to their original names and percentages.") },
+            title = { Text("Discard Changes?") },
+            text = { Text("This will discard all unsaved changes and reload your current configuration.") },
             confirmButton = {
                 Button(
-                    onClick = { viewModel.resetToDefaults() },
+                    onClick = { viewModel.revertUnsavedChanges() },
                     colors = ButtonDefaults.buttonColors(containerColor = Red500)
                 ) {
-                    Text("Reset")
+                    Text("Discard")
                 }
             },
             dismissButton = {
