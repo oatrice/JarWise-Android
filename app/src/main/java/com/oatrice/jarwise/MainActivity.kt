@@ -95,6 +95,7 @@ class MainActivity : ComponentActivity() {
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
                              onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
+                             onNavigateToLogin = { currentScreen = Screen.Login },
                              viewModel = viewModel
                         )
                         is Screen.TransactionHistory -> TransactionHistoryScreen(

@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -59,6 +60,7 @@ fun LoginScreen(
                 viewModel.onSignInClick()
             }
         },
+        onGuestLogin = { viewModel.onGuestLogin() },
         onRestoreConfirmed = { fileId -> viewModel.onRestoreConfirmed(fileId) },
         onRestoreCancelled = { user -> viewModel.onRestoreCancelled(user) },
         onLoginSuccess = onLoginSuccess
@@ -69,6 +71,7 @@ fun LoginScreen(
 fun LoginContent(
     uiState: LoginUiState,
     onSignInClick: () -> Unit,
+    onGuestLogin: () -> Unit,
     onRestoreConfirmed: (String) -> Unit = {},
     onRestoreCancelled: (com.oatrice.jarwise.data.auth.AuthUser) -> Unit = {},
     onLoginSuccess: () -> Unit = {}
@@ -102,8 +105,23 @@ fun LoginContent(
                             )
                         }
 
-                        Button(onClick = onSignInClick) {
-                            Text(text = "Sign in with Google")
+                        if (state !is LoginUiState.Loading) {
+                            Button(
+                                onClick = onSignInClick,
+                                modifier = Modifier.fillMaxWidth(0.8f)
+                            ) {
+                                Text(text = "Sign in with Google")
+                            }
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            androidx.compose.material3.TextButton(
+                                onClick = onGuestLogin
+                            ) {
+                                Text("Continue as Guest", color = MaterialTheme.colorScheme.secondary)
+                            }
+                        } else {
+                            CircularProgressIndicator(modifier = Modifier.size(48.dp))
                         }
                     }
                 }
@@ -185,7 +203,8 @@ fun LoginScreenPreviewIdle() {
     MaterialTheme {
         LoginContent(
             uiState = LoginUiState.Idle,
-            onSignInClick = {}
+            onSignInClick = {},
+            onGuestLogin = {}
         )
     }
 }
@@ -196,7 +215,8 @@ fun LoginScreenPreviewLoading() {
     MaterialTheme {
         LoginContent(
             uiState = LoginUiState.Loading,
-            onSignInClick = {}
+            onSignInClick = {},
+            onGuestLogin = {}
         )
     }
 }

@@ -90,4 +90,33 @@ class LoginViewModel(
             }
         }
     }
+
+    fun onGuestLogin() {
+        // For guest logic, we might just proceed to dashboard without user.
+        // But our MainActivity checks for authService.currentUser.
+        // So we might need a "GuestUser" or just null?
+        // Actually, if we just navigate to Dashboard, MainActivity will re-check.
+        // If we want to allow Guest, we should set some state or just let UI proceed.
+        // For now, let's treat it as a UI event that bypasses Auth check for this session.
+        // However, MainActivity logic is: initialScreen = if (currentUser != null) Dashboard else Login.
+        // If we want Guest, we probably need a way to tell MainActivity "User skipped login".
+        // But wait, user requirement is "Continue as Guest".
+        // Simplest way: AuthUser could be null, but we need to persistently know "Guest Mode"?
+        // Or just let them in.
+        // The callback `onLoginSuccess` in UI drives navigation.
+        // So we just need to fire a success state with a "Guest" user or special state?
+        // Let's assume we want to mock a Guest User for now to satisfy existing logic,
+        // OR better: Just trigger navigation.
+        // But `LoginScreen` waits for `LoginUiState.Success` to trigger `onLoginSuccess`.
+        // So let's emit a Success state with a dummy or null user? 
+        // `Success` takes `AuthUser`.
+        // Let's create a Guest AuthUser.
+        val guestUser = com.oatrice.jarwise.data.auth.AuthUser(
+            id = "guest",
+            name = "Guest",
+            email = "",
+            photoUrl = null
+        )
+        _uiState.value = LoginUiState.Success(guestUser)
+    }
 }
