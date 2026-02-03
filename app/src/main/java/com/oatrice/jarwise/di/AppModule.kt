@@ -6,5 +6,5 @@ import com.oatrice.jarwise.utils.AppLogger
 import com.oatrice.jarwise.utils.AndroidAppLogger
 
 val appModule = module {
-    single<AppLogger> { AndroidAppLogger() }
+    single<AppLogger> { AndroidAppLogger(get()) }
 }

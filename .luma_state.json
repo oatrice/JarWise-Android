@@ -3,19 +3,19 @@
   "project_key": "3",
   "phase": "coding",
   "active_issue": {
-    "number": 34,
-    "title": "[Android] Implement Koin lib",
-    "html_url": "https://github.com/oatrice/JarWise-Root/issues/34",
-    "body": "<!-- \n  Title Format: [Platform] Short Description\n  Examples:\n    - [Web] Add dark mode toggle\n    - [Android] Implement biometric login\n    - [Web | Android] Sync transaction history API\n    - [All] Update shared design tokens\n-->\n\n# 🎯 Objective\n<!-- Describe the goal of this task -->\n\n## 📝 Specifications\n- [ ] Requirement 1\n- [ ] Requirement 2\n\n## 🔗 References\n- **Feature ID**: <!-- e.g. CORE-01 (See FEATURES.md) -->\n- **Related Docs**: <!-- Link to relevant docs -->\n\n## 🏗️ Implementation Guidelines\n<!-- Tech stack specific instructions (e.g. \"Use generatedMockData.ts\") -->\n",
-    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgjz4Lc",
+    "number": 32,
+    "title": "[Web | Android] Google Login & Cloud Backup",
+    "html_url": "https://github.com/oatrice/JarWise-Root/issues/32",
+    "body": "# 🎯 Objective\nImplement Google Sign-In authentication and automatic backup to Google Drive for data persistence across devices.\n\n## 📝 Specifications\n\n### Phase 1: Google Sign-In\n- [ ] **Google OAuth Integration**: Sign in with Google account\n- [ ] **User Profile**: Display user name and avatar\n- [ ] **Session Management**: Remember login state, auto-refresh tokens\n- [ ] **Logout**: Clear session and local data option\n\n### Phase 2: Google Drive Backup\n- [ ] **Auto Backup**: Automatically backup database to Google Drive\n- [ ] **Manual Backup**: Button to trigger immediate backup\n- [ ] **Restore**: Restore data from Google Drive backup\n- [ ] **Sync Indicator**: Show last backup time and sync status\n- [ ] **Conflict Resolution**: Handle merge conflicts between devices\n\n### Data to Backup\n- [ ] Transactions\n- [ ] Jar configurations\n- [ ] User preferences\n- [ ] App settings\n\n## 🔗 References\n- **Feature ID**: `AUTH-01`, `SYNC-01`\n- **Google APIs**: Google Sign-In, Google Drive API\n\n## 🏗️ Implementation Guidelines\n- **Web**: Google Sign-In for Web, Drive REST API\n- **Android**: Google Sign-In SDK, Drive API\n- **Security**: OAuth 2.0, encrypted backup files\n- **Offline**: Queue backups when offline, sync when online",
+    "project_item_id": "PVTI_lAHOATfKEM4BMuLizgjyd20",
     "project_id": "PVT_kwHOATfKEM4BMuLi",
     "repository": "oatrice/JarWise-Root"
   },
-  "active_branch": "feat/34-implement-koin-lib",
-  "started_at": "2026-02-02T12:21:37.925360",
+  "active_branch": "feat/32-google-login-cloud-backup",
+  "started_at": "2026-02-02T16:26:57.245190",
   "checklist": {},
   "context": {},
   "pr_url": null,
   "pr_number": null,
-  "last_updated": "2026-02-02T12:21:40.589276"
+  "last_updated": "2026-02-02T16:26:58.953049"
 }
