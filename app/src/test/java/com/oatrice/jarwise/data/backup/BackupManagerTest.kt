@@ -26,7 +26,9 @@ class BackupManagerTest {
     // We need a way to provide the file to upload.
     // For now, let's assume the manager knows how to get the DB file or we pass it in constructor/method.
     // Let's assume a DB file provider for simplicity in test
-    private val dbFile = mock<File>()
+    // Use a real file in a temporary directory for tests to avoid Mockito issues with File
+    private val tempDir = java.nio.file.Files.createTempDirectory("jarwise_test").toFile()
+    private val dbFile = File(tempDir, "test.db")
     
     @Test
     fun `triggerBackup SHOULD wait for debounce period BEFORE uploading`() = testScope.runTest {
@@ -153,5 +155,9 @@ class BackupManagerTest {
         
         assert(result.isSuccess)
         verify(cloudStorageService).downloadBackup(org.mockito.kotlin.eq(fileId), org.mockito.kotlin.any())
+        @org.junit.After
+    fun tearDown() {
+        tempDir.deleteRecursively()
     }
+}
 }

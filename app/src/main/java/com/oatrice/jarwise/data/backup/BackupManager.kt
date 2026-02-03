@@ -87,24 +87,37 @@ class BackupManager(
     }
     
     suspend fun restoreBackup(fileId: String): Result<Unit> {
-        val destFile = dbFileProvider()
-        // Simple overwrite strategy for now.
-        // In reality, we might want to download to a temp file, validate, then move.
-        // And importantly, close Room DB connection before this.
-        val downloadResult = cloudStorageService.downloadBackup(fileId, destFile)
+        val dbFile = dbFileProvider()
+        val tempRestoreFile = File("${dbFile.absolutePath}.restore_temp")
+        
+        // 1. Download to a temporary file first (Safe from active DB locks)
+        val downloadResult = cloudStorageService.downloadBackup(fileId, tempRestoreFile)
         
         if (downloadResult.isSuccess) {
             try {
-                // IMPORTANT: Delete temporary WAL/SHM files to ensure SQLite reads the new main DB file
-                // and doesn't get confused by stale write-ahead logs from the previous DB version.
-                val walFile = File("${destFile.absolutePath}-wal")
-                val shmFile = File("${destFile.absolutePath}-shm")
+                // 2. Debug Log from the TEMP file (No conflict with active Room DB)
+                debugLogRestoredData(tempRestoreFile)
+                
+                // 3. Close the temp file connection inside debugLogRestoredData ensures it's free.
+                // Now perform the Swap "Atomic-ish"
+                if (dbFile.exists()) {
+                    dbFile.delete()
+                }
+                tempRestoreFile.renameTo(dbFile)
+                
+                // 4. Cleanup WAL/SHM of the MAIN db to prevent state mismatch
+                val walFile = File("${dbFile.absolutePath}-wal")
+                val shmFile = File("${dbFile.absolutePath}-shm")
                 if (walFile.exists()) walFile.delete()
                 if (shmFile.exists()) shmFile.delete()
-
-                debugLogRestoredData(destFile)
+                
+                return Result.success(Unit)
             } catch (e: Exception) {
-                logger.e("BackupManager", "Failed to clean up WAL/SHM or log data", e)
+                logger.e("BackupManager", "Failed to finalize restore swap", e)
+                return Result.failure(e)
+            } finally {
+                // Ensure temp is gone
+                if (tempRestoreFile.exists()) tempRestoreFile.delete()
             }
         }
         
