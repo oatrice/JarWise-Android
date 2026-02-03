@@ -95,9 +95,16 @@ class BackupManager(
         
         if (downloadResult.isSuccess) {
             try {
+                // IMPORTANT: Delete temporary WAL/SHM files to ensure SQLite reads the new main DB file
+                // and doesn't get confused by stale write-ahead logs from the previous DB version.
+                val walFile = File("${destFile.absolutePath}-wal")
+                val shmFile = File("${destFile.absolutePath}-shm")
+                if (walFile.exists()) walFile.delete()
+                if (shmFile.exists()) shmFile.delete()
+
                 debugLogRestoredData(destFile)
             } catch (e: Exception) {
-                logger.e("BackupManager", "Failed to debug log restored data (non-fatal)", e)
+                logger.e("BackupManager", "Failed to clean up WAL/SHM or log data", e)
             }
         }
         
