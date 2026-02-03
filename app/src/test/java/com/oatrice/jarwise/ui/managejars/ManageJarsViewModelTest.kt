@@ -151,4 +151,56 @@ class ManageJarsViewModelTest {
         assertEquals(50, savedData.find { it.id == jar1 }?.targetPercent)
         assertEquals(15, savedData.find { it.id == jar2 }?.targetPercent)
     }
+
+
+    @Test
+    fun `addJar and revertUnsavedChanges should NOT persist new jar`() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jars.collect() }
+        
+        val initialCount = viewModel.jars.value.size
+        
+        // When: Add Jar
+        viewModel.addJar()
+        advanceUntilIdle()
+        
+        assertEquals("Should have 1 more jar in memory", initialCount + 1, viewModel.jars.value.size)
+        
+        // When: Discard (Revert)
+        viewModel.revertUnsavedChanges()
+        advanceUntilIdle()
+        
+        // Then: Should return to initial count
+        assertEquals("Should revert to initial count", initialCount, viewModel.jars.value.size)
+        
+        // Also verify DB didn't change (this might fail currently if logic writes strictly)
+        val dbCount = fakeDao.getAll().size
+        assertEquals("DB should not have the new jar yet", initialCount, dbCount)
+    }
+
+    @Test
+    fun `deleteJar and revertUnsavedChanges should NOT persist deletion`() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jars.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jarToDelete.collect() }
+        
+        val initialCount = viewModel.jars.value.size
+        val jarToDelete = viewModel.jars.value[0]
+        
+        // When: Delete Jar
+        viewModel.showDeleteConfirmation(jarToDelete)
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+        
+        assertEquals("Should have 1 less jar in memory", initialCount - 1, viewModel.jars.value.size)
+        
+        // When: Discard (Revert)
+        viewModel.revertUnsavedChanges()
+        advanceUntilIdle()
+        
+        // Then: Should return to initial count
+        assertEquals("Should revert deletion", initialCount, viewModel.jars.value.size)
+        
+        // Verify DB
+        val dbCount = fakeDao.getAll().size
+        assertEquals("DB should still have the jar", initialCount, dbCount)
+    }
 }

@@ -62,6 +62,10 @@ class ManageJarsViewModel(
     
     // Manage the loading job to clear previous subscriptions on reload/revert
     private var loadJob: kotlinx.coroutines.Job? = null
+    
+    // Track pending deletions (Real IDs only)
+    private val _pendingDeletions = mutableSetOf<Long>()
+    private var nextTempId = -1L
 
     init {
         loadAllocations()
@@ -72,9 +76,12 @@ class ManageJarsViewModel(
     }
 
     private fun loadAllocations() {
+        _pendingDeletions.clear()
+        nextTempId = -1L
+        
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            allocationDao.getAllAllocations(currentUserId).collect { allocations ->
+             allocationDao.getAllAllocations(currentUserId).collect { allocations ->
                 // Sort by sorting tree structure (DFS) to ensure visual hierarchy (Parent -> Children)
                 val allItems = allocations.map { it.toEditableJar() }
                 
@@ -133,19 +140,64 @@ class ManageJarsViewModel(
         _showResetDialog.value = false
     }
 
+
+
     fun revertUnsavedChanges() {
+        _pendingDeletions.clear()
+        nextTempId = -1L
         loadAllocations() 
         _showResetDialog.value = false
         _selectedJarId.value = null
     }
 
     fun save(onSuccess: () -> Unit) {
-        // if (!isValid.value) return // Allow saving even if not 100% (Warning only) as per plan
-
         viewModelScope.launch {
-            _jars.value.forEach { editable ->
-                // Map back to Allocation and Update
+            // 1. Process Deletions
+            _pendingDeletions.forEach { id ->
+                val allocation = Allocation(id = id, userId = currentUserId, name = "", level = 0, isSystemDefault = false) // Minimal obj for delete
+                allocationDao.delete(allocation)
+            }
+            _pendingDeletions.clear()
+
+            // 2. Process Inserts and Updates
+            // We need to handle parent dependencies for new items.
+            // Map keys are TempIDs, values are RealIDs
+            val tempIdMap = mutableMapOf<Long, Long>()
+
+            // Separate into New vs Existing
+            val (newItems, existingItems) = _jars.value.partition { it.id < 0 }
+            
+            // Sort new items by level to ensure parents created before children
+            val sortedNewItems = newItems.sortedBy { it.level }
+
+            sortedNewItems.forEach { editable ->
+                // Resolve Parent ID
+                val finalParentId = if (editable.parentId != null && editable.parentId < 0) {
+                    tempIdMap[editable.parentId] ?: editable.parentId // Should be in map if sorted correctly
+                } else {
+                    editable.parentId
+                }
+
                 val allocation = Allocation(
+                    id = 0, // Auto-generate
+                    userId = editable.userId,
+                    name = editable.name,
+                    parentId = finalParentId,
+                    level = editable.level,
+                    targetPercent = if (editable.level == 0) editable.percentage else null,
+                    icon = editable.iconName,
+                    color = editable.colorName,
+                    isSystemDefault = editable.isSystemDefault,
+                    isActive = true,
+                    sortOrder = editable.sortOrder
+                )
+                val newId = allocationDao.insert(allocation)
+                tempIdMap[editable.id] = newId
+            }
+
+            // Update Existing items
+            existingItems.forEach { editable ->
+                 val allocation = Allocation(
                     id = editable.id,
                     userId = editable.userId,
                     name = editable.name,
@@ -160,53 +212,56 @@ class ManageJarsViewModel(
                 )
                 allocationDao.update(allocation)
             }
+
+             // Reload to get fresh state from DB (IDs updated etc)
+            loadAllocations()
             onSuccess()
         }
     }
     
     // Actions for hierarchy
     fun addJar() {
-        // Create new top-level jar
-        viewModelScope.launch {
-            val newJar = Allocation(
-                userId = currentUserId,
-                name = "New Jar",
-                level = 0,
-                parentId = null,
-                targetPercent = 0,
-                icon = "home",
-                color = "gray",
-                sortOrder = _jars.value.size + 1
-            )
-            allocationDao.insert(newJar)
-        }
+        val newId = nextTempId--
+        val newJar = EditableJar(
+            id = newId,
+            userId = currentUserId,
+            name = "New Jar",
+            level = 0,
+            parentId = null,
+            percentage = 0,
+            colorName = "gray",
+            iconName = "home",
+            color = Color.Gray,
+            icon = Icons.Rounded.Home,
+            isSystemDefault = false,
+            sortOrder = _jars.value.size + 1
+        )
+         _jars.update { it + newJar }
     }
     
     fun addCategory(parentId: Long) {
-        viewModelScope.launch {
-            // Get parent to inherit color logic if needed, or just default.
-            // For now, grey/default. 
-            // In Web we inherited parent color. Let's try to find parent.
-            val parent = _jars.value.find { it.id == parentId }
-            val color = parent?.colorName ?: "gray"
-            
-            val newCategory = Allocation(
-                userId = currentUserId,
-                name = "New Category",
-                level = 1, // Currently supporting only 1 level deep for categories as per Web
-                parentId = parentId,
-                targetPercent = null, // Categories don't have direct targetPercent in this model yet
-                icon = "dollar", // Default icon
-                color = color,
-                sortOrder = _jars.value.size + 1 // Simple sort
-            )
-            allocationDao.insert(newCategory)
-        }
+        val parent = _jars.value.find { it.id == parentId } ?: return
+        val colorName = parent.colorName 
+        val newId = nextTempId--
+        
+        val newCategory = EditableJar(
+            id = newId,
+            userId = currentUserId,
+            name = "New Category",
+            level = 1,
+            parentId = parentId,
+            percentage = 0, // Categories don't have direct targetPercent in this model yet
+            colorName = colorName,
+            iconName = "dollar",
+            color = getColorFromName(colorName),
+            icon = Icons.Rounded.AttachMoney,
+            isSystemDefault = false,
+            sortOrder = _jars.value.size + 1
+        )
+         _jars.update { it + newCategory }
     }
     
-    fun deleteJar(id: Long) {
-         // See confirmDelete() for implementation
-    }
+
 
     fun showDeleteConfirmation(jar: EditableJar) {
         _jarToDelete.value = jar
@@ -218,25 +273,27 @@ class ManageJarsViewModel(
 
     fun confirmDelete() {
         val jar = _jarToDelete.value ?: return
-        viewModelScope.launch {
-             // Find and delete. Cascade will match DB.
-             val item = _jars.value.find { it.id == jar.id }
-             if (item != null) {
-                 val allocation = Allocation(
-                     id = item.id,
-                     userId = item.userId,
-                     name = item.name,
-                     parentId = item.parentId,
-                     level = item.level,
-                     targetPercent = item.percentage,
-                     icon = item.iconName,
-                     color = item.colorName,
-                     isSystemDefault = item.isSystemDefault
-                 )
-                 allocationDao.delete(allocation)
-             }
-             _jarToDelete.value = null
+        
+        // Remove from memory
+        // Verify cascade deletion in memory for UI mostly
+        val idsToDelete = mutableSetOf<Long>()
+        idsToDelete.add(jar.id)
+        
+        // If parent, find children in memory and delete them too
+        if (jar.level == 0) {
+            _jars.value.filter { it.parentId == jar.id }.forEach { idsToDelete.add(it.id) }
         }
+        
+        _jars.update { list ->
+            list.filterNot { idsToDelete.contains(it.id) }
+        }
+        
+        // Mark for DB deletion if it's a real ID
+        if (jar.id > 0) {
+            _pendingDeletions.add(jar.id)
+        }
+        
+        _jarToDelete.value = null
     }
 
     private fun Allocation.toEditableJar() = EditableJar(

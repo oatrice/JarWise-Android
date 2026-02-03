@@ -92,7 +92,10 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToImport = { currentScreen = Screen.SlipImport },
                                 onNavigateToAdd = { currentScreen = Screen.AddTransaction },
                                 onNavigateToSettings = { currentScreen = Screen.Settings },
-                                onNavigateToManageJars = { currentScreen = Screen.ManageJars },
+                                onNavigateToManageJars = {
+                                    manageJarsViewModel.revertUnsavedChanges()
+                                    currentScreen = Screen.ManageJars
+                                },
                                 onNavigate = handleNavigation
                             )
                         }
