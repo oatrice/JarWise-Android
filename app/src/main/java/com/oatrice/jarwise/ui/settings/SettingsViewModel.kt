@@ -46,6 +46,8 @@ class SettingsViewModel(
         data class RestoreAvailable(val fileId: String, val backupDate: String) : SettingsUiState()
         data object RestoreInProgress : SettingsUiState()
         data object RestoreSuccess : SettingsUiState()
+        data object BackupNotFound : SettingsUiState()
+        data object CheckingBackup : SettingsUiState()
     }
 
     private val _uiState = kotlinx.coroutines.flow.MutableStateFlow<SettingsUiState>(SettingsUiState.Idle)
@@ -53,6 +55,24 @@ class SettingsViewModel(
 
     private val _restartAppEvent = kotlinx.coroutines.flow.MutableSharedFlow<Unit>()
     val restartAppEvent = _restartAppEvent.asSharedFlow()
+
+    fun checkForBackups() {
+        viewModelScope.launch {
+            _uiState.value = SettingsUiState.CheckingBackup
+            
+            val backupResult = backupManager.checkForBackup()
+            val backups = backupResult.getOrNull()
+            
+            if (!backups.isNullOrEmpty()) {
+                val latest = backups.maxByOrNull { it.createdTime }!!
+                val date = java.text.SimpleDateFormat("dd MMM yyyy HH:mm", java.util.Locale.getDefault())
+                    .format(java.util.Date(latest.createdTime))
+                _uiState.value = SettingsUiState.RestoreAvailable(latest.id, date)
+            } else {
+                _uiState.value = SettingsUiState.BackupNotFound
+            }
+        }
+    }
 
     fun handleSignInResult(intent: android.content.Intent?) {
         viewModelScope.launch {
@@ -64,15 +84,8 @@ class SettingsViewModel(
             }
 
             result.onSuccess {
-                // Check for backup
-                val backupResult = backupManager.checkForBackup()
-                val backups = backupResult.getOrNull()
-                if (!backups.isNullOrEmpty()) {
-                    val latest = backups.maxByOrNull { it.createdTime }!!
-                    val date = java.text.SimpleDateFormat("dd MMM yyyy HH:mm", java.util.Locale.getDefault())
-                        .format(java.util.Date(latest.createdTime))
-                    _uiState.value = SettingsUiState.RestoreAvailable(latest.id, date)
-                }
+                // Check for backup automatically
+                checkForBackups()
             }
         }
     }

@@ -103,6 +103,32 @@ fun SettingsScreen(
                 }
             )
         }
+        is SettingsViewModel.SettingsUiState.CheckingBackup -> {
+             AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Checking Backups...") },
+                text = { 
+                    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Connecting to Google Drive")
+                    }
+                },
+                confirmButton = {}
+            )
+        }
+        is SettingsViewModel.SettingsUiState.BackupNotFound -> {
+             AlertDialog(
+                onDismissRequest = { settingsViewModel.resetState() },
+                title = { Text("No Backup Found") },
+                text = { Text("We couldn't find any JarWise backups in your Google Drive.") },
+                confirmButton = {
+                    TextButton(onClick = { settingsViewModel.resetState() }) {
+                        Text("OK")
+                    }
+                }
+            )
+        }
         else -> {}
     }
     
@@ -295,6 +321,16 @@ fun SettingsScreen(
                             modifier = Modifier.fillMaxWidth()
                         ) {
                             Text("Back up now")
+                        }
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        OutlinedButton(
+                            onClick = { settingsViewModel.checkForBackups() },
+                            enabled = syncStatus !is SyncStatus.Syncing,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Restore from Server")
                         }
                     }
                 }
