@@ -58,7 +58,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             JarWiseTheme {
                 // Determine initial screen based on auth state
-                val initialScreen = if (authService.currentUser.value != null) Screen.Dashboard else Screen.Login
+                val currentUser by authService.currentUser.collectAsState()
+                val initialScreen = if (currentUser != null) Screen.Dashboard else Screen.Login
                 var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
                 val transactions by viewModel.transactions.collectAsState()
                 val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
