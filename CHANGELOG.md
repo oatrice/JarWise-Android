@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.0] - 2026-02-03
+### Added
+- **Google Sign-In & Cloud Backup**: You can now sign in with your Google account to automatically back up your financial data to your personal Google Drive.
+- **Data Restore**: Easily restore your data from a Google Drive backup on a new device or after a fresh install, available from both the login and settings screens.
+- **Guest Mode**: Added a "Continue as Guest" option for users who prefer to keep their data stored only on their device.
+- **New Settings Screen**: Introduced a dedicated Settings screen to manage your account, trigger manual backups, restore data, and delete local information.
+
+### Changed
+- **Redesigned Login Flow**: The app startup experience has been updated to accommodate the new authentication and guest mode options.
+
+### Fixed
+- **Data Integrity**: The automatic backup process now intelligently pauses while you are editing your jars to prevent data conflicts.
+- **Restore Process**: Improved the reliability of the data restore function to ensure a clean and complete recovery.
+- **Manage Jars**: Unsaved changes on the "Manage Jars" screen are now correctly discarded if you navigate away without saving.
+
 ## [1.6.0] - 2026-02-02
 ### Changed
 - **Architectural Improvement**: Refactored the app's internal structure to use Koin for dependency injection. This foundational change improves stability and makes it easier to add new features in the future.

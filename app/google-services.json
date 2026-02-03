@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "310508345743",
+    "project_id": "jarwise-197b3",
+    "storage_bucket": "jarwise-197b3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:310508345743:android:a4949aec7042700eec13fa",
+        "android_client_info": {
+          "package_name": "com.oatrice.jarwise"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "310508345743-evitjb4bu5un50u4tjn9tu25s2o8cl20.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOtjzIzWS58gMkgyFiYV0BP2RG-eAOKtM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "310508345743-evitjb4bu5un50u4tjn9tu25s2o8cl20.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

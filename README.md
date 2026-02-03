@@ -4,6 +4,7 @@
 ![Jetpack Compose](https://img.shields.io/badge/Compose_BOM-2024.02.01-4285F4?style=for-the-badge&logo=android&logoColor=white)
 ![Android](https://img.shields.io/badge/Android_SDK-34-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
+
 - **Architecture**: MVVM + Clean Architecture + Koin
 
 **Modules**:
@@ -23,3 +24,5 @@ Do not edit `Color.kt` directly.
 *   **Mobile Experience**: Optimized Dashboard layout with quick access to Import Slip and Settings.
 *   **Transaction Management**: Add and view transactions with wallet and date selection.
 *   **Jar Management**: Configure and manage financial jars, including editing names, icons, and percentages. Supports a hierarchical (parent-child) structure for complex allocation strategies.
+*   **Authentication**: Secure account access with Google Sign-In.
+*   **Data Backup & Restore**: Cloud-based backup and restore to safeguard your data.

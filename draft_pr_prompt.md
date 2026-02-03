@@ -2,531 +2,525 @@
 
 You are an AI assistant helping to create a Pull Request description.
     
-TASK: [Web | Android] Support Hierarchical Wallets (Sub-accounts)
+TASK: [Web | Android] Google Login & Cloud Backup
 ISSUE: {
-  "title": "[Web | Android] Support Hierarchical Wallets (Sub-accounts)",
-  "number": 69
+  "title": "[Web | Android] Google Login & Cloud Backup",
+  "number": 32
 }
 
 GIT CONTEXT:
 COMMITS:
-e0b9588 feat: [Web | Android] Support Hierarchical Wallets (Sub-...
-8c6a50d feat: [Web | Android] Support Hierarchical Wallets (Sub-...
-8f64d86 ✨ feat(wallet): adds hierarchical wallet management and fixes UI/database issues
-fb71ef8 🐛 fix(test): correct viewmodel instantiation in tests
-1dfa403 ✨ feat(wallet): add wallet initialization and deletion confirmation
-3c31136 ✨ feat(wallets): add wallet management functionality
-d053dea 🐛 ui: remove fixed height constraint on wallet dropdown menu
-2a53cf1 ✨ feat(ui): implement wallet hierarchy level calculation
-dbe380c ✨ feat(ui): add wallet management screen
-757d190 🐛 fix(database): add fallback to destructive migration
-d114676 ✨ feat(wallets): implement hierarchical wallet management
+c718489 ✨ feat(auth): add google sign-in and cloud backup features
+33a6505 🐛 fix(manage-jars): revert unsaved changes on navigation
+9264c15 🐛 fix(ui): improve reset and date formatting
+d836cdd ✨ feat(settings): add backup checking and restore functionality
+655fdc0 🔄 feat(ui): add app restart after data deletion
+8785155 ✨ feat(settings): add local data deletion option on logout
+530a181 🐛 fix(backup): improve restore process with temp file and cleanup
+e0dc9d3 ✨ feat(backup): Add backup restore UI and flow
+c282075 🐛 fix(db): clean up WAL/SHM files after backup restore
+9f47a81 🐛 fix(backup): add debug logging for restored data
+1db2f90 ✨ feat(auth): implement google sign-in flow in settings
+77e4b45 ✨ feat(login): add guest login option and settings navigation
+728b22c ✨ feat(backup): Add backup restore functionality to login flow
+76557c6 🔐 feat(auth): implement initial screen routing based on auth state
+b0d87ac 🐛 ui(backup): Pause auto-backup during ManageJarsScreen
+f998aff 🐛 fix(backup): Add auto-backup pause/resume functionality
+b4448d6 🔄 refactor(backup): separate manual and auto backup triggers
+6685f7c ✨ feat(settings): add settings screen and view model
+deb23ec ✨ feat(backup): Add folder creation for Google Drive backups
+c980b93 ✨ feat(backup): enhance backup file naming and logging
+21e5b4f 🐛 auth(ui): improve error handling and UI state updates
+0007de5 ✨ feat(logging): Add comprehensive logging to backup operations
+692bb78 ✨ feat(backup): add automatic database backup to Google Drive
+ba3c82a ✨ feat(ui): improve login success flow
+5fc3f4a ✨ feat(ui): improve login screen composition and state handling
+152c351 ✨ feat(auth): implement Google Sign-In integration
+c37bcca ✨ feat(auth): add google authentication integration
 
 STATS:
-.luma_state.json                                   |  17 +-
- CHANGELOG.md                                       |  10 +
- app/build.gradle.kts                               |   3 +-
- .../com.oatrice.jarwise.data.AppDatabase/6.json    | 288 ++++++++
- .../main/java/com/oatrice/jarwise/MainActivity.kt  |  22 +-
- .../java/com/oatrice/jarwise/data/AppDatabase.kt   |  22 +-
- .../com/oatrice/jarwise/data/GeneratedMockData.kt  |  39 +
- .../java/com/oatrice/jarwise/data/WalletDao.kt     |  26 +
- .../java/com/oatrice/jarwise/data/WalletEntity.kt  |  15 +
- .../jarwise/data/repository/WalletRepository.kt    |  91 +++
- .../main/java/com/oatrice/jarwise/model/Models.kt  |  10 +
- .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  |  21 +
- .../ui/managewallets/AddEditWalletDialog.kt        | 194 +++++
- .../ui/managewallets/ManageWalletsScreen.kt        | 293 ++++++++
- .../ui/managewallets/ManageWalletsViewModel.kt     | 149 ++++
- .../ui/managewallets/ManageWalletsViewModelTest.kt | 228 ++++++
- code_review.md                                     | 197 +++--
- draft_pr_body.md                                   | 182 +++--
- draft_pr_prompt.md                                 | 800 +++++++++++----------
- draft_pr_prompt.txt                                |  68 --
- gradle/libs.versions.toml                          |   1 +
- 21 files changed, 2054 insertions(+), 622 deletions(-)
+.idea/appInsightsSettings.xml                      |   8 +-
+ .luma_state.json                                   |  16 +-
+ CHANGELOG.md                                       |  15 +
+ README.md                                          |   5 +-
+ app/build.gradle.kts                               |  12 +-
+ app/google-services.json                           |  39 +++
+ .../java/com/oatrice/jarwise/JarWiseApplication.kt |  21 +-
+ .../main/java/com/oatrice/jarwise/MainActivity.kt  |  37 ++-
+ .../com/oatrice/jarwise/data/auth/AuthService.kt   |   9 +
+ .../java/com/oatrice/jarwise/data/auth/AuthUser.kt |   8 +
+ .../oatrice/jarwise/data/auth/GoogleAuthService.kt |  90 ++++++
+ .../oatrice/jarwise/data/auth/MockAuthService.kt   |  25 ++
+ .../oatrice/jarwise/data/backup/BackupManager.kt   | 180 ++++++++++++
+ .../jarwise/data/backup/CloudStorageService.kt     |  16 ++
+ .../jarwise/data/backup/GoogleDriveService.kt      | 132 +++++++++
+ .../main/java/com/oatrice/jarwise/di/AppModule.kt  |   5 +-
+ .../main/java/com/oatrice/jarwise/di/AuthModule.kt |  10 +
+ .../main/java/com/oatrice/jarwise/di/DataModule.kt |  14 +
+ .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   8 +-
+ .../java/com/oatrice/jarwise/ui/MainViewModel.kt   |   4 +-
+ .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  | 311 ++++++++++++++++++++-
+ .../com/oatrice/jarwise/ui/login/LoginScreen.kt    | 238 ++++++++++++++++
+ .../com/oatrice/jarwise/ui/login/LoginUiState.kt   |  13 +
+ .../com/oatrice/jarwise/ui/login/LoginViewModel.kt | 126 +++++++++
+ .../jarwise/ui/managejars/ManageJarsScreen.kt      |  19 +-
+ .../jarwise/ui/managejars/ManageJarsViewModel.kt   | 190 +++++++++----
+ .../jarwise/ui/settings/SettingsViewModel.kt       | 116 ++++++++
+ .../java/com/oatrice/jarwise/utils/AppLogger.kt    |  18 ++
+ .../oatrice/jarwise/data/auth/AuthServiceTest.kt   |  41 +++
+ .../jarwise/data/backup/BackupManagerTest.kt       | 184 ++++++++++++
+ .../oatrice/jarwise/ui/login/LoginViewModelTest.kt |  55 ++++
+ .../ui/managejars/ManageJarsViewModelTest.kt       |  59 +++-
+ build.gradle.kts                                   |   1 +
+ code_review.md                                     |  26 +-
+ gradle/libs.versions.toml                          |  15 +
+ 35 files changed, 1943 insertions(+), 123 deletions(-)
 
 KEY FILE DIFFS:
+diff --git a/.idea/appInsightsSettings.xml b/.idea/appInsightsSettings.xml
+index 371f2e2..2f0ada9 100644
+--- a/.idea/appInsightsSettings.xml
++++ b/.idea/appInsightsSettings.xml
+@@ -8,10 +8,10 @@
+             <InsightsFilterSettings>
+               <option name="connection">
+                 <ConnectionSetting>
+-                  <option name="appId" value="PLACEHOLDER" />
+-                  <option name="mobileSdkAppId" value="" />
+-                  <option name="projectId" value="" />
+-                  <option name="projectNumber" value="" />
++                  <option name="appId" value="com.oatrice.jarwise" />
++                  <option name="mobileSdkAppId" value="1:310508345743:android:a4949aec7042700eec13fa" />
++                  <option name="projectId" value="jarwise-197b3" />
++                  <option name="projectNumber" value="310508345743" />
+                 </ConnectionSetting>
+               </option>
+               <option name="signal" value="SIGNAL_UNSPECIFIED" />
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
-index 37c08db..0dbdff7 100644
+index 645f57b..f505630 100644
 --- a/app/build.gradle.kts
 +++ b/app/build.gradle.kts
-@@ -13,7 +13,7 @@ android {
+@@ -2,18 +2,20 @@ plugins {
+     alias(libs.plugins.android.application)
+     alias(libs.plugins.jetbrains.kotlin.android)
+     alias(libs.plugins.ksp)
++    alias(libs.plugins.google.services)
+ }
+ 
+ android {
+     namespace = "com.oatrice.jarwise"
+     compileSdk = 34
++    buildToolsVersion = "34.0.0"
+ 
+     defaultConfig {
+         applicationId = "com.oatrice.jarwise"
          minSdk = 24
          targetSdk = 34
          versionCode = 1
--        versionName = "1.4.0"
-+        versionName = "1.5.0"
+-        versionName = "1.6.0"
++        versionName = "1.7.0"
  
          testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
          vectorDrawables {
-@@ -84,6 +84,7 @@ dependencies {
+@@ -52,6 +54,7 @@ android {
+     packaging {
+         resources {
+             excludes += "/META-INF/{AL2.0,LGPL2.1}"
++            excludes += "META-INF/DEPENDENCIES"
+         }
+     }
  
-     implementation(libs.androidx.core.ktx)
-     implementation(libs.androidx.lifecycle.runtime.ktx)
-+    implementation(libs.androidx.lifecycle.viewmodel.compose)
-     implementation(libs.androidx.room.runtime)
-     implementation(libs.androidx.room.ktx)
-     ksp(libs.androidx.room.compiler)
+@@ -137,6 +140,13 @@ dependencies {
+     implementation("io.insert-koin:koin-android:3.5.3")
+     implementation("io.insert-koin:koin-androidx-compose:3.5.3")
+ 
++    // Google Auth & Drive
++    implementation(libs.play.services.auth)
++    implementation(libs.google.api.client.android)
++    implementation(libs.google.api.services.drive)
++    implementation(libs.google.auth.library.oauth2.http)
++    implementation(libs.kotlinx.coroutines.play.services)
++    implementation(libs.google.http.client.android)
+ }
+ 
+ ksp {
+diff --git a/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt b/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
+index af6811e..dba61fc 100644
+--- a/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
++++ b/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
+@@ -5,6 +5,7 @@ import com.oatrice.jarwise.di.appModule
+ import com.oatrice.jarwise.di.dataModule
+ import com.oatrice.jarwise.di.repositoryModule
+ import com.oatrice.jarwise.di.viewModelModule
++import com.oatrice.jarwise.di.authModule
+ import org.koin.android.ext.koin.androidContext
+ import org.koin.android.ext.koin.androidLogger
+ import org.koin.core.context.GlobalContext.startKoin
+@@ -16,16 +17,32 @@ class JarWiseApplication : Application() {
+         super.onCreate()
+ 
+         if (GlobalContext.getOrNull() == null) {
+-            startKoin {
++            val koinApp = startKoin {
+                 androidLogger()
+                 androidContext(this@JarWiseApplication)
+                 modules(
+                     appModule,
+                     dataModule,
+                     repositoryModule,
+-                    viewModelModule
++                    viewModelModule,
++                    authModule
+                 )
+             }
++            
++            // Setup Auto Backup
++            val koin = koinApp.koin
++            val db = koin.get<com.oatrice.jarwise.data.AppDatabase>()
++            val backupManager = koin.get<com.oatrice.jarwise.data.backup.BackupManager>()
++            
++            db.invalidationTracker.addObserver(
++                object : androidx.room.InvalidationTracker.Observer(
++                    "transactions", "allocations", "wallets"
++                ) {
++                    override fun onInvalidated(tables: Set<String>) {
++                        backupManager.triggerAutoBackup()
++                    }
++                }
++            )
+         }
+     }
+ }
 diff --git a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
-index 085ad31..cfbd53c 100644
+index 00208cf..142ade8 100644
 --- a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
-@@ -20,6 +20,7 @@ import com.oatrice.jarwise.data.repository.UserPreferencesRepository
- import com.oatrice.jarwise.data.service.SlipDetectorServiceImpl
- import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
+@@ -14,6 +14,7 @@ import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
  import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
-+import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
+ import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
+ import org.koin.androidx.viewmodel.ext.android.viewModel
++import org.koin.android.ext.android.inject
  import com.oatrice.jarwise.ui.AddTransactionScreen
  import com.oatrice.jarwise.ui.DashboardScreen
  import com.oatrice.jarwise.ui.MainViewModel
-@@ -39,6 +40,7 @@ sealed class Screen {
-     data object SlipImport : Screen()
+@@ -34,6 +35,11 @@ sealed class Screen {
      data object Settings : Screen()
      data object ManageJars : Screen()
-+    data object ManageWallets : Screen()
+     data object ManageWallets : Screen()
++    data object Login : Screen()
++}
++
++private val slipDateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
++    timeZone = java.util.TimeZone.getTimeZone("UTC")
  }
  
  class MainActivity : ComponentActivity() {
-@@ -53,9 +55,11 @@ class MainActivity : ComponentActivity() {
-                 AppDatabase.MIGRATION_1_2, 
-                 AppDatabase.MIGRATION_2_3, 
-                 AppDatabase.MIGRATION_3_4,
--                AppDatabase.MIGRATION_4_5
-+                AppDatabase.MIGRATION_4_5,
-+                AppDatabase.MIGRATION_5_6
-             )
-             .addCallback(AppDatabase.SEED_CALLBACK)
-+            .fallbackToDestructiveMigration()
-             .build()
-         
-         val userPreferencesRepository = UserPreferencesRepository(applicationContext)
-@@ -63,6 +67,7 @@ class MainActivity : ComponentActivity() {
-         
-         // JarConfig Repository
-         val jarConfigRepository = JarConfigRepository(db.jarConfigDao())
-+        val walletRepository = com.oatrice.jarwise.data.repository.WalletRepository(db.walletDao())
-         
-         
-         val viewModel: MainViewModel by viewModels { 
-@@ -83,6 +88,10 @@ class MainActivity : ComponentActivity() {
-             ManageJarsViewModel.Factory(db.allocationDao())
-         }
+@@ -44,11 +50,16 @@ class MainActivity : ComponentActivity() {
+         val slipViewModel: SlipViewModel by viewModel()
+         val manageJarsViewModel: ManageJarsViewModel by viewModel()
+         val manageWalletsViewModel: ManageWalletsViewModel by viewModel()
++        
++        // Inject AuthService to check login status
++        val authService: com.oatrice.jarwise.data.auth.AuthService by inject()
  
-+        val manageWalletsViewModel: ManageWalletsViewModel by viewModels {
-+            ManageWalletsViewModel.Factory(walletRepository)
-+        }
-+
          enableEdgeToEdge()
          setContent {
              JarWiseTheme {
-@@ -125,6 +134,7 @@ class MainActivity : ComponentActivity() {
+-                var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
++                // Determine initial screen based on auth state
++                val initialScreen = if (authService.currentUser.value != null) Screen.Dashboard else Screen.Login
++                var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
+                 val transactions by viewModel.transactions.collectAsState()
+                 val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
+                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
+@@ -81,7 +92,10 @@ class MainActivity : ComponentActivity() {
+                                 onNavigateToImport = { currentScreen = Screen.SlipImport },
+                                 onNavigateToAdd = { currentScreen = Screen.AddTransaction },
+                                 onNavigateToSettings = { currentScreen = Screen.Settings },
+-                                onNavigateToManageJars = { currentScreen = Screen.ManageJars },
++                                onNavigateToManageJars = {
++                                    manageJarsViewModel.revertUnsavedChanges()
++                                    currentScreen = Screen.ManageJars
++                                },
+                                 onNavigate = handleNavigation
+                             )
                          }
-                         is Screen.Settings -> SettingsScreen(
-                              onBack = { currentScreen = Screen.Dashboard },
-+                             onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
-                              viewModel = viewModel
+@@ -122,9 +136,7 @@ class MainActivity : ComponentActivity() {
+                                     val amount = parsedSlip.amount ?: 0.0
+                                     val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
+                                     val date = parsedSlip.date?.let {
+-                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+-                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+-                                        sdf.format(it)
++                                        slipDateFormat.format(it)
+                                     }
+                                     viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date)
+                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
+@@ -133,9 +145,7 @@ class MainActivity : ComponentActivity() {
+                                     val amount = parsedSlip.amount ?: 0.0
+                                     val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
+                                     val date = parsedSlip.date?.let {
+-                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
+-                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+-                                        sdf.format(it)
++                                        slipDateFormat.format(it)
+                                     }
+                                     viewModel.saveDraft(amount, jarId, "wallet-bank", note, date)
+                                     android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
+@@ -155,13 +165,10 @@ class MainActivity : ComponentActivity() {
                          )
-                         is Screen.TransactionHistory -> TransactionHistoryScreen(
-@@ -190,6 +200,16 @@ class MainActivity : ComponentActivity() {
-                             viewModel = manageJarsViewModel,
-                             onBack = { currentScreen = Screen.Dashboard }
-                         )
-+                        is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
-+                            onNavigateBack = { currentScreen = Screen.Settings },
-+                            // viewModel = manageWalletsViewModel // Explicitly pass or let it use default if we change Screen signature
-+                            // Current Screen composable likely uses default viewModel() which won't work with Factory unless provided via LocalViewModelStoreOwner or passed directly.
-+                            // Assuming ManageWalletsScreen instantiates VM internally with koin/hilt or we need to pass it. 
-+                            // Looking at ManageWalletsScreen.kt (Step 441 in history), it uses `viewModel: ManageWalletsViewModel = viewModel()`.
-+                            // Without Hilt, `viewModel()` won't pick up the Factory associated with MainActivity unless we pass the *instance* or change how it's retrieved.
-+                            // Correct approach for simple DI: Pass the viewModel instance created in MainActivity.
-+                            viewModel = manageWalletsViewModel 
+                         is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
+                             onNavigateBack = { currentScreen = Screen.Settings },
+-                            // viewModel = manageWalletsViewModel // Explicitly pass or let it use default if we change Screen signature
+-                            // Current Screen composable likely uses default viewModel() which won't work with Factory unless provided via LocalViewModelStoreOwner or passed directly.
+-                            // Assuming ManageWalletsScreen instantiates VM internally with koin/hilt or we need to pass it. 
+-                            // Looking at ManageWalletsScreen.kt (Step 441 in history), it uses `viewModel: ManageWalletsViewModel = viewModel()`.
+-                            // Without Hilt, `viewModel()` won't pick up the Factory associated with MainActivity unless we pass the *instance* or change how it's retrieved.
+-                            // Correct approach for simple DI: Pass the viewModel instance created in MainActivity.
+-                            viewModel = manageWalletsViewModel 
++                            viewModel = manageWalletsViewModel
 +                        )
++                        is Screen.Login -> com.oatrice.jarwise.ui.login.LoginScreen(
++                            onLoginSuccess = { currentScreen = Screen.Dashboard }
+                         )
                      }
                  }
-             }
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-index ba179e6..145e165 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-@@ -5,11 +5,12 @@ import androidx.room.RoomDatabase
- import androidx.room.migration.Migration
- import androidx.sqlite.db.SupportSQLiteDatabase
- 
--@Database(entities = [Transaction::class, JarConfig::class, Allocation::class], version = 5, exportSchema = true)
-+@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 6, exportSchema = true)
- abstract class AppDatabase : RoomDatabase() {
-     abstract fun transactionDao(): TransactionDao
-     abstract fun jarConfigDao(): JarConfigDao
-     abstract fun allocationDao(): AllocationDao
-+    abstract fun walletDao(): WalletDao
- 
-     companion object {
-         val MIGRATION_1_2 = object : Migration(1, 2) {
-@@ -64,8 +65,6 @@ abstract class AppDatabase : RoomDatabase() {
-                 db.execSQL("CREATE INDEX IF NOT EXISTS `index_allocations_parentId` ON `allocations` (`parentId`)")
- 
-                 // Migrate data from jar_configs to allocations (as system default jars)
--                // Note: jar_configs.id is String '1'-'6', we need to map to Long id
--                // We'll migrate them as new allocations with level=0, parentId=NULL
-                 db.execSQL("""
-                     INSERT INTO allocations (userId, name, level, targetPercent, icon, color, sortOrder, isSystemDefault, isActive)
-                     SELECT 
-@@ -83,6 +82,23 @@ abstract class AppDatabase : RoomDatabase() {
-             }
-         }
- 
-+        // Migration for Wallets (New Version 6)
-+        val MIGRATION_5_6 = object : Migration(5, 6) {
-+            override fun migrate(db: SupportSQLiteDatabase) {
-+                db.execSQL("""
-+                    CREATE TABLE IF NOT EXISTS wallets (
-+                        id TEXT PRIMARY KEY NOT NULL,
-+                        name TEXT NOT NULL,
-+                        balance REAL NOT NULL,
-+                        colorArgb INTEGER NOT NULL,
-+                        iconName TEXT NOT NULL,
-+                        parentId TEXT,
-+                        level INTEGER NOT NULL
-+                    )
-+                """.trimIndent())
-+            }
-+        }
-+
-         val SEED_CALLBACK = object : RoomDatabase.Callback() {
-             override fun onCreate(db: SupportSQLiteDatabase) {
-                 super.onCreate(db)
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-index 1bc9a66..8c56eb4 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-@@ -11,6 +11,45 @@ import com.oatrice.jarwise.ui.theme.*
- // Generated at: 2026-01-31T11:24:59.073Z
- 
- object GeneratedMockData {
-+    val wallets = listOf(
-+        com.oatrice.jarwise.model.Wallet(
-+            id = "101",
-+            name = "Bank Account",
-+            balance = 15430.00,
-+            color = Blue500,
-+            icon = Icons.Rounded.AccountBalance,
-+            parentId = null,
-+            level = 0
-+        ),
-+        com.oatrice.jarwise.model.Wallet(
-+            id = "102",
-+            name = "K-Bank Savings",
-+            balance = 12000.00,
-+            color = Green500,
-+            icon = Icons.Rounded.Savings,
-+            parentId = "101",
-+            level = 1
-+        ),
-+        com.oatrice.jarwise.model.Wallet(
-+            id = "103",
-+            name = "SCB Checking",
-+            balance = 3430.00,
-+            color = Purple500,
-+            icon = Icons.Rounded.CreditCard,
-+            parentId = "101",
-+            level = 1
-+        ),
-+        com.oatrice.jarwise.model.Wallet(
-+            id = "104",
-+            name = "Cash Wallet",
-+            balance = 1250.00,
-+            color = Yellow500,
-+            icon = Icons.Rounded.Wallet,
-+            parentId = null,
-+            level = 0
-+        )
-+    )
-+
-     val jars = listOf(
-         Jar(
-             id = "1",
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt b/app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/AuthService.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthService.kt
 new file mode 100644
-index 0000000..d4dfd06
+index 0000000..3edc576
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt
-@@ -0,0 +1,26 @@
-+package com.oatrice.jarwise.data
++++ b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthService.kt
+@@ -0,0 +1,9 @@
++package com.oatrice.jarwise.data.auth
 +
-+import androidx.room.Dao
-+import androidx.room.Insert
-+import androidx.room.OnConflictStrategy
-+import androidx.room.Query
-+import androidx.room.Update
-+import kotlinx.coroutines.flow.Flow
++import kotlinx.coroutines.flow.StateFlow
 +
-+@Dao
-+interface WalletDao {
-+    @Query("SELECT * FROM wallets")
-+    fun getAllWallets(): Flow<List<WalletEntity>>
-+
-+    @Insert(onConflict = OnConflictStrategy.REPLACE)
-+    suspend fun insertWallet(wallet: WalletEntity)
-+
-+    @Update
-+    suspend fun updateWallet(wallet: WalletEntity)
-+
-+    @Query("DELETE FROM wallets WHERE id = :id")
-+    suspend fun deleteWallet(id: String)
-+    
-+    @Query("DELETE FROM wallets")
-+    suspend fun clearAll()
++interface AuthService {
++    val currentUser: StateFlow<AuthUser?>
++    suspend fun signIn(): Result<AuthUser>
++    suspend fun signOut()
 +}
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/WalletEntity.kt b/app/src/main/java/com/oatrice/jarwise/data/WalletEntity.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/AuthUser.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthUser.kt
 new file mode 100644
-index 0000000..3166420
+index 0000000..f8a4a17
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/WalletEntity.kt
-@@ -0,0 +1,15 @@
-+package com.oatrice.jarwise.data
++++ b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthUser.kt
+@@ -0,0 +1,8 @@
++package com.oatrice.jarwise.data.auth
 +
-+import androidx.room.Entity
-+import androidx.room.PrimaryKey
-+
-+@Entity(tableName = "wallets")
-+data class WalletEntity(
-+    @PrimaryKey val id: String,
-+    val name: String,
-+    val balance: Double,
-+    val colorArgb: Int, // Store Color.toArgb()
-+    val iconName: String, // Store icon name (e.g. "AccountBalance")
-+    val parentId: String?,
-+    val level: Int
-+)
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt
-new file mode 100644
-index 0000000..c1efddf
---- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt
-@@ -0,0 +1,91 @@
-+package com.oatrice.jarwise.data.repository
-+
-+import androidx.compose.ui.graphics.Color
-+import androidx.compose.ui.graphics.vector.ImageVector
-+import androidx.compose.material.icons.Icons
-+import androidx.compose.material.icons.filled.AccountBalanceWallet
-+import androidx.compose.material.icons.filled.AttachMoney
-+import androidx.compose.material.icons.filled.CreditCard
-+import androidx.compose.material.icons.filled.AccountBalance
-+import com.oatrice.jarwise.data.WalletDao
-+import com.oatrice.jarwise.data.WalletEntity
-+import com.oatrice.jarwise.model.Wallet
-+import kotlinx.coroutines.flow.Flow
-+import kotlinx.coroutines.flow.map
-+import kotlinx.coroutines.flow.first
-+
-+class WalletRepository(private val walletDao: WalletDao) {
-+
-+    val wallets: Flow<List<Wallet>> = walletDao.getAllWallets().map { entities ->
-+        entities.map { it.toWallet() }
-+    }
-+
-+    suspend fun insertWallet(wallet: Wallet) {
-+        walletDao.insertWallet(wallet.toEntity())
-+    }
-+
-+    suspend fun updateWallet(wallet: Wallet) {
-+        walletDao.updateWallet(wallet.toEntity())
-+    }
-+
-+    suspend fun deleteWallet(id: String) {
-+        walletDao.deleteWallet(id)
-+    }
-+
-+    // Mapper Functions
-+    private fun WalletEntity.toWallet(): Wallet {
-+        return Wallet(
-+            id = id,
-+            name = name,
-+            balance = balance,
-+            color = Color(colorArgb),
-+            icon = getIconByName(iconName),
-+            parentId = parentId,
-+            level = level
-+        )
-+    }
-+
-+    private fun Wallet.toEntity(): WalletEntity {
-+        return WalletEntity(
-+            id = id,
-+            name = name,
-+            balance = balance,
-+            colorArgb = color.value.toLong().toInt(), // Convert ULong Color to Int
-+            iconName = getIconName(icon),
-+            parentId = parentId,
-+            level = level
-+        )
-+    }
-+
-+    // Helper to map String -> ImageVector (Basic implementation)
-+    // In a real app, this should be consistent with how icons are selected/stored
-+    private fun getIconByName(name: String): ImageVector {
-+        return when (name) {
-+            "AccountBalanceWallet" -> Icons.Default.AccountBalanceWallet
-+            "AttachMoney" -> Icons.Default.AttachMoney
-+            "CreditCard" -> Icons.Default.CreditCard
-+            "AccountBalance" -> Icons.Default.AccountBalance
-+            else -> Icons.Default.AccountBalanceWallet // Default
-+        }
-+    }
-+
-+    private fun getIconName(icon: ImageVector): String {
-+        return icon.name.substringAfterLast(".") // Extract simple name
-+    }
-+
-+    /**
-+     * Initialize default wallets if database is empty
-+     */
-+    suspend fun initializeDefaultsIfEmpty() {
-+        val currentWallets = walletDao.getAllWallets().first()
-+        if (currentWallets.isEmpty()) { 
-+             val defaults = listOf(
-+                 Wallet(id = "wallet-cash", name = "Cash", balance = 0.0, color = Color(0xFF22C55E), icon = Icons.Default.AccountBalanceWallet),
-+                 Wallet(id = "wallet-bank", name = "Bank Account", balance = 0.0, color = Color(0xFF3B82F6), icon = Icons.Default.AccountBalance),
-+                 Wallet(id = "wallet-credit", name = "Credit Card", balance = 0.0, color = Color(0xFFA855F7), icon = Icons.Default.CreditCard)
-+             )
-+             
-+             defaults.forEach { insertWallet(it) }
-+        }
-+    }
-+}
-diff --git a/app/src/main/java/com/oatrice/jarwise/model/Models.kt b/app/src/main/java/com/oatrice/jarwise/model/Models.kt
-index 7d7a717..071bd59 100644
---- a/app/src/main/java/com/oatrice/jarwise/model/Models.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/model/Models.kt
-@@ -25,3 +25,13 @@ data class Transaction(
-     val color: Color, // Icon background tint
-     val iconTint: Color // Icon foreground color
- )
-+
-+data class Wallet(
++data class AuthUser(
 +    val id: String,
 +    val name: String,
-+    val balance: Double,
-+    val color: Color,
-+    val icon: ImageVector,
-+    val parentId: String? = null,
-+    val level: Int = 0
++    val email: String,
++    val photoUrl: String? = null
 +)
-diff --git a/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
-index 84d1e03..ab24913 100644
---- a/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
-@@ -3,6 +3,7 @@ package com.oatrice.jarwise.ui
- import androidx.compose.foundation.layout.*
- import androidx.compose.material.icons.Icons
- import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-+import androidx.compose.material.icons.rounded.AccountBalanceWallet
- import androidx.compose.material3.*
- import androidx.compose.runtime.*
- import androidx.compose.ui.Alignment
-@@ -14,6 +15,7 @@ import com.oatrice.jarwise.utils.TransactionDisplayUtils
- @Composable
- fun SettingsScreen(
-     onBack: () -> Unit,
-+    onNavigateToManageWallets: () -> Unit = {},
-     viewModel: MainViewModel
- ) {
-     val selectedCurrency by viewModel.selectedCurrency.collectAsState()
-@@ -43,6 +45,25 @@ fun SettingsScreen(
-             verticalArrangement = Arrangement.Top,
-             horizontalAlignment = Alignment.Start
-         ) {
-+            Text(
-+                text = "General",
-+                style = MaterialTheme.typography.titleMedium,
-+                modifier = Modifier.padding(bottom = 8.dp)
-+            )
-+
-+            OutlinedButton(
-+                onClick = onNavigateToManageWallets,
-+                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
-+            ) {
-+                Row(
-+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-+                    verticalAlignment = Alignment.CenterVertically
-+                ) {
-+                    Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null)
-+                    Text("Manage Wallets (Sub-accounts)")
-+                }
-+            }
-+
-             Text(
-                 text = "Currency",
-                 style = MaterialTheme.typography.titleMedium,
-diff --git a/app/src/main/java/com/oatrice/jarwise/ui/managewallets/AddEditWalletDialog.kt b/app/src/main/java/com/oatrice/jarwise/ui/managewallets/AddEditWalletDialog.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/GoogleAuthService.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/GoogleAuthService.kt
 new file mode 100644
-index 0000000..3711a83
+index 0000000..8e8afb5
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/ui/managewallets/AddEditWalletDialog.kt
-@@ -0,0 +1,194 @@
-+package com.oatrice.jarwise.ui.managewallets
++++ b/app/src/main/java/com/oatrice/jarwise/data/auth/GoogleAuthService.kt
+@@ -0,0 +1,90 @@
++package com.oatrice.jarwise.data.auth
 +
-+import androidx.compose.foundation.background
-+import androidx.compose.foundation.clickable
-+import androidx.compose.foundation.layout.*
-+import androidx.compose.foundation.rememberScrollState
-+import androidx.compose.foundation.verticalScroll
-+import androidx.compose.foundation.shape.RoundedCornerShape
-+import androidx.compose.material.icons.Icons
-+import androidx.compose.material.icons.rounded.ArrowDropDown
-+import androidx.compose.material.icons.rounded.Check
-+import androidx.compose.material.icons.rounded.Close
-+import androidx.compose.material.icons.rounded.Wallet
-+import androidx.compose.material3.*
-+import androidx.compose.runtime.*
-+import androidx.compose.ui.Alignment
-+import androidx.compose.ui.Modifier
-+import androidx.compose.ui.graphics.Color
-+import androidx.compose.ui.unit.dp
-+import androidx.compose.ui.window.Dialog
-+import com.oatrice.jarwise.model.Wallet
-+import com.oatrice.jarwise.ui.theme.Blue500
-+import com.oatrice.jarwise.ui.theme.Gray100
-+import com.oatrice.jarwise.ui.theme.Gray400
-+import com.oatrice.jarwise.ui.theme.Gray700
-+import com.oatrice.jarwise.ui.theme.Gray800
-+import com.oatrice.jarwise.ui.theme.Gray900
++import android.content.Context
++import com.google.android.gms.auth.api.signin.GoogleSignIn
++import com.google.android.gms.auth.api.signin.GoogleSignInOptions
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.StateFlow
++import kotlinx.coroutines.flow.asStateFlow
++import kotlinx.coroutines.tasks.await
 +
-+@OptIn(ExperimentalMaterial3Api::class)
-+@Composable
-+fun AddEditWalletDialog(
-+    onDismiss: () -> Unit,
-+    onSave: (name: String, parentId: String?) -> Unit,
-+    allWallets: List<Wallet>,
-+    editingWallet: Wallet? = null // Null = Add Mode
-+) {
-+    var name by remember { mutableStateOf(editingWallet?.name ?: "") }
-+    var parentId by remember { mutableStateOf(editingWallet?.parentId) }
-+    var expanded by remember { mutableStateOf(false) }
++class GoogleAuthService(private val context: Context) : AuthService {
++    private val _currentUser = MutableStateFlow<AuthUser?>(null)
++    override val currentUser: StateFlow<AuthUser?> = _currentUser.asStateFlow()
 +
-+    // Logic to filter available parents:
-+    // 1. Cannot be self
-+    // 2. Cannot be a descendant (Circular Dependency)
-+    val availableParents = remember(allWallets, editingWallet) {
-+        if (editingWallet == null) {
-+            allWallets // Adding new: can pick anyone
-+        } else {
-+            allWallets.filter { candidate ->
-+                if (candidate.id == editingWallet.id) return@filter false // Cannot be self
-+                // Check descendant
-+                !isDescendant(allWallets, candidate.id, editingWallet.id)
++    init {
++        // Check for existing signed-in user
++        val account = GoogleSignIn.getLastSignedInAccount(context)
++        if (account != null) {
++            _currentUser.value = AuthUser(
++                id = account.id ?: "",
++                name = account.displayName ?: "",
++                email = account.email ?: "",
++                photoUrl = account.photoUrl?.toString()
++            )
++        }
++    }
++
++    override suspend fun signIn(): Result<AuthUser> {
++        // In real implementation, this needs Activity context or result launcher.
++        // For Service, we usually just return state or handle via repository.
++        // This is a simplified interface for now.
++        // Real Google Sign-In requires Activity interaction (startActivityForResult).
++        // So this method might need to be "handleSignInResult" or similar, 
++        // OR we inject a launcher helper. 
++        // For now, let's keep it consistent with interface but note limitations.
++        return Result.failure(Exception("Google Sign-In requires Activity interaction"))
++    }
++    
++    fun getSignInIntent(): android.content.Intent {
++        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
++            .requestEmail()
++            .requestProfile()
++            .requestScopes(com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_FILE), com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_APPDATA))
++            .build()
++        val client = GoogleSignIn.getClient(context, gso)
++        return client.signInIntent
++    }
++
++    suspend fun handleSignInResult(intent: android.content.Intent?): Result<AuthUser> {
++        return try {
++            val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
++            val account = task.await()
++            val user = AuthUser(
++                id = account.id ?: "",
++                name = account.displayName ?: "",
++                email = account.email ?: "",
++                photoUrl = account.photoUrl?.toString()
++            )
++            _currentUser.value = user
++            android.util.Log.d("GoogleAuthService", "Sign-in successful: ${user.email} (${user.name})")
++            Result.success(user)
++        } catch (e: Exception) {
++            if (e is com.google.android.gms.common.api.ApiException) {
++                android.util.Log.e("GoogleAuthService", "Sign-in failed code: ${e.statusCode}, message: ${e.message}")
++                val message = when (e.statusCode) {
++                    com.google.android.gms.common.api.CommonStatusCodes.NETWORK_ERROR -> "Network error. Please check your connection."
++                    com.google.android.gms.common.api.CommonStatusCodes.INVALID_ACCOUNT -> "Invalid account."
++                    else -> "Sign-in failed: ${e.message}"
++                }
++                Result.failure<AuthUser>(Exception(message))
++            } else {
++                android.util.Log.e("GoogleAuthService", "Sign-in failed", e)
++                Result.failure<AuthUser>(e)
 +            }
 +        }
 +    }
 +
-+    val selectedParentName = availableParents.find { it.id == parentId }?.name ?: "No Parent (Top Level)"
++    override suspend fun signOut() {
++        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
++        val client = GoogleSignIn.getClient(context, gso)
++        try {
++            client.signOut().await()
++            _currentUser.value = null
++        } catch (e: Exception) {
++            e.printStackTrace()
++            // Even if Google sign out fails, clear local state
++            _currentUser.value = null
++        }
++    }
++}
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/MockAuthService.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/MockAuthService.kt
+new file mode 100644
+index 0000000..0884b92
+--- /dev/null
++++ b/app/src/main/java/com/oatrice/jarwise/data/auth/MockAuthService.kt
+@@ -0,0 +1,25 @@
++package com.oatrice.jarwise.data.auth
 +
-+    Dialog(onDismissRequest = onDismiss) {
-+        Card(
-+            shape = RoundedCornerShape(16.dp),
-+            colors = 
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.StateFlow
++import kotlinx.coroutines.flow.asStateFlow
++
++class MockAuthService : AuthService {
++    private val _currentUser = MutableStateFlow<AuthUser?>(null)
++    override val currentUser: StateFlow<AuthUser?> = _currentUser.asStateFlow()
++
++    override suspend fun signIn(): Result<AuthUser> {
++        val user = AuthUser(
++            id = "mock_id_123",
++            name = "Mock User",
++            email = "mock@example.com",
++            photoUrl = "https://example.com/photo.jpg"
++        )
++        _currentUser.value = user
++        return Result.success(user)
++    }
++
++    override suspend fun signOut() {
++        _currentUser.value = null
++    }
++}
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/backup/BackupManager.kt b/app/src/main/java/com/oatrice/jarwise/data/backup/BackupManager.kt
+new file mode 100644
+index 0000000..ba4d342
+--- /dev/null
++++ b/app/src/main/java/com/oatrice/jarwise/data/backup/BackupManager.kt
+@@ -0,0 +1,180 @@
++package com.oatrice.jarwise.data.backup
++
++import kotlinx.coroutines.CoroutineScope
++import kotlinx.coroutines.Job
++import kotlinx.coroutines.delay
++import kotlinx.coroutines.launch
++import java.io.File
++
++import kotlinx.coroutines.flow.MutableStateFlow
++import kotlinx.coroutines.flow.StateFlow
++import kotlinx.coroutines.flow.asStateFlow
++
++sealed class SyncStatus {
++    data object Idle : SyncStatus()
++    data object Syncing : SyncStatus()
++    data class Success(val lastSyncedTime: Long) : SyncStatus()
++    data class Error(val message: String) : SyncStatus()
++}
++
++class BackupManager(
++    private val cloudStorageService: CloudStorageService,
++    private val externalScope: CoroutineScope,
++    private val dbFileProvider: () -> File,
++    private val logger: com.oatrice.jarwise.utils.AppLogger
++) {
++    private var backupJob: Job? = null
++    private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
++    val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
++    
++    companion object {
++        private const val DEBOUNCE_DELAY_MS = 10000L
++    }
++
++    private var isAutoBackupPaused = false
++    private var isBackupPending = false
++
++    fun setAutoBackupPaused(paused: Boolean) {
++        if (isAutoBackupPaused == paused) return
++        isAutoBackupPaused = paused
++        if (!paused && isBackupPending) {
++            isBackupPending = false
++            triggerAutoBackup()
++        }
++    }
++
++    fun triggerAutoBackup() {
++        if (isAutoBackupPaused) {
++            isBackupPending = true
++            return
++        }
++        
++        // Cancel previous job if it exists (debounce reset)
++        backupJob?.cancel()
++        
++        backupJob = externalScope.launch {
++            delay(DEBOUNCE_DELAY_MS)
++            performBackup()
++        }
++    }
++
++    fun triggerManualBackup() {
++        // Cancel any pending auto backup to avoid double upload if user clicks just after edit
++        backupJob?.cancel()
++        isBackupPending = false
++        
++        externalScope.launch {
++            performBackup()
++        }
++    }
++
++    private suspend fun performBackup() {
++        val file = dbFileProvider()
++        logger.d("BackupManager", "Start backup: ${file.name}")
++        _s
 ... (Diff truncated for size) ...
 
 PR TEMPLATE:

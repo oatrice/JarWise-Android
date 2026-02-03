@@ -14,6 +14,7 @@ import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
 import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
 import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.android.ext.android.inject
 import com.oatrice.jarwise.ui.AddTransactionScreen
 import com.oatrice.jarwise.ui.DashboardScreen
 import com.oatrice.jarwise.ui.MainViewModel
@@ -34,6 +35,11 @@ sealed class Screen {
     data object Settings : Screen()
     data object ManageJars : Screen()
     data object ManageWallets : Screen()
+    data object Login : Screen()
+}
+
+private val slipDateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
+    timeZone = java.util.TimeZone.getTimeZone("UTC")
 }
 
 class MainActivity : ComponentActivity() {
@@ -44,11 +50,17 @@ class MainActivity : ComponentActivity() {
         val slipViewModel: SlipViewModel by viewModel()
         val manageJarsViewModel: ManageJarsViewModel by viewModel()
         val manageWalletsViewModel: ManageWalletsViewModel by viewModel()
+        
+        // Inject AuthService to check login status
+        val authService: com.oatrice.jarwise.data.auth.AuthService by inject()
 
         enableEdgeToEdge()
         setContent {
             JarWiseTheme {
-                var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
+                // Determine initial screen based on auth state
+                val currentUser by authService.currentUser.collectAsState()
+                val initialScreen = if (currentUser != null) Screen.Dashboard else Screen.Login
+                var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
                 val transactions by viewModel.transactions.collectAsState()
                 val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
@@ -81,7 +93,10 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToImport = { currentScreen = Screen.SlipImport },
                                 onNavigateToAdd = { currentScreen = Screen.AddTransaction },
                                 onNavigateToSettings = { currentScreen = Screen.Settings },
-                                onNavigateToManageJars = { currentScreen = Screen.ManageJars },
+                                onNavigateToManageJars = {
+                                    manageJarsViewModel.revertUnsavedChanges()
+                                    currentScreen = Screen.ManageJars
+                                },
                                 onNavigate = handleNavigation
                             )
                         }
@@ -122,9 +137,7 @@ class MainActivity : ComponentActivity() {
                                     val amount = parsedSlip.amount ?: 0.0
                                     val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
                                     val date = parsedSlip.date?.let {
-                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
-                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
-                                        sdf.format(it)
+                                        slipDateFormat.format(it)
                                     }
                                     viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date)
                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
@@ -133,9 +146,7 @@ class MainActivity : ComponentActivity() {
                                     val amount = parsedSlip.amount ?: 0.0
                                     val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
                                     val date = parsedSlip.date?.let {
-                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
-                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
-                                        sdf.format(it)
+                                        slipDateFormat.format(it)
                                     }
                                     viewModel.saveDraft(amount, jarId, "wallet-bank", note, date)
                                     android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
@@ -155,13 +166,10 @@ class MainActivity : ComponentActivity() {
                         )
                         is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
                             onNavigateBack = { currentScreen = Screen.Settings },
-                            // viewModel = manageWalletsViewModel // Explicitly pass or let it use default if we change Screen signature
-                            // Current Screen composable likely uses default viewModel() which won't work with Factory unless provided via LocalViewModelStoreOwner or passed directly.
-                            // Assuming ManageWalletsScreen instantiates VM internally with koin/hilt or we need to pass it. 
-                            // Looking at ManageWalletsScreen.kt (Step 441 in history), it uses `viewModel: ManageWalletsViewModel = viewModel()`.
-                            // Without Hilt, `viewModel()` won't pick up the Factory associated with MainActivity unless we pass the *instance* or change how it's retrieved.
-                            // Correct approach for simple DI: Pass the viewModel instance created in MainActivity.
-                            viewModel = manageWalletsViewModel 
+                            viewModel = manageWalletsViewModel
+                        )
+                        is Screen.Login -> com.oatrice.jarwise.ui.login.LoginScreen(
+                            onLoginSuccess = { currentScreen = Screen.Dashboard }
                         )
                     }
                 }

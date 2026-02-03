@@ -25,6 +25,7 @@ class ManageJarsViewModelTest {
 
     private lateinit var viewModel: ManageJarsViewModel
     private lateinit var fakeDao: FakeJarConfigDao
+    private val backupManager: com.oatrice.jarwise.data.backup.BackupManager = org.mockito.kotlin.mock()
 
     @Before
     fun setup() = runTest {
@@ -41,7 +42,7 @@ class ManageJarsViewModelTest {
         )
         fakeDao.insertAll(defaults)
         
-        viewModel = ManageJarsViewModel(fakeDao)
+        viewModel = ManageJarsViewModel(fakeDao, backupManager)
     }
 
 
@@ -109,7 +110,7 @@ class ManageJarsViewModelTest {
     
 
     @Test
-    fun `resetToDefaults should restore original configuration`() = runTest {
+    fun `revertUnsavedChanges should restore original configuration`() = runTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jars.collect() }
         
         // Given modified state
@@ -118,7 +119,7 @@ class ManageJarsViewModelTest {
         assertEquals("Changed", viewModel.jars.value[0].name)
         
         // When
-        viewModel.resetToDefaults()
+        viewModel.revertUnsavedChanges()
         advanceUntilIdle() // Wait for ensure coroutine execution
         
         // Then
@@ -149,5 +150,57 @@ class ManageJarsViewModelTest {
         val savedData = fakeDao.getAll()
         assertEquals(50, savedData.find { it.id == jar1 }?.targetPercent)
         assertEquals(15, savedData.find { it.id == jar2 }?.targetPercent)
+    }
+
+
+    @Test
+    fun `addJar and revertUnsavedChanges should NOT persist new jar`() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jars.collect() }
+        
+        val initialCount = viewModel.jars.value.size
+        
+        // When: Add Jar
+        viewModel.addJar()
+        advanceUntilIdle()
+        
+        assertEquals("Should have 1 more jar in memory", initialCount + 1, viewModel.jars.value.size)
+        
+        // When: Discard (Revert)
+        viewModel.revertUnsavedChanges()
+        advanceUntilIdle()
+        
+        // Then: Should return to initial count
+        assertEquals("Should revert to initial count", initialCount, viewModel.jars.value.size)
+        
+        // Also verify DB didn't change (this might fail currently if logic writes strictly)
+        val dbCount = fakeDao.getAll().size
+        assertEquals("DB should not have the new jar yet", initialCount, dbCount)
+    }
+
+    @Test
+    fun `deleteJar and revertUnsavedChanges should NOT persist deletion`() = runTest {
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jars.collect() }
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { viewModel.jarToDelete.collect() }
+        
+        val initialCount = viewModel.jars.value.size
+        val jarToDelete = viewModel.jars.value[0]
+        
+        // When: Delete Jar
+        viewModel.showDeleteConfirmation(jarToDelete)
+        viewModel.confirmDelete()
+        advanceUntilIdle()
+        
+        assertEquals("Should have 1 less jar in memory", initialCount - 1, viewModel.jars.value.size)
+        
+        // When: Discard (Revert)
+        viewModel.revertUnsavedChanges()
+        advanceUntilIdle()
+        
+        // Then: Should return to initial count
+        assertEquals("Should revert deletion", initialCount, viewModel.jars.value.size)
+        
+        // Verify DB
+        val dbCount = fakeDao.getAll().size
+        assertEquals("DB should still have the jar", initialCount, dbCount)
     }
 }

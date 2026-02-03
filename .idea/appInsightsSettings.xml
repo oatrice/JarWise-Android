@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.oatrice.jarwise" />
+                  <option name="mobileSdkAppId" value="1:310508345743:android:a4949aec7042700eec13fa" />
+                  <option name="projectId" value="jarwise-197b3" />
+                  <option name="projectNumber" value="310508345743" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
