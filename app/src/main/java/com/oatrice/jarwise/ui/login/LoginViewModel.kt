@@ -17,6 +17,10 @@ class LoginViewModel(
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
+    fun resetState() {
+        _uiState.value = LoginUiState.Idle
+    }
+
     fun getSignInIntent(): android.content.Intent {
         return (authService as? com.oatrice.jarwise.data.auth.GoogleAuthService)?.getSignInIntent() 
             ?: android.content.Intent()

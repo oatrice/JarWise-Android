@@ -31,7 +31,6 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsScreen(
     onBack: () -> Unit,
     onNavigateToManageWallets: () -> Unit = {},
-    onNavigateToLogin: () -> Unit = {},
     viewModel: MainViewModel,
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
@@ -124,13 +123,31 @@ fun SettingsScreen(
                 }
             } else {
                 // Not logged in state
+                
+                // Activity Result Launcher for Google Sign-In
+                val launcher = androidx.activity.compose.rememberLauncherForActivityResult(
+                    contract = androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+                ) { result ->
+                    if (result.resultCode == android.app.Activity.RESULT_OK) {
+                        settingsViewModel.handleSignInResult(result.data)
+                    }
+                }
+
                 Text(
                     text = "Account",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
                 Button(
-                    onClick = onNavigateToLogin,
+                    onClick = {
+                        val intent = settingsViewModel.getSignInIntent()
+                        if (intent.action != null || intent.component != null) {
+                            launcher.launch(intent)
+                        } else {
+                            // Mock
+                            settingsViewModel.handleSignInResult(null)
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
                 ) {
                     Icon(Icons.Rounded.AccountCircle, contentDescription = null)

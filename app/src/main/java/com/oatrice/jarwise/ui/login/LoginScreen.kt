@@ -36,6 +36,10 @@ fun LoginScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.resetState()
+    }
+
     // Activity Result Launcher for Google Sign-In
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -186,9 +190,19 @@ fun LoginContent(
                         Text("Restore Successful!")
                         Text("Restarting app...", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
                         
+                        val context = androidx.compose.ui.platform.LocalContext.current
                         LaunchedEffect(Unit) {
                             delay(2000)
-                            onLoginSuccess()
+                            // Trigger full app restart to reload Room DB
+                            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            if (intent != null) {
+                                context.startActivity(intent)
+                                android.os.Process.killProcess(android.os.Process.myPid())
+                            } else {
+                                onLoginSuccess()
+                            }
                         }
                     }
                 }
