@@ -20,11 +20,20 @@ class SettingsViewModel(
         backupManager.triggerManualBackup() 
     }
 
-    fun signOut() {
+    fun signOut(clearData: Boolean = false) {
         viewModelScope.launch {
+            if (clearData) {
+                backupManager.clearLocalData()
+                // Force app restart on next launch or now?
+                // Ideally, we should kill process to reset Room. 
+                // But for now, just clearing file is "enough" as next launch will create new empty DB.
+                // Or we can let UI handle the restart/exit.
+            }
             authService.signOut()
+            resetState()
         }
     }
+
 
     fun getSignInIntent(): android.content.Intent {
         return (authService as? com.oatrice.jarwise.data.auth.GoogleAuthService)?.getSignInIntent() 

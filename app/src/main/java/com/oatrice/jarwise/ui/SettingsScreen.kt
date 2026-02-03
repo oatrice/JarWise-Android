@@ -1,6 +1,7 @@
 package com.oatrice.jarwise.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -108,15 +109,46 @@ fun SettingsScreen(
     val currencies = listOf("THB", "USD", "EUR", "JPY")
 
     if (showLogoutDialog) {
+        var deleteData by remember { mutableStateOf(false) }
+        val context = androidx.compose.ui.platform.LocalContext.current
+
         AlertDialog(
             onDismissRequest = { showLogoutDialog = false },
             title = { Text("Sign Out") },
-            text = { Text("Are you sure you want to sign out?") },
+            text = { 
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text("Are you sure you want to sign out?")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { deleteData = !deleteData }
+                    ) {
+                        Checkbox(
+                            checked = deleteData,
+                            onCheckedChange = { deleteData = it }
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Also delete local data (start fresh)",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            },
             confirmButton = {
                 TextButton(
                     onClick = {
-                        settingsViewModel.signOut()
+                        settingsViewModel.signOut(clearData = deleteData)
                         showLogoutDialog = false
+                        
+                        // If data deleted, we should probably restart or close app to ensure Room doesn't crash
+                        if (deleteData) {
+                            val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                            intent?.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                            context.startActivity(intent)
+                            android.os.Process.killProcess(android.os.Process.myPid())
+                        }
                     },
                     colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                 ) {

@@ -162,4 +162,19 @@ class BackupManager(
             logger.e("BackupManager", "Error inspecting DB file", e)
         }
     }
+    fun clearLocalData() {
+        try {
+            val file = dbFileProvider()
+            val wal = File("${file.absolutePath}-wal")
+            val shm = File("${file.absolutePath}-shm")
+            
+            if (file.exists()) file.delete()
+            if (wal.exists()) wal.delete()
+            if (shm.exists()) shm.delete()
+            
+            logger.d("BackupManager", "Local data cleared successfully")
+        } catch (e: Exception) {
+            logger.e("BackupManager", "Failed to clear local data", e)
+        }
+    }
 }
