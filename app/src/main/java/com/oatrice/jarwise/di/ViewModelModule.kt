@@ -14,6 +14,6 @@ val viewModelModule = module {
     viewModel { SlipViewModel(get(), get()) }
     viewModel { ManageJarsViewModel(get(), get()) }
     viewModel { ManageWalletsViewModel(get()) }
-    viewModel { LoginViewModel(get()) }
+    viewModel { LoginViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
 }

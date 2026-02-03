@@ -81,4 +81,16 @@ class BackupManager(
             _syncStatus.value = SyncStatus.Error(it.message ?: "Unknown error")
         }
     }
+    
+    suspend fun checkForBackup(): Result<List<BackupMetadata>> {
+        return cloudStorageService.listBackups()
+    }
+    
+    suspend fun restoreBackup(fileId: String): Result<Unit> {
+        val destFile = dbFileProvider()
+        // Simple overwrite strategy for now.
+        // In reality, we might want to download to a temp file, validate, then move.
+        // And importantly, close Room DB connection before this.
+        return cloudStorageService.downloadBackup(fileId, destFile)
+    }
 }

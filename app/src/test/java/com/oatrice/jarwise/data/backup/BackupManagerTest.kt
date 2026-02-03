@@ -112,4 +112,46 @@ class BackupManagerTest {
         
         assert(manager.syncStatus.value is SyncStatus.Error)
     }
+
+    @Test
+    fun `checkForBackup should return list of backups`() = testScope.runTest {
+        val manager = BackupManager(
+            cloudStorageService = cloudStorageService,
+            externalScope = this,
+             dbFileProvider = { dbFile },
+             logger = logger
+        )
+
+        val backups = listOf(
+            BackupMetadata("id1", "backup1.db", 1000L, 500L),
+            BackupMetadata("id2", "backup2.db", 2000L, 500L)
+        )
+        org.mockito.kotlin.whenever(cloudStorageService.listBackups())
+            .thenReturn(Result.success(backups))
+
+        val result = manager.checkForBackup()
+        
+        assert(result.isSuccess)
+        assert(result.getOrNull() == backups)
+        verify(cloudStorageService).listBackups()
+    }
+
+    @Test
+    fun `restoreBackup should download file and return success`() = testScope.runTest {
+        val manager = BackupManager(
+            cloudStorageService = cloudStorageService,
+            externalScope = this,
+             dbFileProvider = { dbFile },
+             logger = logger
+        )
+
+        val fileId = "testFileId"
+        org.mockito.kotlin.whenever(cloudStorageService.downloadBackup(org.mockito.kotlin.eq(fileId), org.mockito.kotlin.any()))
+            .thenReturn(Result.success(Unit))
+
+        val result = manager.restoreBackup(fileId)
+        
+        assert(result.isSuccess)
+        verify(cloudStorageService).downloadBackup(org.mockito.kotlin.eq(fileId), org.mockito.kotlin.any())
+    }
 }

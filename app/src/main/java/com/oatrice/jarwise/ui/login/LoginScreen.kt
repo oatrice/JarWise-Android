@@ -24,6 +24,8 @@ import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -57,6 +59,8 @@ fun LoginScreen(
                 viewModel.onSignInClick()
             }
         },
+        onRestoreConfirmed = { fileId -> viewModel.onRestoreConfirmed(fileId) },
+        onRestoreCancelled = { user -> viewModel.onRestoreCancelled(user) },
         onLoginSuccess = onLoginSuccess
     )
 }
@@ -65,7 +69,9 @@ fun LoginScreen(
 fun LoginContent(
     uiState: LoginUiState,
     onSignInClick: () -> Unit,
-    onLoginSuccess: () -> Unit = {} // Default empty for preview simplicity if needed, but logic handles it
+    onRestoreConfirmed: (String) -> Unit = {},
+    onRestoreCancelled: (com.oatrice.jarwise.data.auth.AuthUser) -> Unit = {},
+    onLoginSuccess: () -> Unit = {}
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -112,9 +118,58 @@ fun LoginContent(
                         verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp, Alignment.CenterVertically)
                     ) {
                         Text("Welcome back, ${state.user.name}!")
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp)) // Optional: show loading while redirecting
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         LaunchedEffect(Unit) {
-                            delay(1000) // Show success message for 1s
+                            delay(1000)
+                            onLoginSuccess()
+                        }
+                    }
+                }
+                is LoginUiState.RestoreAvailable -> {
+                     androidx.compose.material3.AlertDialog(
+                        onDismissRequest = { /* No dismiss, must choose */ },
+                        title = { Text("Backup Found") },
+                        text = { 
+                            Column {
+                                Text("We found a backup from ${state.backupDate}.")
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text("Do you want to restore your data? Current data will be replaced.")
+                            }
+                        },
+                        confirmButton = {
+                            Button(onClick = { onRestoreConfirmed(state.fileId) }) {
+                                Text("Restore")
+                            }
+                        },
+                        dismissButton = {
+                            androidx.compose.material3.TextButton(onClick = { onRestoreCancelled(state.user) }) {
+                                Text("Start Fresh")
+                            }
+                        }
+                    )
+                }
+                is LoginUiState.RestoreInProgress -> {
+                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Restoring your data...")
+                    }
+                }
+                is LoginUiState.RestoreSuccess -> {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        androidx.compose.material3.Icon(
+                            imageVector = androidx.compose.material.icons.Icons.Filled.CheckCircle,
+                            contentDescription = null,
+                            tint = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(48.dp)
+                        )
+                       
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Restore Successful!")
+                        Text("Restarting app...", style = androidx.compose.material3.MaterialTheme.typography.bodySmall)
+                        
+                        LaunchedEffect(Unit) {
+                            delay(2000)
                             onLoginSuccess()
                         }
                     }

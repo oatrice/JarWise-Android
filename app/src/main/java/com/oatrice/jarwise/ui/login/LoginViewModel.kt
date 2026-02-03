@@ -10,19 +10,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class LoginViewModel(
-    private val authService: AuthService
+    private val authService: AuthService,
+    private val backupManager: com.oatrice.jarwise.data.backup.BackupManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun getSignInIntent(): android.content.Intent {
-        // Safe cast or interface change required. For now, assuming GoogleAuthService is injected as AuthService
-        // logic to get intent. Ideally AuthService has this, or we cast.
-        // But AuthService interface doesn't have it.
-        // Let's modify AuthService interface to support Intent flow or check type.
         return (authService as? com.oatrice.jarwise.data.auth.GoogleAuthService)?.getSignInIntent() 
-            ?: android.content.Intent() // Fallback or throw
+            ?: android.content.Intent()
     }
 
     fun handleSignInResult(intent: android.content.Intent?) {
@@ -32,14 +29,12 @@ class LoginViewModel(
                 val result = authService.handleSignInResult(intent)
                 result.onSuccess { user ->
                     Log.d("LoginViewModel", "Login Success: ${user.email}")
-                    _uiState.value = LoginUiState.Success(user)
+                    checkForBackup(user)
                 }.onFailure { error ->
                     Log.e("LoginViewModel", "Login Failed", error)
                     _uiState.value = LoginUiState.Error(error.message ?: "Sign in failed")
                 }
             } else {
-                 // Fallback for Mock flow if needed, or generic error
-                 // If Mock, we might just call signIn() directly in onSignInClick?
                  if (authService is com.oatrice.jarwise.data.auth.MockAuthService) {
                      val result = authService.signIn()
                      result.onSuccess { user -> _uiState.value = LoginUiState.Success(user) }
@@ -48,12 +43,45 @@ class LoginViewModel(
         }
     }
     
+    private suspend fun checkForBackup(user: com.oatrice.jarwise.data.auth.AuthUser) {
+        val backupResult = backupManager.checkForBackup()
+        backupResult.onSuccess { backups ->
+            if (backups.isNotEmpty()) {
+                val latest = backups.maxByOrNull { it.createdTime }!!
+                val date = java.text.SimpleDateFormat("dd MMM yyyy, HH:mm", java.util.Locale.getDefault())
+                    .format(java.util.Date(latest.createdTime))
+                _uiState.value = LoginUiState.RestoreAvailable(user, latest.name, date, latest.id)
+            } else {
+                _uiState.value = LoginUiState.Success(user)
+            }
+        }.onFailure {
+            // Backup check failed, just proceed to dashboard log (silent fail for user UX)
+             Log.e("LoginViewModel", "Failed to check backups", it)
+            _uiState.value = LoginUiState.Success(user)
+        }
+    }
+    
+    fun onRestoreConfirmed(fileId: String) {
+        _uiState.value = LoginUiState.RestoreInProgress
+        viewModelScope.launch {
+            val result = backupManager.restoreBackup(fileId)
+            result.onSuccess {
+                _uiState.value = LoginUiState.RestoreSuccess
+            }.onFailure {
+                _uiState.value = LoginUiState.Error("Restore failed: ${it.message}")
+            }
+        }
+    }
+    
+    fun onRestoreCancelled(user: com.oatrice.jarwise.data.auth.AuthUser) {
+        _uiState.value = LoginUiState.Success(user)
+    }
+    
     fun handleSignInCancelled() {
         _uiState.value = LoginUiState.Error("Sign in cancelled")
     }
 
     fun onSignInClick() {
-        // If Mock, just do direct sign in (simulated)
         if (authService is com.oatrice.jarwise.data.auth.MockAuthService) {
             _uiState.value = LoginUiState.Loading
             viewModelScope.launch {
@@ -61,8 +89,5 @@ class LoginViewModel(
                  result.onSuccess { user -> _uiState.value = LoginUiState.Success(user) }
             }
         }
-        // If Google, the UI should observe a "LaunchIntent" event or similar.
-        // But simplest pattern: UI calls viewModel.getSignInIntent() directly in onClick?
-        // Let's keep onSignInClick for Mock, and add specific handling in UI for Google.
     }
 }

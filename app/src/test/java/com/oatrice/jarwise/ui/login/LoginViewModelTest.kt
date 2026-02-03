@@ -1,8 +1,10 @@
 package com.oatrice.jarwise.ui.login
 
 import com.oatrice.jarwise.data.auth.AuthUser
+import com.oatrice.jarwise.data.auth.AuthService
 import com.oatrice.jarwise.data.auth.MockAuthService
 import com.oatrice.jarwise.utils.MainDispatcherRule
+import org.mockito.kotlin.mock
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
@@ -21,13 +23,14 @@ class LoginViewModelTest {
     @get:Rule
     val mainDispatcherRule = MainDispatcherRule()
 
+    private lateinit var authService: MockAuthService
+    private val backupManager: com.oatrice.jarwise.data.backup.BackupManager = mock()
     private lateinit var viewModel: LoginViewModel
-    private lateinit var mockAuthService: MockAuthService
 
     @Before
     fun setup() {
-        mockAuthService = MockAuthService()
-        viewModel = LoginViewModel(mockAuthService)
+        authService = MockAuthService()
+        viewModel = LoginViewModel(authService, backupManager)
     }
 
     @Test
