@@ -34,9 +34,11 @@ import com.oatrice.jarwise.ui.theme.JarWiseTheme
 @Composable
 fun TransactionCard(
     transaction: Transaction,
+    linkedTransaction: Transaction? = null, // For transfers: the counterpart transaction
     currencyCode: String = "THB",
     showDate: Boolean = true
 ) {
+    val isTransfer = transaction.linkedTransactionId != null
     val jar = getJarDetails(transaction.jarId)
     
     // Date Parsing (Naive ISO parser for display)
@@ -45,7 +47,9 @@ fun TransactionCard(
         isoFormat.timeZone = TimeZone.getTimeZone("UTC")
         val date = isoFormat.parse(transaction.date)
         val displayFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
-        displayFormat.format(date!!)
+        isoFormat.parse(transaction.date)?.let { date ->
+            displayFormat.format(date)
+        } ?: transaction.date
     } catch (e: Exception) {
         transaction.date // Fallback
     }
@@ -54,6 +58,9 @@ fun TransactionCard(
     val isDraft = transaction.status == "draft"
     val cardBackground = if (isDraft) Color(0xFF422006).copy(alpha = 0.2f) else Gray900.copy(alpha = 0.4f)
     val cardBorder = if (isDraft) Color(0xFFFBBF24).copy(alpha = 0.3f) else Gray800.copy(alpha = 0.5f)
+
+    // Transfer styling
+    val transferBlue = Color(0xFF3B82F6) // Blue 500
 
     Row(
         modifier = Modifier
@@ -70,33 +77,44 @@ fun TransactionCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Icon
+            // Icon: Use transfer icon or jar icon
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(RoundedCornerShape(12.dp))
-                    .background(jar.color.copy(alpha = 0.2f)),
+                    .background(if (isTransfer) transferBlue.copy(alpha = 0.2f) else jar.color.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = jar.icon,
+                    text = if (isTransfer) "🔄" else jar.icon,
                     fontSize = 20.sp
                 )
             }
 
             // Details
             val wallet = com.oatrice.jarwise.utils.getWalletDetails(transaction.walletId)
+            val destWallet = linkedTransaction?.let { com.oatrice.jarwise.utils.getWalletDetails(it.walletId) }
             
-            // Allow note to be the main title if present, otherwise Jar Name
-            val displayTitle = if (transaction.note.isNotBlank()) transaction.note else jar.name
-            
-            // Subtitle: Jar Name (if not title) • Wallet Name
-            val subtitleParts = mutableListOf<String>()
-            if (transaction.note.isNotBlank()) {
-                subtitleParts.add(jar.name)
+            // Transfer: "SourceWallet → DestWallet", Normal: Note or Jar Name
+            val displayTitle = if (isTransfer && destWallet != null) {
+                "${wallet.name} → ${destWallet.name}"
+            } else if (transaction.note.isNotBlank()) {
+                transaction.note
+            } else {
+                jar.name
             }
-            subtitleParts.add(wallet.name)
-            val displaySubtitle = subtitleParts.joinToString(" • ")
+            
+            // Subtitle: "Transfer" for transfers, or Jar • Wallet for normal
+            val displaySubtitle = if (isTransfer) {
+                "Transfer"
+            } else {
+                val subtitleParts = mutableListOf<String>()
+                if (transaction.note.isNotBlank()) {
+                    subtitleParts.add(jar.name)
+                }
+                subtitleParts.add(wallet.name)
+                subtitleParts.joinToString(" • ")
+            }
             
             Column {
                 Row(
@@ -141,11 +159,17 @@ fun TransactionCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
+                // Amount color: Blue for transfers, Green for income, Red for expense
+                val amountColor = when {
+                    isTransfer -> transferBlue
+                    transaction.type == "income" -> Color(0xFF4ADE80) // Green 400
+                    else -> Color(0xFFF87171) // Red 400
+                }
                 Text(
                     text = TransactionDisplayUtils.formatCurrency(transaction.amount, currencyCode),
                     style = MaterialTheme.typography.bodyLarge.copy(
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFFF87171) // Red 400
+                        color = amountColor
                     )
                 )
                 Icon(

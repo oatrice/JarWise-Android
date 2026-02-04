@@ -11,4 +11,5 @@ val repositoryModule = module {
     single { WalletRepository(get()) }
     single { SlipRepository(androidContext()) }
     single { MigrationRepository(get(), androidContext()) }
+    single<TransactionRepository> { TransactionRepositoryImpl(get(), get()) }
 }

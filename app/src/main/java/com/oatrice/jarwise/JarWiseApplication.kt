@@ -7,6 +7,7 @@ import com.oatrice.jarwise.di.networkModule
 import com.oatrice.jarwise.di.repositoryModule
 import com.oatrice.jarwise.di.viewModelModule
 import com.oatrice.jarwise.di.authModule
+import com.oatrice.jarwise.di.domainModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -27,7 +28,8 @@ class JarWiseApplication : Application() {
                     repositoryModule,
                     viewModelModule,
                     authModule,
-                    networkModule
+                    networkModule,
+                    domainModule
                 )
             }
             

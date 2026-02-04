@@ -35,8 +35,13 @@ object TransactionGroupingUtils {
     fun groupByDate(transactions: List<Transaction>): List<DailyTransactionGroup> {
         if (transactions.isEmpty()) return emptyList()
         
+        // Filter out the "income" side of transfers to show only one unified row
+        val visibleTransactions = transactions.filter { tx ->
+            !(tx.type == "income" && tx.linkedTransactionId != null)
+        }
+        
         // Group by date key
-        val grouped = transactions.groupBy { transaction ->
+        val grouped = visibleTransactions.groupBy { transaction ->
             try {
                 val date = isoFormat.parse(transaction.date)
                 dateKeyFormat.format(date!!)
@@ -50,11 +55,11 @@ object TransactionGroupingUtils {
             val sortedTxs = txs.sortedByDescending { it.date }
             
             val totalIncome = sortedTxs
-                .filter { it.type == "income" }
+                .filter { it.type == "income" && it.linkedTransactionId == null }
                 .sumOf { kotlin.math.abs(it.amount) }
                 
             val totalExpense = sortedTxs
-                .filter { it.type == "expense" }
+                .filter { it.type == "expense" && it.linkedTransactionId == null }
                 .sumOf { -kotlin.math.abs(it.amount) }
             
             DailyTransactionGroup(

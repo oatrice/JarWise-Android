@@ -2,522 +2,429 @@
 
 You are an AI assistant helping to create a Pull Request description.
     
-TASK: [Feature] Migrate Data from Money Manager App (.mmbak)
+TASK: [Feature] Transaction Linking & Transfers
 ISSUE: {
-  "title": "[Feature] Migrate Data from Money Manager App (.mmbak)",
-  "number": 65
+  "title": "[Feature] Transaction Linking & Transfers",
+  "number": 71
 }
 
 GIT CONTEXT:
 COMMITS:
-5ab9549 feat: [Feature] Migrate Data from Money Manager App (.mm...
-2f6074b ✨ feat(import): add money manager import and security improvements
-a9932b2 🔒 fix(security): enforce network security configuration and improve resource handling
-683562b ✨ feat(ui): add dashboard navigation from migration screen
-1d7e03f 🐛 fix(api): improve migration error handling
-acbfa21 ✨ feat(logging): enhance API and migration logging
-a022bc3 ✨ feat(migration): add money manager data migration feature
+0efd5de ✨ feat(transactions): add transfer functionality and improve transaction flow
+f4d1f2d ✨ feat(transactions): add transaction type support and improve navigation
+d0077c3 🐛 fix(transactions): optimize linked transaction lookups and fix total spent calculation
+1fd26e3 ✨ feat(ui): enhance transaction display for transfers
+856c916 ✨ feat(transactions): add transfer handling and domain module
+832844f ✨ feat(transactions): add transfer functionality
+0829f3d 🚀 feat(migration): implement money manager data migration
 
 STATS:
-.luma_state.json                                   |  16 +-
- CHANGELOG.md                                       |   8 +
- README.md                                          |   4 +-
- app/build.gradle.kts                               |   8 +-
- app/src/main/AndroidManifest.xml                   |   1 +
+.luma_state.json                                   |  18 +-
+ CHANGELOG.md                                       |  11 +
+ README.md                                          |   3 +-
+ app/build.gradle.kts                               |   2 +-
+ .../com.oatrice.jarwise.data.AppDatabase/7.json    | 294 +++++++++++++++++++++
  .../java/com/oatrice/jarwise/JarWiseApplication.kt |   4 +-
- .../main/java/com/oatrice/jarwise/MainActivity.kt  |  16 +
- .../com/oatrice/jarwise/data/api/MigrationApi.kt   |  17 +
- .../jarwise/data/api/model/MigrationModels.kt      |  22 +
- .../jarwise/data/repository/MigrationRepository.kt |  64 ++
- .../java/com/oatrice/jarwise/di/NetworkModule.kt   |  36 +
+ .../main/java/com/oatrice/jarwise/MainActivity.kt  |  52 +++-
+ .../java/com/oatrice/jarwise/data/AppDatabase.kt   |   8 +-
+ .../com/oatrice/jarwise/data/GeneratedMockData.kt  |   6 +-
+ .../java/com/oatrice/jarwise/data/Transaction.kt   |   3 +-
+ .../com/oatrice/jarwise/data/TransactionDao.kt     |  11 +-
+ .../data/repository/TransactionRepository.kt       |  81 ++++++
+ .../main/java/com/oatrice/jarwise/di/DataModule.kt |   3 +-
+ .../java/com/oatrice/jarwise/di/DomainModule.kt    |  10 +
  .../com/oatrice/jarwise/di/RepositoryModule.kt     |   1 +
- .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   2 +
- .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  |  15 +
- .../jarwise/ui/migration/MigrationScreen.kt        | 230 ++++++
- .../jarwise/ui/migration/MigrationViewModel.kt     |  99 +++
- .../java/com/oatrice/jarwise/utils/AppLogger.kt    |  28 +
- app/src/main/res/xml/network_security_config.xml   |  12 +
- code_review.md                                     | 132 +++-
- draft_pr_prompt.md                                 | 855 ++++++++++-----------
- gradle/libs.versions.toml                          |   8 +
- 21 files changed, 1125 insertions(+), 453 deletions(-)
+ .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   2 +-
+ .../domain/use_case/CreateTransferUseCase.kt       |  87 ++++++
+ .../domain/use_case/UnlinkTransactionsUseCase.kt   |  17 ++
+ .../com/oatrice/jarwise/ui/AddTransactionScreen.kt | 150 ++++++++---
+ .../java/com/oatrice/jarwise/ui/DashboardScreen.kt |  18 +-
+ .../java/com/oatrice/jarwise/ui/MainViewModel.kt   |  40 ++-
+ .../oatrice/jarwise/ui/TransactionHistoryScreen.kt |  17 +-
+ .../jarwise/ui/components/TransactionCard.kt       |  50 +++-
+ .../java/com/oatrice/jarwise/utils/Constants.kt    |   5 +
+ .../jarwise/utils/TransactionGroupingUtils.kt      |  11 +-
+ .../domain/use_case/CreateTransferUseCaseTest.kt   |  84 ++++++
+ code_review.md                                     | 205 +++++++-------
+ draft_pr_body.md                                   | 180 +++++--------
+ draft_pr_prompt.md                                 |   5 +-
+ 29 files changed, 1060 insertions(+), 318 deletions(-)
 
 KEY FILE DIFFS:
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
-index f505630..5a147d9 100644
+index 5a147d9..1ac022a 100644
 --- a/app/build.gradle.kts
 +++ b/app/build.gradle.kts
 @@ -15,7 +15,7 @@ android {
          minSdk = 24
          targetSdk = 34
          versionCode = 1
--        versionName = "1.7.0"
-+        versionName = "1.8.0"
+-        versionName = "1.8.0"
++        versionName = "1.9.0"
  
          testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
          vectorDrawables {
-@@ -147,6 +147,12 @@ dependencies {
-     implementation(libs.google.auth.library.oauth2.http)
-     implementation(libs.kotlinx.coroutines.play.services)
-     implementation(libs.google.http.client.android)
-+
-+    // Networking
-+    implementation(libs.retrofit)
-+    implementation(libs.converter.gson)
-+    implementation(libs.okhttp)
-+    implementation(libs.logging.interceptor)
- }
- 
- ksp {
-diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
-index b2516b3..cb80f01 100644
---- a/app/src/main/AndroidManifest.xml
-+++ b/app/src/main/AndroidManifest.xml
-@@ -18,6 +18,7 @@
-         android:roundIcon="@mipmap/ic_launcher_round"
-         android:supportsRtl="true"
-         android:theme="@style/Theme.JarWise"
-+        android:networkSecurityConfig="@xml/network_security_config"
-         tools:targetApi="31">
-         <activity
-             android:name=".MainActivity"
 diff --git a/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt b/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
-index dba61fc..d8973a6 100644
+index d8973a6..1f6b354 100644
 --- a/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
-@@ -3,6 +3,7 @@ package com.oatrice.jarwise
- import android.app.Application
- import com.oatrice.jarwise.di.appModule
- import com.oatrice.jarwise.di.dataModule
-+import com.oatrice.jarwise.di.networkModule
+@@ -7,6 +7,7 @@ import com.oatrice.jarwise.di.networkModule
  import com.oatrice.jarwise.di.repositoryModule
  import com.oatrice.jarwise.di.viewModelModule
  import com.oatrice.jarwise.di.authModule
-@@ -25,7 +26,8 @@ class JarWiseApplication : Application() {
-                     dataModule,
++import com.oatrice.jarwise.di.domainModule
+ import org.koin.android.ext.koin.androidContext
+ import org.koin.android.ext.koin.androidLogger
+ import org.koin.core.context.GlobalContext.startKoin
+@@ -27,7 +28,8 @@ class JarWiseApplication : Application() {
                      repositoryModule,
                      viewModelModule,
--                    authModule
-+                    authModule,
-+                    networkModule
+                     authModule,
+-                    networkModule
++                    networkModule,
++                    domainModule
                  )
              }
              
 diff --git a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
-index b7e516e..a58d644 100644
+index a58d644..2a0dc92 100644
 --- a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
-@@ -35,6 +35,7 @@ sealed class Screen {
-     data object Settings : Screen()
-     data object ManageJars : Screen()
-     data object ManageWallets : Screen()
-+    data object Migration : Screen()
-     data object Login : Screen()
- }
+@@ -62,6 +62,9 @@ class MainActivity : ComponentActivity() {
+                 val currentUser by authService.currentUser.collectAsState()
+                 val initialScreen = if (currentUser != null) Screen.Dashboard else Screen.Login
+                 var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
++                // Track previous screen for ManageWallets (Dashboard vs Settings)
++                var previousScreen by remember { mutableStateOf<Screen?>(null) }
++                
+                 val transactions by viewModel.transactions.collectAsState()
+                 val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
+                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
+@@ -71,9 +74,16 @@ class MainActivity : ComponentActivity() {
+                     when (page) {
+                         com.oatrice.jarwise.ui.components.NavPage.DASHBOARD -> currentScreen = Screen.Dashboard
+                         com.oatrice.jarwise.ui.components.NavPage.HISTORY -> currentScreen = Screen.TransactionHistory
+-                        com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
+-                        // Add other destinations here when ready (WALLET, PROFILE)
+-                        else -> {}
++                        com.oatrice.jarwise.ui.components.NavPage.ADD -> {
++                            previousScreen = currentScreen
++                            currentScreen = Screen.AddTransaction
++                        }
++                        com.oatrice.jarwise.ui.components.NavPage.BUDGET -> {
++                            // Wallets update via StateFlow automatically
++                            previousScreen = currentScreen // likely Dashboard or whatever tab
++                            currentScreen = Screen.ManageWallets
++                        }
++                        com.oatrice.jarwise.ui.components.NavPage.PROFILE -> currentScreen = Screen.Settings
+                     }
+                 }
  
-@@ -103,8 +104,23 @@ class MainActivity : ComponentActivity() {
+@@ -92,7 +102,10 @@ class MainActivity : ComponentActivity() {
+                                 onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
+                                 onNavigateToScan = { currentScreen = Screen.Scan },
+                                 onNavigateToImport = { currentScreen = Screen.SlipImport },
+-                                onNavigateToAdd = { currentScreen = Screen.AddTransaction },
++                                onNavigateToAdd = { 
++                                    previousScreen = Screen.Dashboard
++                                    currentScreen = Screen.AddTransaction 
++                                },
+                                 onNavigateToSettings = { currentScreen = Screen.Settings },
+                                 onNavigateToManageJars = {
+                                     manageJarsViewModel.revertUnsavedChanges()
+@@ -103,7 +116,10 @@ class MainActivity : ComponentActivity() {
+                         }
                          is Screen.Settings -> SettingsScreen(
                               onBack = { currentScreen = Screen.Dashboard },
-                              onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
-+                             onNavigateToMigration = { currentScreen = Screen.Migration },
+-                             onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
++                             onNavigateToManageWallets = { 
++                                 previousScreen = Screen.Settings
++                                 currentScreen = Screen.ManageWallets 
++                             },
+                              onNavigateToMigration = { currentScreen = Screen.Migration },
                               viewModel = viewModel
                          )
-+                        is Screen.Migration -> {
-+                           val migrationViewModel: com.oatrice.jarwise.ui.migration.MigrationViewModel = org.koin.androidx.compose.koinViewModel()
-+                           com.oatrice.jarwise.ui.migration.MigrationScreen(
-+                               onBack = { 
-+                                   migrationViewModel.resetState()
-+                                   currentScreen = Screen.Settings 
-+                               },
-+                               onGoToDashboard = {
-+                                    migrationViewModel.resetState()
-+                                    currentScreen = Screen.Dashboard
-+                               },
-+                               viewModel = migrationViewModel
-+                           )
-+                        }
-                         is Screen.TransactionHistory -> TransactionHistoryScreen(
-                             transactions = transactions,
-                             selectedCurrency = selectedCurrency,
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/api/MigrationApi.kt b/app/src/main/java/com/oatrice/jarwise/data/api/MigrationApi.kt
+@@ -155,7 +171,7 @@ class MainActivity : ComponentActivity() {
+                                     val date = parsedSlip.date?.let {
+                                         slipDateFormat.format(it)
+                                     }
+-                                    viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date)
++                                    viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date, "expense")
+                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
+                                 },
+                                 onSaveDraft = { _, parsedSlip, jarId ->
+@@ -164,16 +180,25 @@ class MainActivity : ComponentActivity() {
+                                     val date = parsedSlip.date?.let {
+                                         slipDateFormat.format(it)
+                                     }
+-                                    viewModel.saveDraft(amount, jarId, "wallet-bank", note, date)
++                                    viewModel.saveDraft(amount, jarId, "wallet-bank", note, date, "expense")
+                                     android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
+                                 }
+                             )
+                         }
+                         is Screen.AddTransaction -> AddTransactionScreen(
+-                            onBack = { currentScreen = Screen.Dashboard },
+-                            onSave = { amount, jarId, walletId, note, date ->
+-                                viewModel.saveTransaction(amount, jarId, walletId, note, date)
+-                                currentScreen = Screen.Dashboard
++                            onBack = { 
++                                currentScreen = previousScreen ?: Screen.Dashboard 
++                                previousScreen = null
++                            },
++                            onSave = { amount, jarId, walletId, note, date, type ->
++                                viewModel.saveTransaction(amount, jarId, walletId, note, date, type)
++                                currentScreen = previousScreen ?: Screen.Dashboard
++                                previousScreen = null
++                            },
++                            onSaveTransfer = { amount, fromWalletId, toWalletId, note, date ->
++                                viewModel.saveTransfer(amount, fromWalletId, toWalletId, note, date)
++                                currentScreen = previousScreen ?: Screen.Dashboard
++                                previousScreen = null
+                             }
+                         )
+                         is Screen.ManageJars -> ManageJarsScreen(
+@@ -181,7 +206,10 @@ class MainActivity : ComponentActivity() {
+                             onBack = { currentScreen = Screen.Dashboard }
+                         )
+                         is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
+-                            onNavigateBack = { currentScreen = Screen.Settings },
++                            onNavigateBack = { 
++                                currentScreen = previousScreen ?: Screen.Dashboard
++                                previousScreen = null // clear after use
++                            },
+                             viewModel = manageWalletsViewModel
+                         )
+                         is Screen.Login -> com.oatrice.jarwise.ui.login.LoginScreen(
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
+index 145e165..652f7a4 100644
+--- a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
++++ b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
+@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
+ import androidx.room.migration.Migration
+ import androidx.sqlite.db.SupportSQLiteDatabase
+ 
+-@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 6, exportSchema = true)
++@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 7, exportSchema = true)
+ abstract class AppDatabase : RoomDatabase() {
+     abstract fun transactionDao(): TransactionDao
+     abstract fun jarConfigDao(): JarConfigDao
+@@ -99,6 +99,12 @@ abstract class AppDatabase : RoomDatabase() {
+             }
+         }
+ 
++        val MIGRATION_6_7 = object : Migration(6, 7) {
++            override fun migrate(db: SupportSQLiteDatabase) {
++                db.execSQL("ALTER TABLE transactions ADD COLUMN linkedTransactionId TEXT")
++            }
++        }
++
+         val SEED_CALLBACK = object : RoomDatabase.Callback() {
+             override fun onCreate(db: SupportSQLiteDatabase) {
+                 super.onCreate(db)
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
+index 8c56eb4..2c96ade 100644
+--- a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
++++ b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
+@@ -123,7 +123,7 @@ object GeneratedMockData {
+         Transaction(
+             id = "1",
+             merchant = "Spotify Premium",
+-            amount = -12.99,
++            amount = 12.99,
+             category = "Play",
+             date = "Today, 10:43 AM",
+             icon = Icons.Rounded.Headphones,
+@@ -133,7 +133,7 @@ object GeneratedMockData {
+         Transaction(
+             id = "2",
+             merchant = "Whole Foods Market",
+-            amount = -142.5,
++            amount = 142.5,
+             category = "Necessities",
+             date = "Yesterday, 6:30 PM",
+             icon = Icons.Rounded.ShoppingBag,
+@@ -143,7 +143,7 @@ object GeneratedMockData {
+         Transaction(
+             id = "3",
+             merchant = "Udemy Course",
+-            amount = -24.99,
++            amount = 24.99,
+             category = "Education",
+             date = "Dec 28, 2025",
+             icon = Icons.Rounded.School,
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/Transaction.kt b/app/src/main/java/com/oatrice/jarwise/data/Transaction.kt
+index c29ffa8..462cb00 100644
+--- a/app/src/main/java/com/oatrice/jarwise/data/Transaction.kt
++++ b/app/src/main/java/com/oatrice/jarwise/data/Transaction.kt
+@@ -12,6 +12,7 @@ data class Transaction(
+     val walletId: String = "wallet-cash", // Default to cash
+     val date: String, // ISO 8601 string
+     val type: String = "expense", // "income" | "expense"
+-    val status: String = "completed" // "draft" | "completed"
++    val status: String = "completed", // "draft" | "completed"
++    val linkedTransactionId: String? = null // ID of the related transaction (e.g. for transfers)
+ )
+ 
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/TransactionDao.kt b/app/src/main/java/com/oatrice/jarwise/data/TransactionDao.kt
+index 7bf879f..90d4c58 100644
+--- a/app/src/main/java/com/oatrice/jarwise/data/TransactionDao.kt
++++ b/app/src/main/java/com/oatrice/jarwise/data/TransactionDao.kt
+@@ -18,7 +18,7 @@ interface TransactionDao {
+     fun getDraftCount(): Flow<Int>
+ 
+     @Insert
+-    suspend fun insert(transaction: Transaction)
++    suspend fun insert(transaction: Transaction): Long
+ 
+     @Update
+     suspend fun update(transaction: Transaction)
+@@ -26,6 +26,15 @@ interface TransactionDao {
+     @Query("UPDATE transactions SET status = :status WHERE id = :id")
+     suspend fun updateStatus(id: Long, status: String)
+     
++    @androidx.room.Delete
++    suspend fun delete(transaction: Transaction)
++
++    @Query("UPDATE transactions SET linkedTransactionId = NULL WHERE id = :id")
++    suspend fun unlinkTransaction(id: Long)
++
++    @Query("UPDATE transactions SET linkedTransactionId = NULL WHERE linkedTransactionId = :idStr")
++    suspend fun unlinkRelatedTransaction(idStr: String)
++
+     @Query("DELETE FROM transactions")
+     suspend fun deleteAll()
+ }
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/TransactionRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/TransactionRepository.kt
 new file mode 100644
-index 0000000..198961d
+index 0000000..7b7900e
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/api/MigrationApi.kt
-@@ -0,0 +1,17 @@
-+package com.oatrice.jarwise.data.api
-+
-+import com.oatrice.jarwise.data.api.model.MigrationResponse
-+import okhttp3.MultipartBody
-+import retrofit2.Response
-+import retrofit2.http.Multipart
-+import retrofit2.http.POST
-+import retrofit2.http.Part
-+
-+interface MigrationApi {
-+    @Multipart
-+    @POST("api/v1/migrations/money-manager")
-+    suspend fun uploadMigrationFiles(
-+        @Part mmbakFile: MultipartBody.Part,
-+        @Part xlsFile: MultipartBody.Part
-+    ): Response<MigrationResponse>
-+}
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/api/model/MigrationModels.kt b/app/src/main/java/com/oatrice/jarwise/data/api/model/MigrationModels.kt
-new file mode 100644
-index 0000000..36c49bc
---- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/api/model/MigrationModels.kt
-@@ -0,0 +1,22 @@
-+package com.oatrice.jarwise.data.api.model
-+
-+import com.google.gson.annotations.SerializedName
-+
-+data class MigrationResponse(
-+    @SerializedName("job_id")
-+    val jobId: String,
-+    @SerializedName("status")
-+    val status: String,
-+    @SerializedName("message")
-+    val message: String
-+)
-+
-+data class MigrationStatusResponse(
-+    @SerializedName("job_id")
-+    val jobId: String,
-+    @SerializedName("status")
-+    val status: String,
-+    @SerializedName("message")
-+    val message: String,
-+    // Add other fields as necessary based on backend response
-+)
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt
-new file mode 100644
-index 0000000..50c9957
---- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt
-@@ -0,0 +1,64 @@
++++ b/app/src/main/java/com/oatrice/jarwise/data/repository/TransactionRepository.kt
+@@ -0,0 +1,81 @@
 +package com.oatrice.jarwise.data.repository
 +
-+import android.content.Context
-+import android.net.Uri
-+import com.oatrice.jarwise.data.api.MigrationApi
-+import com.oatrice.jarwise.data.api.model.MigrationResponse
-+import kotlinx.coroutines.Dispatchers
-+import kotlinx.coroutines.withContext
-+import okhttp3.MediaType.Companion.toMediaTypeOrNull
-+import okhttp3.MultipartBody
-+import okhttp3.RequestBody.Companion.asRequestBody
-+import java.io.File
-+import java.io.FileOutputStream
++import androidx.room.withTransaction
++import com.oatrice.jarwise.data.AppDatabase
++import com.oatrice.jarwise.data.Transaction
++import com.oatrice.jarwise.data.TransactionDao
++import kotlinx.coroutines.flow.Flow
++import javax.inject.Inject
 +
-+class MigrationRepository(
-+    private val api: MigrationApi,
-+    private val context: Context
-+) {
++interface TransactionRepository {
++    fun getAllTransactions(): Flow<List<Transaction>>
++    suspend fun insertTransaction(transaction: Transaction)
++    suspend fun updateTransaction(transaction: Transaction)
++    suspend fun deleteTransaction(transaction: Transaction)
++    suspend fun createTransfer(expenseTransaction: Transaction, incomeTransaction: Transaction)
++    suspend fun unlinkTransaction(transactionId: Long)
++}
 +
-+    suspend fun uploadMigrationFiles(mmbakUri: Uri, xlsUri: Uri): Result<MigrationResponse> {
-+        return withContext(Dispatchers.IO) {
-+            try {
-+                val mmbakFile = getFileFromUri(context, mmbakUri, "backup.mmbak")
-+                val xlsFile = getFileFromUri(context, xlsUri, "backup.xls")
++class TransactionRepositoryImpl @Inject constructor(
++    private val db: AppDatabase,
++    private val transactionDao: TransactionDao
++) : TransactionRepository {
 +
-+                if (mmbakFile == null || xlsFile == null) {
-+                    return@withContext Result.failure(Exception("Failed to read files"))
-+                }
++    override fun getAllTransactions(): Flow<List<Transaction>> {
++        return transactionDao.getAll()
++    }
 +
-+                val mmbakRequestBody = mmbakFile.asRequestBody("application/octet-stream".toMediaTypeOrNull())
-+                val xlsRequestBody = xlsFile.asRequestBody("application/vnd.ms-excel".toMediaTypeOrNull())
++    override suspend fun insertTransaction(transaction: Transaction) {
++        transactionDao.insert(transaction)
++    }
 +
-+                val mmbakPart = MultipartBody.Part.createFormData("mmbak_file", mmbakFile.name, mmbakRequestBody)
-+                val xlsPart = MultipartBody.Part.createFormData("xls_file", xlsFile.name, xlsRequestBody)
++    override suspend fun updateTransaction(transaction: Transaction) {
++        transactionDao.update(transaction)
++    }
 +
-+                val response = api.uploadMigrationFiles(mmbakPart, xlsPart)
++    override suspend fun deleteTransaction(transaction: Transaction) {
++        transactionDao.delete(transaction)
++    }
 +
-+                if (response.isSuccessful && response.body() != null) {
-+                    Result.success(response.body()!!)
-+                } else {
-+                    Result.failure(Exception("Upload failed: ${response.code()} ${response.message()}"))
-+                }
-+            } catch (e: Exception) {
-+                Result.failure(e)
-+            }
++    override suspend fun createTransfer(expenseTransaction: Transaction, incomeTransaction: Transaction) {
++        db.withTransaction {
++            // 1. Insert Expense
++            val expenseId = transactionDao.insert(expenseTransaction)
++            
++            // 2. Insert Income, linked to Expense
++            val incomeWithLink = incomeTransaction.copy(linkedTransactionId = expenseId.toString())
++            val incomeId = transactionDao.insert(incomeWithLink)
++            
++            // 3. Update Expense, linked to Income
++            val expenseWithLink = expenseTransaction.copy(id = expenseId, linkedTransactionId = incomeId.toString())
++            transactionDao.update(expenseWithLink)
 +        }
 +    }
 +
-+    private fun getFileFromUri(context: Context, uri: Uri, fileName: String): File? {
-+        return try {
-+            val contentResolver = context.contentResolver
-+            contentResolver.openInputStream(uri)?.use { inputStream ->
-+                val tempFile = File(context.cacheDir, fileName)
-+                FileOutputStream(tempFile).use { outputStream ->
-+                    inputStream.copyTo(outputStream)
-+                }
-+                tempFile
-+            }
-+        } catch (e: Exception) {
-+            e.printStackTrace()
-+            null
++    override suspend fun unlinkTransaction(transactionId: Long) {
++        db.withTransaction {
++            // Logic to find and unlink should be handled by UseCase or here if we want to be atomic on ID
++            // Ideally, we fetch the transaction, find the linked one, and set both to null.
++            // But since this is a repository method, let's assume we just update the specific one or let UseCase handle the logic.
++            // Given the complexity of "Unlinking logic: ... remove current and reciprocal link",
++            // it's safer to have a specific method in DAO to nullify linkedTransactionId for a given ID?
++            // "UPDATE transactions SET linkedTransactionId = NULL WHERE id = :id OR linkedTransactionId = :id"
++            // Wait, that's dangerous if IDs overlap (unlikely with UUIDs but here we use Long auto-inc? No, Transaction has Long ID).
++            // Transaction entity uses `val id: Long = 0`.
++            // But `linkedTransactionId` is String? Let me check Transaction.kt again.
++            // Yes, `linkedTransactionId: String?`. This seems like a mismatch if ID is Long.
++            // Ah, the plan said "val linkedTransactionId: String?".
++            // But Transaction.kt has "@PrimaryKey(autoGenerate = true) val id: Long = 0".
++            // So linkedTransactionId should probably be Long? Or we convert Long to String.
++            // Let's assume we store Long as String or change linkedTransactionId to Long.
++            // A String is more flexible if we change IDs later (UUID), but for now it's Long.
++            // Let's stick to String to match the prompt/plan, but we must be careful.
++            
++            // To implement Unlink:
++            // We need to find the transaction with this ID, get its linked ID.
++            // Then update both to null.
++            transactionDao.unlinkTransaction(transactionId)
++            transactionDao.unlinkRelatedTransaction(transactionId.toString())
 +        }
 +    }
 +}
-diff --git a/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt b/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt b/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt
+index fc2c58a..232de89 100644
+--- a/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt
++++ b/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt
+@@ -19,7 +19,8 @@ val dataModule = module {
+                 AppDatabase.MIGRATION_2_3,
+                 AppDatabase.MIGRATION_3_4,
+                 AppDatabase.MIGRATION_4_5,
+-                AppDatabase.MIGRATION_5_6
++                AppDatabase.MIGRATION_5_6,
++                AppDatabase.MIGRATION_6_7
+             )
+             .addCallback(AppDatabase.SEED_CALLBACK)
+             .fallbackToDestructiveMigration()
+diff --git a/app/src/main/java/com/oatrice/jarwise/di/DomainModule.kt b/app/src/main/java/com/oatrice/jarwise/di/DomainModule.kt
 new file mode 100644
-index 0000000..82706e2
+index 0000000..f80d9f5
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt
-@@ -0,0 +1,36 @@
++++ b/app/src/main/java/com/oatrice/jarwise/di/DomainModule.kt
+@@ -0,0 +1,10 @@
 +package com.oatrice.jarwise.di
 +
-+import com.oatrice.jarwise.data.api.MigrationApi
-+import okhttp3.OkHttpClient
-+import okhttp3.logging.HttpLoggingInterceptor
++import com.oatrice.jarwise.domain.use_case.CreateTransferUseCase
++import com.oatrice.jarwise.domain.use_case.UnlinkTransactionsUseCase
 +import org.koin.dsl.module
-+import retrofit2.Retrofit
-+import retrofit2.converter.gson.GsonConverterFactory
-+import java.util.concurrent.TimeUnit
 +
-+val networkModule = module {
-+    single {
-+        val logger = get<com.oatrice.jarwise.utils.AppLogger>()
-+        val logging = HttpLoggingInterceptor { message ->
-+            logger.d("API", message)
-+        }.apply {
-+            level = HttpLoggingInterceptor.Level.BODY
-+        }
-+        OkHttpClient.Builder()
-+            .addInterceptor(logging)
-+            .connectTimeout(30, TimeUnit.SECONDS)
-+            .readTimeout(30, TimeUnit.SECONDS)
-+            .writeTimeout(30, TimeUnit.SECONDS)
-+            .build()
-+    }
-+
-+    single {
-+        Retrofit.Builder()
-+            .baseUrl("http://10.0.2.2:8080/") // Emulator localhost
-+            .client(get())
-+            .addConverterFactory(GsonConverterFactory.create())
-+            .build()
-+    }
-+
-+    single { get<Retrofit>().create(MigrationApi::class.java) }
++val domainModule = module {
++    factory { CreateTransferUseCase(get()) }
++    factory { UnlinkTransactionsUseCase(get()) }
 +}
 diff --git a/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt b/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
-index 8fed8ab..0daa853 100644
+index 0daa853..f2ba044 100644
 --- a/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
-@@ -10,4 +10,5 @@ val repositoryModule = module {
-     single { JarConfigRepository(get()) }
+@@ -11,4 +11,5 @@ val repositoryModule = module {
      single { WalletRepository(get()) }
      single { SlipRepository(androidContext()) }
-+    single { MigrationRepository(get(), androidContext()) }
+     single { MigrationRepository(get(), androidContext()) }
++    single<TransactionRepository> { TransactionRepositoryImpl(get(), get()) }
  }
 diff --git a/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt b/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
-index 26230db..37a89ce 100644
---- a/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
-@@ -6,6 +6,7 @@ import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
- import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
- import com.oatrice.jarwise.ui.login.LoginViewModel
- import com.oatrice.jarwise.ui.settings.SettingsViewModel
-+import com.oatrice.jarwise.ui.migration.MigrationViewModel
- import org.koin.androidx.viewmodel.dsl.viewModel
- import org.koin.dsl.module
- 
-@@ -16,4 +17,5 @@ val viewModelModule = module {
-     viewModel { ManageWalletsViewModel(get()) }
-     viewModel { LoginViewModel(get(), get()) }
-     viewModel { SettingsViewModel(get(), get()) }
-+    viewModel { MigrationViewModel(get(), get()) }
- }
-diff --git a/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
-index 3ecfa96..d88770a 100644
---- a/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
-@@ -32,6 +32,7 @@ import org.koin.androidx.compose.koinViewModel
- fun SettingsScreen(
-     onBack: () -> Unit,
-     onNavigateToManageWallets: () -> Unit = {},
-+    onNavigateToMigration: () -> Unit = {},
-     viewModel: MainViewModel,
-     settingsViewModel: SettingsViewModel = koinViewModel()
- ) {
-@@ -353,9 +354,23 @@ fun SettingsScreen(
-                 ) {
-                     Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null)
-                     Text("Manage Wallets (Sub-accounts)")
-+                    }
-+            }
-+            
-+            OutlinedButton(
-+                onClick = onNavigateToMigration,
-+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
-+            ) {
-+                 Row(
-+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-+                    verticalAlignment = Alignment.CenterVertically
-+                ) {
-+                    Icon(Icons.Rounded.CloudDone, contentDescription = null) // Using CloudDone as a placeholder if Import icon not available
-+                    Text("Migrate from Money Manager")
-                 }
-             }
- 
-+
-             Text(
-                 text = "Currency",
-                 style = MaterialTheme.typography.titleMedium,
-diff --git a/app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationScreen.kt
-new file mode 100644
-index 0000000..1eefe59
---- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationScreen.kt
-@@ -0,0 +1,230 @@
-+package com.oatrice.jarwise.ui.migration
-+
-+import android.net.Uri
-+import androidx.activity.compose.rememberLauncherForActivityResult
-+import androidx.activity.result.contract.ActivityResultContracts
-+import androidx.compose.foundation.background
-+import androidx.compose.foundation.layout.*
-+import androidx.compose.foundation.rememberScrollState
-+import androidx.compose.foundation.shape.RoundedCornerShape
-+import androidx.compose.foundation.verticalScroll
-+import androidx.compose.material.icons.Icons
-+import androidx.compose.material.icons.filled.ArrowBack
-+import androidx.compose.material.icons.filled.CheckCircle
-+import androidx.compose.material.icons.filled.Error
-+import androidx.compose.material.icons.filled.UploadFile
-+import androidx.compose.material3.*
-+import androidx.compose.runtime.Composable
-+import androidx.compose.runtime.collectAsState
-+import androidx.compose.runtime.getValue
-+import androidx.compose.ui.Alignment
-+import androidx.compose.ui.Modifier
-+import androidx.compose.ui.graphics.Color
-+import androidx.compose.ui.platform.LocalContext
-+import androidx.compose.ui.text.font.FontWeight
-+import androidx.compose.ui.text.style.TextAlign
-+import androidx.compose.ui.unit.dp
-+import androidx.documentfile.provider.DocumentFile
-+
-+@OptIn(ExperimentalMaterial3Api::class)
-+@Composable
-+fun MigrationScreen(
-+    onBack: () -> Unit,
-+    onGoToDashboard: () -> Unit = {},
-+    viewModel: MigrationViewModel
-+) {
-+    val uiState by viewModel.uiState.collectAsState()
-+    val mmbakFileName by viewModel.mmbakFileName.collectAsState()
-+    val xlsFileName by viewModel.xlsFileName.collectAsState()
-+    val context = LocalContext.current
-+
-+    val mmbakLauncher = rememberLauncherForActivityResult(
-+        contract = ActivityResultContracts.OpenDocument()
-+    ) { uri: Uri? ->
-+        uri?.let {
-+            val name = DocumentFile.fromSingleUri(context, it)?.name
-+            viewModel.setMmbakFile(it, name)
-+        }
-+    }
-+
-+    val xlsLauncher = rememberLauncherForActivityResult(
-+        contract = ActivityResultContracts.OpenDocument()
-+    ) { uri: Uri? ->
-+        uri?.let {
-+            val name = DocumentFile.fromSingleUri(context, it)?.name
-+            viewModel.setXlsFile(it, name)
-+        }
-+    }
-+
-+    Scaffold(
-+        topBar = {
-+            TopAppBar(
-+                title = { Text("Migrate from Money Manager") },
-+                navigationIcon = {
-+                    IconButton(onClick = onBack) {
-+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
-+                    }
-+                }
-+            )
-+        }
-+    ) { padding ->
-+        Column(
-+            modifier = Modifier
-+                .fillMaxSize()
-+                .padding(padding)
-+                .padding(16.dp)
-+                .verticalScroll(rememberScrollState()),
-+            horizontalAlignment = Alignment.CenterHorizontally,
-+            verticalArrangement = Arrangement.spacedBy(16.dp)
-+        ) {
-+            
-+            Card(
-+                colors = CardDefaults.cardColors(
-+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-+                ),
-+                shape = RoundedCornerShape(12.dp)
-+            ) {
-+                 Column(modifier = Modifier.padding(16.dp)) {
-+                     Text(
-+                        text = "Instructions",
-+                        style = MaterialTheme.typography.titleMedium,
-+                        fontWeight = FontWeight.Bold,
-+                        color = MaterialTheme.colorScheme.primary
-+                    )
-+                    Spacer(modifier = Modifier.height(8.dp))
-+                    Text(
-+                        text = "1. Export your data from Money Manager app as .mmbak (Backup) and .xls (Excel).\n" +
-+                                "2. Select both files below.\n" +
-+                                "3. Click 'Start Migration' to import your history.",
-+                        style = MaterialTheme.typography.bodyMedium
-+                    )
-+                 }
-+            }
-+
-+            Spacer(modifier = Modifier.height(8.dp))
-+
-+            // Mmbak File Picker
-+            FilePickerItem(
-+                label = "Select .mmbak File (Backup)",
-+                fileName = mmbakFileName,
-+                onPick = { mmbakLauncher.launch(arrayOf("application/octet-stream", "*/*")) }
-+            )
-+
-+            // XLS File Picker
-+            FilePickerItem(
-+                label = "Select .xls File (Excel)",
-+                fileName = xlsFileName,
-+                onPick = { xlsLauncher.launch(arrayOf("application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "*/*")) }
-+            )
-+
-+            Spacer(modifier = Modifier.height(24.dp))
-+
-+            // Action Button & Status
-+            when (val state = uiState) {
-+                is MigrationUiState.Idle, is MigrationUiState.Error -> {
-+                    Button(
-+                        onClick = { viewModel.startMigration() },
-+                        enabled = mmbakFileName != null && xlsFileName != null,
-+                        modifier = Modifier.fillMaxWidth().height(50.dp)
-+                    ) {
-+                        Icon(Icons.Default.UploadFile, contentDescription = null)
-+                        Spacer(modifier = Modifier.width(8.dp))
-+                        Text("Start Migration")
-+                    }
-+                    
-+                    if (state is MigrationUiState.Error) {
-+                        Spacer(modifier = Modifier.height(16.dp))
-+                        Card(
-+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
-+                        ) {
-+                             Row(
-+                                modifier = Modifier.padding(16.dp).fillMaxWidth(),
-+                                verticalAlignment = Alignment.CenterVertically
-+                            ) {
-+                                Icon(Icons.Default.Error, contentDescription = "Error", tint = MaterialTheme.colorScheme.onErrorContainer)
-+                                Spacer(modifier = Modifier.width(8.dp))
-+                                Text(state.message, color = 
+index 37a89ce..621c409 100644
+-
 ... (Diff truncated for size) ...
 
 PR TEMPLATE:

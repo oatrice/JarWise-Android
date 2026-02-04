@@ -21,6 +21,7 @@ class MainViewModel(
     private val dao: TransactionDao,
     private val currencyRepository: CurrencyRepository,
     private val jarConfigRepository: JarConfigRepository,
+    private val createTransferUseCase: com.oatrice.jarwise.domain.use_case.CreateTransferUseCase,
     private val logger: com.oatrice.jarwise.utils.AppLogger
 ) : ViewModel() {
 
@@ -43,7 +44,19 @@ class MainViewModel(
     )
 
     val formattedTotalBalance = combine(transactions, selectedCurrency) { txs: List<Transaction>, currency: String ->
-        val total = txs.sumOf { it.amount }
+        // Calculate Net Balance
+        // Income is positive, Expense is negative.
+        // Identify transfers to optionally exclude, though net effect is 0.
+        // Safe bet: Exclude transfers to avoid any weird "double counting" visual issues if user inspects.
+        val total = txs
+            .filter { it.linkedTransactionId == null } // Exclude transfers from Net Worth (optional but cleaner)
+            .sumOf { 
+                when (it.type) {
+                    "expense" -> -it.amount
+                    "income" -> it.amount
+                    else -> 0.0
+                }
+            }
         TransactionDisplayUtils.formatCurrency(total, currency)
     }.stateIn(
         scope = viewModelScope,
@@ -84,21 +97,7 @@ class MainViewModel(
         initialValue = emptyList()
     )
 
-    fun saveTransaction(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
-        viewModelScope.launch {
-            val transaction = Transaction(
-                amount = amount,
-                jarId = jarId,
-                walletId = walletId,
-                note = note,
-                date = date ?: getCurrentIsoDate()
-            )
-            dao.insert(transaction)
-            logger.d("Transaction", "Saved new transaction")
-        }
-    }
-
-    fun saveDraft(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
+    fun saveTransaction(amount: Double, jarId: String, walletId: String, note: String, date: String? = null, type: String = "expense") {
         viewModelScope.launch {
             val transaction = Transaction(
                 amount = amount,
@@ -106,7 +105,36 @@ class MainViewModel(
                 walletId = walletId,
                 note = note,
                 date = date ?: getCurrentIsoDate(),
-                status = "draft"
+                type = type
+            )
+            dao.insert(transaction)
+            logger.d("Transaction", "Saved new transaction ($type)")
+        }
+    }
+
+    fun saveTransfer(amount: Double, fromWalletId: String, toWalletId: String, note: String, date: String? = null) {
+        viewModelScope.launch {
+            createTransferUseCase(
+                amount = amount,
+                fromWalletId = fromWalletId,
+                toWalletId = toWalletId,
+                date = date ?: getCurrentIsoDate(),
+                note = note
+            )
+            logger.d("Transaction", "Saved new transfer")
+        }
+    }
+
+    fun saveDraft(amount: Double, jarId: String, walletId: String, note: String, date: String? = null, type: String = "expense") {
+        viewModelScope.launch {
+            val transaction = Transaction(
+                amount = amount,
+                jarId = jarId,
+                walletId = walletId,
+                note = note,
+                date = date ?: getCurrentIsoDate(),
+                status = "draft",
+                type = type
             )
             dao.insert(transaction)
         }

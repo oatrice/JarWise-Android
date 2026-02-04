@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.9.0] - 2026-02-04
+### Added
+- **Transfers Between Jars**: You can now record transfers between your jars. Transfers are a dedicated transaction type, making it simple to track your money's movement without affecting your overall income or expense totals.
+- **Money Manager Import**: A new migration tool allows you to easily import your existing financial data from the Money Manager app directly into JarWise, helping you get started without losing your history.
+
+### Changed
+- **Improved Transaction Flow**: The process of adding a transaction has been updated to support the new types (Income, Expense, and Transfer). The transaction history and details screens now clearly distinguish transfers, showing the source and destination jars.
+
+### Fixed
+- **Calculation Accuracy**: Corrected an issue where the 'Total Spent' on the dashboard was calculated incorrectly. Also improved the performance of displaying linked transfer transactions.
+
 ## [1.8.0] - 2026-02-04
 ### Added
 - **Money Manager Import**: Easily transfer your existing financial data from the Money Manager app directly into JarWise. The new migration screen guides you through the process and navigates you to the dashboard upon completion.

@@ -18,7 +18,7 @@ interface TransactionDao {
     fun getDraftCount(): Flow<Int>
 
     @Insert
-    suspend fun insert(transaction: Transaction)
+    suspend fun insert(transaction: Transaction): Long
 
     @Update
     suspend fun update(transaction: Transaction)
@@ -26,6 +26,15 @@ interface TransactionDao {
     @Query("UPDATE transactions SET status = :status WHERE id = :id")
     suspend fun updateStatus(id: Long, status: String)
     
+    @androidx.room.Delete
+    suspend fun delete(transaction: Transaction)
+
+    @Query("UPDATE transactions SET linkedTransactionId = NULL WHERE id = :id")
+    suspend fun unlinkTransaction(id: Long)
+
+    @Query("UPDATE transactions SET linkedTransactionId = NULL WHERE linkedTransactionId = :idStr")
+    suspend fun unlinkRelatedTransaction(idStr: String)
+
     @Query("DELETE FROM transactions")
     suspend fun deleteAll()
 }

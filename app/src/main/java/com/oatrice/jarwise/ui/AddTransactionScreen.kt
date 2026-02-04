@@ -45,18 +45,26 @@ import java.util.*
 @Composable
 fun AddTransactionScreen(
     onBack: () -> Unit,
-    onSave: (Double, String, String, String, String) -> Unit // amount, jarId, walletId, note, date
+    onSave: (Double, String, String, String, String, String) -> Unit, // amount, jarId, walletId, note, date, type
+    onSaveTransfer: (Double, String, String, String, String) -> Unit // amount, fromWalletId, toWalletId, note, date
 ) {
     val context = LocalContext.current
     val calendar = remember { Calendar.getInstance() }
     
+    // Tabs state
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Expense, 1: Income, 2: Transfer
+    val tabs = listOf("Expense", "Income", "Transfer")
+
     var amount by remember { mutableStateOf("") }
     var note by remember { mutableStateOf("") }
     var selectedJarId by remember { mutableStateOf("") }
-    var selectedWalletId by remember { mutableStateOf("wallet-cash") }
+    var selectedWalletId by remember { mutableStateOf("wallet-cash") } // Source validation/To wallet
+    var toWalletId by remember { mutableStateOf("") } // For transfer
+    
     var selectedDate by remember { mutableStateOf(calendar.time) }
     var amountError by remember { mutableStateOf<String?>(null) }
     var jarError by remember { mutableStateOf<String?>(null) }
+    var walletError by remember { mutableStateOf<String?>(null) }
     
     val dateFormatter = remember { SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()) }
     val isoFormatter = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply { timeZone = TimeZone.getTimeZone("UTC") } }
@@ -116,17 +124,31 @@ fun AddTransactionScreen(
             ExtendedFloatingActionButton(
                 onClick = {
                     val amountVal = amount.toDoubleOrNull()
-                    if (amountVal == null) {
+                    if (amountVal == null || amountVal <= 0) {
                        amountError = "Invalid amount"
                        return@ExtendedFloatingActionButton
                     }
                     
-                    val result = TransactionValidator.validateTransaction(amount, selectedJarId)
-                    if (result.isValid) {
-                        onSave(amountVal, selectedJarId, selectedWalletId, note, isoFormatter.format(selectedDate))
+                    if (selectedTab == 2) { // Transfer
+                        if (selectedWalletId == toWalletId) {
+                            walletError = "Cannot transfer to same wallet"
+                            return@ExtendedFloatingActionButton
+                        }
+                        if (toWalletId.isEmpty()) {
+                            walletError = "Select destination wallet"
+                            return@ExtendedFloatingActionButton
+                        }
+                         onSaveTransfer(amountVal, selectedWalletId, toWalletId, note, isoFormatter.format(selectedDate))
                     } else {
-                        amountError = result.errors["amount"]
-                        jarError = result.errors["jarId"]
+                        // Expense/Income
+                        val result = TransactionValidator.validateTransaction(amount, selectedJarId)
+                        if (result.isValid) {
+                            val type = if (selectedTab == 1) "income" else "expense"
+                            onSave(amountVal, selectedJarId, selectedWalletId, note, isoFormatter.format(selectedDate), type)
+                        } else {
+                            amountError = result.errors["amount"]
+                            jarError = result.errors["jarId"]
+                        }
                     }
                 },
                 containerColor = if (amount.toDoubleOrNull() ?: 0.0 > 0.0)
@@ -151,6 +173,22 @@ fun AddTransactionScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            // Tabs
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = Color.Transparent,
+                contentColor = Color.White,
+                divider = {}
+            ) {
+                tabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(title) }
+                    )
+                }
+            }
+
             // Amount Input
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("Amount", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
@@ -197,9 +235,9 @@ fun AddTransactionScreen(
                 )
             }
 
-            // Wallet Selection
+            // Wallet Selection (Source)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Wallet (Source)", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                Text(if (selectedTab == 2) "From Wallet" else "Wallet", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
                 
                 Row(
                     modifier = Modifier
@@ -213,6 +251,34 @@ fun AddTransactionScreen(
                             isSelected = selectedWalletId == wallet.id,
                             onClick = { selectedWalletId = wallet.id }
                         )
+                    }
+                }
+            }
+
+            // Target Wallet Selection (Only for Transfer)
+            if (selectedTab == 2) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("To Wallet", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                    
+                     Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                       WALLETS_METADATA.forEach { wallet ->
+                            WalletSelectionCard(
+                                wallet = wallet,
+                                isSelected = toWalletId == wallet.id,
+                                onClick = { 
+                                    toWalletId = wallet.id 
+                                    walletError = null
+                                }
+                            )
+                        }
+                    }
+                    if (walletError != null) {
+                        Text(text = walletError!!, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
@@ -247,40 +313,42 @@ fun AddTransactionScreen(
                 }
             }
 
-            // Jar Selector
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                   Text("Select Jar", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
-                    if (jarError != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = jarError!!,
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    } 
-                }
-                
+            // Jar Selector (Only if NOT Transfer)
+            if (selectedTab != 2) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                       Text("Select Jar", color = Color.Gray, style = MaterialTheme.typography.labelMedium)
+                        if (jarError != null) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = jarError!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        } 
+                    }
+                    
 
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.height(280.dp) // Fixed height enough for 3 rows
-                ) {
-                    items(JARS_METADATA) { jar ->
-                        JarSelectionCard(
-                            jar = jar,
-                            isSelected = selectedJarId == jar.id,
-                            isError = jarError != null && selectedJarId.isEmpty(),
-                            onClick = { 
-                                selectedJarId = jar.id
-                                jarError = null
-                            }
-                        )
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.height(280.dp) // Fixed height enough for 3 rows
+                    ) {
+                        items(JARS_METADATA) { jar ->
+                            JarSelectionCard(
+                                jar = jar,
+                                isSelected = selectedJarId == jar.id,
+                                isError = jarError != null && selectedJarId.isEmpty(),
+                                onClick = { 
+                                    selectedJarId = jar.id
+                                    jarError = null
+                                }
+                            )
+                        }
                     }
                 }
-                }
+            }
 
             // Note Input
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

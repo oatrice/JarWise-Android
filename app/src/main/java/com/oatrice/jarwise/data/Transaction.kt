@@ -12,6 +12,7 @@ data class Transaction(
     val walletId: String = "wallet-cash", // Default to cash
     val date: String, // ISO 8601 string
     val type: String = "expense", // "income" | "expense"
-    val status: String = "completed" // "draft" | "completed"
+    val status: String = "completed", // "draft" | "completed"
+    val linkedTransactionId: String? = null // ID of the related transaction (e.g. for transfers)
 )
 
