@@ -5,6 +5,7 @@
 ![Android](https://img.shields.io/badge/Android_SDK-34-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
 
+
 - **Architecture**: MVVM + Clean Architecture + Koin
 
 **Modules**:
@@ -26,3 +27,4 @@ Do not edit `Color.kt` directly.
 *   **Jar Management**: Configure and manage financial jars, including editing names, icons, and percentages. Supports a hierarchical (parent-child) structure for complex allocation strategies.
 *   **Authentication**: Secure account access with Google Sign-In.
 *   **Data Backup & Restore**: Cloud-based backup and restore to safeguard your data.
+*   **Data Migration**: Import your financial data from Money Manager.
