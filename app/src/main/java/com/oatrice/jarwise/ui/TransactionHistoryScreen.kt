@@ -158,8 +158,13 @@ fun TransactionHistoryScreen(
                         
                         // Transactions for this day
                         items(group.transactions) { transaction ->
+                            // Lookup linked transaction for transfer display
+                            val linkedTransaction = transaction.linkedTransactionId?.let { linkedId ->
+                                transactions.find { it.id.toString() == linkedId }
+                            }
                             TransactionCard(
                                 transaction = transaction,
+                                linkedTransaction = linkedTransaction,
                                 currencyCode = selectedCurrency,
                                 showDate = false
                             )

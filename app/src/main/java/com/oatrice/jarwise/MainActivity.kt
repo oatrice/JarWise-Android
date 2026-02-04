@@ -62,6 +62,9 @@ class MainActivity : ComponentActivity() {
                 val currentUser by authService.currentUser.collectAsState()
                 val initialScreen = if (currentUser != null) Screen.Dashboard else Screen.Login
                 var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
+                // Track previous screen for ManageWallets (Dashboard vs Settings)
+                var previousScreen by remember { mutableStateOf<Screen?>(null) }
+                
                 val transactions by viewModel.transactions.collectAsState()
                 val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
@@ -72,8 +75,12 @@ class MainActivity : ComponentActivity() {
                         com.oatrice.jarwise.ui.components.NavPage.DASHBOARD -> currentScreen = Screen.Dashboard
                         com.oatrice.jarwise.ui.components.NavPage.HISTORY -> currentScreen = Screen.TransactionHistory
                         com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
-                        // Add other destinations here when ready (WALLET, PROFILE)
-                        else -> {}
+                        com.oatrice.jarwise.ui.components.NavPage.BUDGET -> {
+                            // Wallets update via StateFlow automatically
+                            previousScreen = currentScreen // likely Dashboard or whatever tab
+                            currentScreen = Screen.ManageWallets
+                        }
+                        com.oatrice.jarwise.ui.components.NavPage.PROFILE -> currentScreen = Screen.Settings
                     }
                 }
 
@@ -103,7 +110,10 @@ class MainActivity : ComponentActivity() {
                         }
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
-                             onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
+                             onNavigateToManageWallets = { 
+                                 previousScreen = Screen.Settings
+                                 currentScreen = Screen.ManageWallets 
+                             },
                              onNavigateToMigration = { currentScreen = Screen.Migration },
                              viewModel = viewModel
                         )
@@ -185,7 +195,10 @@ class MainActivity : ComponentActivity() {
                             onBack = { currentScreen = Screen.Dashboard }
                         )
                         is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
-                            onNavigateBack = { currentScreen = Screen.Settings },
+                            onNavigateBack = { 
+                                currentScreen = previousScreen ?: Screen.Dashboard
+                                previousScreen = null // clear after use
+                            },
                             viewModel = manageWalletsViewModel
                         )
                         is Screen.Login -> com.oatrice.jarwise.ui.login.LoginScreen(

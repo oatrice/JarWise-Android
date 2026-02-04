@@ -257,8 +257,22 @@ fun DashboardScreen(
                         }
                     }
                 } else {
-                    itemsIndexed(transactions.take(3)) { _, transaction ->
-                        TransactionCard(transaction = transaction, currencyCode = selectedCurrency, showDate = true)
+                    // Filter out the income side of transfers (if not already done upstream)
+                    val visibleTransactions = transactions
+                        .filter { tx -> !(tx.type == "income" && tx.linkedTransactionId != null) }
+                        .take(3)
+                    
+                    itemsIndexed(visibleTransactions) { _, transaction ->
+                        // Lookup linked transaction for transfer display
+                        val linkedTransaction = transaction.linkedTransactionId?.let { linkedId ->
+                            transactions.find { it.id.toString() == linkedId }
+                        }
+                        TransactionCard(
+                            transaction = transaction,
+                            linkedTransaction = linkedTransaction,
+                            currencyCode = selectedCurrency,
+                            showDate = true
+                        )
                     }
                 }
             }

@@ -35,8 +35,13 @@ object TransactionGroupingUtils {
     fun groupByDate(transactions: List<Transaction>): List<DailyTransactionGroup> {
         if (transactions.isEmpty()) return emptyList()
         
+        // Filter out the "income" side of transfers to show only one unified row
+        val visibleTransactions = transactions.filter { tx ->
+            !(tx.type == "income" && tx.linkedTransactionId != null)
+        }
+        
         // Group by date key
-        val grouped = transactions.groupBy { transaction ->
+        val grouped = visibleTransactions.groupBy { transaction ->
             try {
                 val date = isoFormat.parse(transaction.date)
                 dateKeyFormat.format(date!!)
