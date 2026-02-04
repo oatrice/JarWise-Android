@@ -65,8 +65,16 @@ class MigrationViewModel(
             logger.d("Migration", "Starting upload. Mmbak: ${_mmbakFileName.value}, Xls: ${_xlsFileName.value}")
             val result = repository.uploadMigrationFiles(mmbak, xls)
             result.onSuccess { response ->
-                logger.d("Migration", "Upload success: ${response.message}")
-                _uiState.value = MigrationUiState.Success(response.message)
+                logger.d("Migration", "API Response: $response")
+                if (response.status.equals("success", ignoreCase = true)) {
+                    val msg = response.message
+                    logger.d("Migration", "Migration Success: $msg")
+                    _uiState.value = MigrationUiState.Success(msg)
+                } else {
+                    val msg = response.message
+                    logger.e("Migration", "Migration Logic Error: $msg")
+                     _uiState.value = MigrationUiState.Error(msg)
+                }
             }.onFailure { error ->
                 logger.e("Migration", "Upload failed", error)
                 _uiState.value = MigrationUiState.Error(error.message ?: "Unknown error occurred")
