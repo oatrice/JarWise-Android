@@ -114,6 +114,10 @@ class MainActivity : ComponentActivity() {
                                    migrationViewModel.resetState()
                                    currentScreen = Screen.Settings 
                                },
+                               onGoToDashboard = {
+                                    migrationViewModel.resetState()
+                                    currentScreen = Screen.Dashboard
+                               },
                                viewModel = migrationViewModel
                            )
                         }

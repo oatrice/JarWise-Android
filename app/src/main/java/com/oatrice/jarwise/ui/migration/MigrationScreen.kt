@@ -30,6 +30,7 @@ import androidx.documentfile.provider.DocumentFile
 @Composable
 fun MigrationScreen(
     onBack: () -> Unit,
+    onGoToDashboard: () -> Unit = {},
     viewModel: MigrationViewModel
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -179,7 +180,7 @@ fun MigrationScreen(
                                 color = Color(0xFF1B5E20)
                             )
                             Spacer(modifier = Modifier.height(24.dp))
-                            Button(onClick = onBack) {
+                            Button(onClick = onGoToDashboard) {
                                 Text("Go to Dashboard")
                             }
                         }
