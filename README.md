@@ -6,6 +6,7 @@
 
 
 
+
 - **Architecture**: MVVM + Clean Architecture + Koin
 
 **Modules**:
@@ -23,7 +24,7 @@ Do not edit `Color.kt` directly.
 ## ✨ Features
 *   **Currency Support**: Native currency management using DataStore Preferences and dynamic UI updates.
 *   **Mobile Experience**: Optimized Dashboard layout with quick access to Import Slip and Settings.
-*   **Transaction Management**: Add and view transactions with wallet and date selection.
+*   **Transaction Management**: Add and view transactions (income, expense, transfer) with wallet and date selection.
 *   **Jar Management**: Configure and manage financial jars, including editing names, icons, and percentages. Supports a hierarchical (parent-child) structure for complex allocation strategies.
 *   **Authentication**: Secure account access with Google Sign-In.
 *   **Data Backup & Restore**: Cloud-based backup and restore to safeguard your data.
