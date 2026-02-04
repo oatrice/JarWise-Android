@@ -10,6 +10,7 @@ ISSUE: {
 
 GIT CONTEXT:
 COMMITS:
+5ab9549 feat: [Feature] Migrate Data from Money Manager App (.mm...
 2f6074b ✨ feat(import): add money manager import and security improvements
 a9932b2 🔒 fix(security): enforce network security configuration and improve resource handling
 683562b ✨ feat(ui): add dashboard navigation from migration screen
@@ -24,21 +25,22 @@ STATS:
  app/build.gradle.kts                               |   8 +-
  app/src/main/AndroidManifest.xml                   |   1 +
  .../java/com/oatrice/jarwise/JarWiseApplication.kt |   4 +-
- .../main/java/com/oatrice/jarwise/MainActivity.kt  |  16 ++
- .../com/oatrice/jarwise/data/api/MigrationApi.kt   |  17 ++
- .../jarwise/data/api/model/MigrationModels.kt      |  22 ++
- .../jarwise/data/repository/MigrationRepository.kt |  64 ++++++
- .../java/com/oatrice/jarwise/di/NetworkModule.kt   |  36 ++++
+ .../main/java/com/oatrice/jarwise/MainActivity.kt  |  16 +
+ .../com/oatrice/jarwise/data/api/MigrationApi.kt   |  17 +
+ .../jarwise/data/api/model/MigrationModels.kt      |  22 +
+ .../jarwise/data/repository/MigrationRepository.kt |  64 ++
+ .../java/com/oatrice/jarwise/di/NetworkModule.kt   |  36 +
  .../com/oatrice/jarwise/di/RepositoryModule.kt     |   1 +
  .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   2 +
- .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  |  15 ++
- .../jarwise/ui/migration/MigrationScreen.kt        | 230 +++++++++++++++++++++
- .../jarwise/ui/migration/MigrationViewModel.kt     |  99 +++++++++
- .../java/com/oatrice/jarwise/utils/AppLogger.kt    |  28 +++
- app/src/main/res/xml/network_security_config.xml   |  12 ++
- code_review.md                                     | 132 ++++++++++--
+ .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  |  15 +
+ .../jarwise/ui/migration/MigrationScreen.kt        | 230 ++++++
+ .../jarwise/ui/migration/MigrationViewModel.kt     |  99 +++
+ .../java/com/oatrice/jarwise/utils/AppLogger.kt    |  28 +
+ app/src/main/res/xml/network_security_config.xml   |  12 +
+ code_review.md                                     | 132 +++-
+ draft_pr_prompt.md                                 | 855 ++++++++++-----------
  gradle/libs.versions.toml                          |   8 +
- 20 files changed, 700 insertions(+), 23 deletions(-)
+ 21 files changed, 1125 insertions(+), 453 deletions(-)
 
 KEY FILE DIFFS:
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
