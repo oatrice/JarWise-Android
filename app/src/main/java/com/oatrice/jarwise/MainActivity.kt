@@ -174,6 +174,10 @@ class MainActivity : ComponentActivity() {
                             onSave = { amount, jarId, walletId, note, date ->
                                 viewModel.saveTransaction(amount, jarId, walletId, note, date)
                                 currentScreen = Screen.Dashboard
+                            },
+                            onSaveTransfer = { amount, fromWalletId, toWalletId, note, date ->
+                                viewModel.saveTransfer(amount, fromWalletId, toWalletId, note, date)
+                                currentScreen = Screen.Dashboard
                             }
                         )
                         is Screen.ManageJars -> ManageJarsScreen(

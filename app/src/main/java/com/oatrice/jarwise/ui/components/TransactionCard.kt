@@ -96,6 +96,11 @@ fun TransactionCard(
                 subtitleParts.add(jar.name)
             }
             subtitleParts.add(wallet.name)
+            
+            if (transaction.linkedTransactionId != null) {
+                subtitleParts.add("🔗 Linked")
+            }
+            
             val displaySubtitle = subtitleParts.joinToString(" • ")
             
             Column {

@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 6, exportSchema = true)
+@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 7, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun jarConfigDao(): JarConfigDao
@@ -96,6 +96,12 @@ abstract class AppDatabase : RoomDatabase() {
                         level INTEGER NOT NULL
                     )
                 """.trimIndent())
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE transactions ADD COLUMN linkedTransactionId TEXT")
             }
         }
 

@@ -21,6 +21,7 @@ class MainViewModel(
     private val dao: TransactionDao,
     private val currencyRepository: CurrencyRepository,
     private val jarConfigRepository: JarConfigRepository,
+    private val createTransferUseCase: com.oatrice.jarwise.domain.use_case.CreateTransferUseCase,
     private val logger: com.oatrice.jarwise.utils.AppLogger
 ) : ViewModel() {
 
@@ -43,6 +44,11 @@ class MainViewModel(
     )
 
     val formattedTotalBalance = combine(transactions, selectedCurrency) { txs: List<Transaction>, currency: String ->
+        // Exclude transfers from total balance calculation if needed? 
+        // For now, prompt requirements say "reports" exclude them. 
+        // Total Balance might remain net? 
+        // If transfer -100 and +100, net effect on total balance is 0 anyway.
+        // So no change needed here logic-wise for total balance.
         val total = txs.sumOf { it.amount }
         TransactionDisplayUtils.formatCurrency(total, currency)
     }.stateIn(
@@ -95,6 +101,19 @@ class MainViewModel(
             )
             dao.insert(transaction)
             logger.d("Transaction", "Saved new transaction")
+        }
+    }
+
+    fun saveTransfer(amount: Double, fromWalletId: String, toWalletId: String, note: String, date: String? = null) {
+        viewModelScope.launch {
+            createTransferUseCase(
+                amount = amount,
+                fromWalletId = fromWalletId,
+                toWalletId = toWalletId,
+                date = date ?: getCurrentIsoDate(),
+                note = note
+            )
+            logger.d("Transaction", "Saved new transfer")
         }
     }
 

@@ -50,11 +50,11 @@ object TransactionGroupingUtils {
             val sortedTxs = txs.sortedByDescending { it.date }
             
             val totalIncome = sortedTxs
-                .filter { it.type == "income" }
+                .filter { it.type == "income" && it.linkedTransactionId == null }
                 .sumOf { kotlin.math.abs(it.amount) }
                 
             val totalExpense = sortedTxs
-                .filter { it.type == "expense" }
+                .filter { it.type == "expense" && it.linkedTransactionId == null }
                 .sumOf { -kotlin.math.abs(it.amount) }
             
             DailyTransactionGroup(
