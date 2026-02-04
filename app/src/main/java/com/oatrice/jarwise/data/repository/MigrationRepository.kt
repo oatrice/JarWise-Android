@@ -49,13 +49,13 @@ class MigrationRepository(
     private fun getFileFromUri(context: Context, uri: Uri, fileName: String): File? {
         return try {
             val contentResolver = context.contentResolver
-            val inputStream = contentResolver.openInputStream(uri) ?: return null
-            val tempFile = File(context.cacheDir, fileName)
-            val outputStream = FileOutputStream(tempFile)
-            inputStream.copyTo(outputStream)
-            inputStream.close()
-            outputStream.close()
-            tempFile
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                val tempFile = File(context.cacheDir, fileName)
+                FileOutputStream(tempFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+                tempFile
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             null

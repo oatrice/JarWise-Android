@@ -9,6 +9,7 @@ interface AppLogger {
 
 class AndroidAppLogger(val context: Context? = null) : AppLogger {
     private val logFileName = "jarwise_app.log"
+    private val logExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
 
     override fun d(tag: String, message: String) {
         android.util.Log.d(tag, message)
@@ -26,10 +27,8 @@ class AndroidAppLogger(val context: Context? = null) : AppLogger {
                 val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())
                 val logEntry = "$timestamp - $log\n"
                 
-                // Run on IO thread to avoid blocking UI? 
-                // For simplicity in this logger helper, we might do it synchronously or via a simple thread if volume is low.
-                // Given the requirement is just "save log", simple append is okay but better be safe.
-                java.util.concurrent.Executors.newSingleThreadExecutor().execute {
+                // Run on background thread
+                logExecutor.execute {
                     try {
                         val file = java.io.File(ctx.filesDir, logFileName)
                         java.io.FileOutputStream(file, true).use { stream ->
