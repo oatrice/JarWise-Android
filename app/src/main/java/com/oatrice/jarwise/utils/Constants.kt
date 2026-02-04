@@ -22,7 +22,12 @@ val JARS_METADATA = listOf(
 val UNKNOWN_JAR = JarMetadata("unknown", "Unknown", "❓", Color.Gray)
 val UNKNOWN_WALLET = WalletMetadata("unknown", "Unknown", "❓", Color.Gray)
 
+val TRANSFER_OUT_JAR = JarMetadata("transfer-out", "Transfer Out", "💸", Color(0xFFF87171)) // Red 400
+val TRANSFER_IN_JAR = JarMetadata("transfer-in", "Transfer In", "💰", Color(0xFF4ADE80)) // Green 400
+
 fun getJarDetails(jarId: String): JarMetadata {
+    if (jarId == "transfer-out") return TRANSFER_OUT_JAR
+    if (jarId == "transfer-in") return TRANSFER_IN_JAR
     return JARS_METADATA.find { it.id == jarId } ?: UNKNOWN_JAR
 }
 

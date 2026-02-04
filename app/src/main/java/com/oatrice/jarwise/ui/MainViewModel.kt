@@ -44,12 +44,19 @@ class MainViewModel(
     )
 
     val formattedTotalBalance = combine(transactions, selectedCurrency) { txs: List<Transaction>, currency: String ->
-        // Exclude transfers from total balance calculation if needed? 
-        // For now, prompt requirements say "reports" exclude them. 
-        // Total Balance might remain net? 
-        // If transfer -100 and +100, net effect on total balance is 0 anyway.
-        // So no change needed here logic-wise for total balance.
-        val total = txs.sumOf { it.amount }
+        // Calculate Net Balance
+        // Income is positive, Expense is negative.
+        // Identify transfers to optionally exclude, though net effect is 0.
+        // Safe bet: Exclude transfers to avoid any weird "double counting" visual issues if user inspects.
+        val total = txs
+            .filter { it.linkedTransactionId == null } // Exclude transfers from Net Worth (optional but cleaner)
+            .sumOf { 
+                when (it.type) {
+                    "expense" -> -it.amount
+                    "income" -> it.amount
+                    else -> 0.0
+                }
+            }
         TransactionDisplayUtils.formatCurrency(total, currency)
     }.stateIn(
         scope = viewModelScope,
