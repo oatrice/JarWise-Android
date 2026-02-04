@@ -2,525 +2,522 @@
 
 You are an AI assistant helping to create a Pull Request description.
     
-TASK: [Web | Android] Google Login & Cloud Backup
+TASK: [Feature] Migrate Data from Money Manager App (.mmbak)
 ISSUE: {
-  "title": "[Web | Android] Google Login & Cloud Backup",
-  "number": 32
+  "title": "[Feature] Migrate Data from Money Manager App (.mmbak)",
+  "number": 65
 }
 
 GIT CONTEXT:
 COMMITS:
-c718489 ✨ feat(auth): add google sign-in and cloud backup features
-33a6505 🐛 fix(manage-jars): revert unsaved changes on navigation
-9264c15 🐛 fix(ui): improve reset and date formatting
-d836cdd ✨ feat(settings): add backup checking and restore functionality
-655fdc0 🔄 feat(ui): add app restart after data deletion
-8785155 ✨ feat(settings): add local data deletion option on logout
-530a181 🐛 fix(backup): improve restore process with temp file and cleanup
-e0dc9d3 ✨ feat(backup): Add backup restore UI and flow
-c282075 🐛 fix(db): clean up WAL/SHM files after backup restore
-9f47a81 🐛 fix(backup): add debug logging for restored data
-1db2f90 ✨ feat(auth): implement google sign-in flow in settings
-77e4b45 ✨ feat(login): add guest login option and settings navigation
-728b22c ✨ feat(backup): Add backup restore functionality to login flow
-76557c6 🔐 feat(auth): implement initial screen routing based on auth state
-b0d87ac 🐛 ui(backup): Pause auto-backup during ManageJarsScreen
-f998aff 🐛 fix(backup): Add auto-backup pause/resume functionality
-b4448d6 🔄 refactor(backup): separate manual and auto backup triggers
-6685f7c ✨ feat(settings): add settings screen and view model
-deb23ec ✨ feat(backup): Add folder creation for Google Drive backups
-c980b93 ✨ feat(backup): enhance backup file naming and logging
-21e5b4f 🐛 auth(ui): improve error handling and UI state updates
-0007de5 ✨ feat(logging): Add comprehensive logging to backup operations
-692bb78 ✨ feat(backup): add automatic database backup to Google Drive
-ba3c82a ✨ feat(ui): improve login success flow
-5fc3f4a ✨ feat(ui): improve login screen composition and state handling
-152c351 ✨ feat(auth): implement Google Sign-In integration
-c37bcca ✨ feat(auth): add google authentication integration
+5ab9549 feat: [Feature] Migrate Data from Money Manager App (.mm...
+2f6074b ✨ feat(import): add money manager import and security improvements
+a9932b2 🔒 fix(security): enforce network security configuration and improve resource handling
+683562b ✨ feat(ui): add dashboard navigation from migration screen
+1d7e03f 🐛 fix(api): improve migration error handling
+acbfa21 ✨ feat(logging): enhance API and migration logging
+a022bc3 ✨ feat(migration): add money manager data migration feature
 
 STATS:
-.idea/appInsightsSettings.xml                      |   8 +-
- .luma_state.json                                   |  16 +-
- CHANGELOG.md                                       |  15 +
- README.md                                          |   5 +-
- app/build.gradle.kts                               |  12 +-
- app/google-services.json                           |  39 +++
- .../java/com/oatrice/jarwise/JarWiseApplication.kt |  21 +-
- .../main/java/com/oatrice/jarwise/MainActivity.kt  |  37 ++-
- .../com/oatrice/jarwise/data/auth/AuthService.kt   |   9 +
- .../java/com/oatrice/jarwise/data/auth/AuthUser.kt |   8 +
- .../oatrice/jarwise/data/auth/GoogleAuthService.kt |  90 ++++++
- .../oatrice/jarwise/data/auth/MockAuthService.kt   |  25 ++
- .../oatrice/jarwise/data/backup/BackupManager.kt   | 180 ++++++++++++
- .../jarwise/data/backup/CloudStorageService.kt     |  16 ++
- .../jarwise/data/backup/GoogleDriveService.kt      | 132 +++++++++
- .../main/java/com/oatrice/jarwise/di/AppModule.kt  |   5 +-
- .../main/java/com/oatrice/jarwise/di/AuthModule.kt |  10 +
- .../main/java/com/oatrice/jarwise/di/DataModule.kt |  14 +
- .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   8 +-
- .../java/com/oatrice/jarwise/ui/MainViewModel.kt   |   4 +-
- .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  | 311 ++++++++++++++++++++-
- .../com/oatrice/jarwise/ui/login/LoginScreen.kt    | 238 ++++++++++++++++
- .../com/oatrice/jarwise/ui/login/LoginUiState.kt   |  13 +
- .../com/oatrice/jarwise/ui/login/LoginViewModel.kt | 126 +++++++++
- .../jarwise/ui/managejars/ManageJarsScreen.kt      |  19 +-
- .../jarwise/ui/managejars/ManageJarsViewModel.kt   | 190 +++++++++----
- .../jarwise/ui/settings/SettingsViewModel.kt       | 116 ++++++++
- .../java/com/oatrice/jarwise/utils/AppLogger.kt    |  18 ++
- .../oatrice/jarwise/data/auth/AuthServiceTest.kt   |  41 +++
- .../jarwise/data/backup/BackupManagerTest.kt       | 184 ++++++++++++
- .../oatrice/jarwise/ui/login/LoginViewModelTest.kt |  55 ++++
- .../ui/managejars/ManageJarsViewModelTest.kt       |  59 +++-
- build.gradle.kts                                   |   1 +
- code_review.md                                     |  26 +-
- gradle/libs.versions.toml                          |  15 +
- 35 files changed, 1943 insertions(+), 123 deletions(-)
+.luma_state.json                                   |  16 +-
+ CHANGELOG.md                                       |   8 +
+ README.md                                          |   4 +-
+ app/build.gradle.kts                               |   8 +-
+ app/src/main/AndroidManifest.xml                   |   1 +
+ .../java/com/oatrice/jarwise/JarWiseApplication.kt |   4 +-
+ .../main/java/com/oatrice/jarwise/MainActivity.kt  |  16 +
+ .../com/oatrice/jarwise/data/api/MigrationApi.kt   |  17 +
+ .../jarwise/data/api/model/MigrationModels.kt      |  22 +
+ .../jarwise/data/repository/MigrationRepository.kt |  64 ++
+ .../java/com/oatrice/jarwise/di/NetworkModule.kt   |  36 +
+ .../com/oatrice/jarwise/di/RepositoryModule.kt     |   1 +
+ .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   2 +
+ .../java/com/oatrice/jarwise/ui/SettingsScreen.kt  |  15 +
+ .../jarwise/ui/migration/MigrationScreen.kt        | 230 ++++++
+ .../jarwise/ui/migration/MigrationViewModel.kt     |  99 +++
+ .../java/com/oatrice/jarwise/utils/AppLogger.kt    |  28 +
+ app/src/main/res/xml/network_security_config.xml   |  12 +
+ code_review.md                                     | 132 +++-
+ draft_pr_prompt.md                                 | 855 ++++++++++-----------
+ gradle/libs.versions.toml                          |   8 +
+ 21 files changed, 1125 insertions(+), 453 deletions(-)
 
 KEY FILE DIFFS:
-diff --git a/.idea/appInsightsSettings.xml b/.idea/appInsightsSettings.xml
-index 371f2e2..2f0ada9 100644
---- a/.idea/appInsightsSettings.xml
-+++ b/.idea/appInsightsSettings.xml
-@@ -8,10 +8,10 @@
-             <InsightsFilterSettings>
-               <option name="connection">
-                 <ConnectionSetting>
--                  <option name="appId" value="PLACEHOLDER" />
--                  <option name="mobileSdkAppId" value="" />
--                  <option name="projectId" value="" />
--                  <option name="projectNumber" value="" />
-+                  <option name="appId" value="com.oatrice.jarwise" />
-+                  <option name="mobileSdkAppId" value="1:310508345743:android:a4949aec7042700eec13fa" />
-+                  <option name="projectId" value="jarwise-197b3" />
-+                  <option name="projectNumber" value="310508345743" />
-                 </ConnectionSetting>
-               </option>
-               <option name="signal" value="SIGNAL_UNSPECIFIED" />
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
-index 645f57b..f505630 100644
+index f505630..5a147d9 100644
 --- a/app/build.gradle.kts
 +++ b/app/build.gradle.kts
-@@ -2,18 +2,20 @@ plugins {
-     alias(libs.plugins.android.application)
-     alias(libs.plugins.jetbrains.kotlin.android)
-     alias(libs.plugins.ksp)
-+    alias(libs.plugins.google.services)
- }
- 
- android {
-     namespace = "com.oatrice.jarwise"
-     compileSdk = 34
-+    buildToolsVersion = "34.0.0"
- 
-     defaultConfig {
-         applicationId = "com.oatrice.jarwise"
+@@ -15,7 +15,7 @@ android {
          minSdk = 24
          targetSdk = 34
          versionCode = 1
--        versionName = "1.6.0"
-+        versionName = "1.7.0"
+-        versionName = "1.7.0"
++        versionName = "1.8.0"
  
          testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
          vectorDrawables {
-@@ -52,6 +54,7 @@ android {
-     packaging {
-         resources {
-             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-+            excludes += "META-INF/DEPENDENCIES"
-         }
-     }
- 
-@@ -137,6 +140,13 @@ dependencies {
-     implementation("io.insert-koin:koin-android:3.5.3")
-     implementation("io.insert-koin:koin-androidx-compose:3.5.3")
- 
-+    // Google Auth & Drive
-+    implementation(libs.play.services.auth)
-+    implementation(libs.google.api.client.android)
-+    implementation(libs.google.api.services.drive)
-+    implementation(libs.google.auth.library.oauth2.http)
-+    implementation(libs.kotlinx.coroutines.play.services)
-+    implementation(libs.google.http.client.android)
+@@ -147,6 +147,12 @@ dependencies {
+     implementation(libs.google.auth.library.oauth2.http)
+     implementation(libs.kotlinx.coroutines.play.services)
+     implementation(libs.google.http.client.android)
++
++    // Networking
++    implementation(libs.retrofit)
++    implementation(libs.converter.gson)
++    implementation(libs.okhttp)
++    implementation(libs.logging.interceptor)
  }
  
  ksp {
+diff --git a/app/src/main/AndroidManifest.xml b/app/src/main/AndroidManifest.xml
+index b2516b3..cb80f01 100644
+--- a/app/src/main/AndroidManifest.xml
++++ b/app/src/main/AndroidManifest.xml
+@@ -18,6 +18,7 @@
+         android:roundIcon="@mipmap/ic_launcher_round"
+         android:supportsRtl="true"
+         android:theme="@style/Theme.JarWise"
++        android:networkSecurityConfig="@xml/network_security_config"
+         tools:targetApi="31">
+         <activity
+             android:name=".MainActivity"
 diff --git a/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt b/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
-index af6811e..dba61fc 100644
+index dba61fc..d8973a6 100644
 --- a/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt
-@@ -5,6 +5,7 @@ import com.oatrice.jarwise.di.appModule
+@@ -3,6 +3,7 @@ package com.oatrice.jarwise
+ import android.app.Application
+ import com.oatrice.jarwise.di.appModule
  import com.oatrice.jarwise.di.dataModule
++import com.oatrice.jarwise.di.networkModule
  import com.oatrice.jarwise.di.repositoryModule
  import com.oatrice.jarwise.di.viewModelModule
-+import com.oatrice.jarwise.di.authModule
- import org.koin.android.ext.koin.androidContext
- import org.koin.android.ext.koin.androidLogger
- import org.koin.core.context.GlobalContext.startKoin
-@@ -16,16 +17,32 @@ class JarWiseApplication : Application() {
-         super.onCreate()
- 
-         if (GlobalContext.getOrNull() == null) {
--            startKoin {
-+            val koinApp = startKoin {
-                 androidLogger()
-                 androidContext(this@JarWiseApplication)
-                 modules(
-                     appModule,
+ import com.oatrice.jarwise.di.authModule
+@@ -25,7 +26,8 @@ class JarWiseApplication : Application() {
                      dataModule,
                      repositoryModule,
--                    viewModelModule
-+                    viewModelModule,
-+                    authModule
+                     viewModelModule,
+-                    authModule
++                    authModule,
++                    networkModule
                  )
              }
-+            
-+            // Setup Auto Backup
-+            val koin = koinApp.koin
-+            val db = koin.get<com.oatrice.jarwise.data.AppDatabase>()
-+            val backupManager = koin.get<com.oatrice.jarwise.data.backup.BackupManager>()
-+            
-+            db.invalidationTracker.addObserver(
-+                object : androidx.room.InvalidationTracker.Observer(
-+                    "transactions", "allocations", "wallets"
-+                ) {
-+                    override fun onInvalidated(tables: Set<String>) {
-+                        backupManager.triggerAutoBackup()
-+                    }
-+                }
-+            )
-         }
-     }
- }
+             
 diff --git a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
-index 00208cf..142ade8 100644
+index b7e516e..a58d644 100644
 --- a/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/MainActivity.kt
-@@ -14,6 +14,7 @@ import com.oatrice.jarwise.ui.managejars.ManageJarsScreen
- import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
- import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
- import org.koin.androidx.viewmodel.ext.android.viewModel
-+import org.koin.android.ext.android.inject
- import com.oatrice.jarwise.ui.AddTransactionScreen
- import com.oatrice.jarwise.ui.DashboardScreen
- import com.oatrice.jarwise.ui.MainViewModel
-@@ -34,6 +35,11 @@ sealed class Screen {
+@@ -35,6 +35,7 @@ sealed class Screen {
      data object Settings : Screen()
      data object ManageJars : Screen()
      data object ManageWallets : Screen()
-+    data object Login : Screen()
-+}
-+
-+private val slipDateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
-+    timeZone = java.util.TimeZone.getTimeZone("UTC")
++    data object Migration : Screen()
+     data object Login : Screen()
  }
  
- class MainActivity : ComponentActivity() {
-@@ -44,11 +50,16 @@ class MainActivity : ComponentActivity() {
-         val slipViewModel: SlipViewModel by viewModel()
-         val manageJarsViewModel: ManageJarsViewModel by viewModel()
-         val manageWalletsViewModel: ManageWalletsViewModel by viewModel()
-+        
-+        // Inject AuthService to check login status
-+        val authService: com.oatrice.jarwise.data.auth.AuthService by inject()
- 
-         enableEdgeToEdge()
-         setContent {
-             JarWiseTheme {
--                var currentScreen by remember { mutableStateOf<Screen>(Screen.Dashboard) }
-+                // Determine initial screen based on auth state
-+                val initialScreen = if (authService.currentUser.value != null) Screen.Dashboard else Screen.Login
-+                var currentScreen by remember { mutableStateOf<Screen>(initialScreen) }
-                 val transactions by viewModel.transactions.collectAsState()
-                 val formattedTotalBalance by viewModel.formattedTotalBalance.collectAsState()
-                 val selectedCurrency by viewModel.selectedCurrency.collectAsState()
-@@ -81,7 +92,10 @@ class MainActivity : ComponentActivity() {
-                                 onNavigateToImport = { currentScreen = Screen.SlipImport },
-                                 onNavigateToAdd = { currentScreen = Screen.AddTransaction },
-                                 onNavigateToSettings = { currentScreen = Screen.Settings },
--                                onNavigateToManageJars = { currentScreen = Screen.ManageJars },
-+                                onNavigateToManageJars = {
-+                                    manageJarsViewModel.revertUnsavedChanges()
-+                                    currentScreen = Screen.ManageJars
-+                                },
-                                 onNavigate = handleNavigation
-                             )
-                         }
-@@ -122,9 +136,7 @@ class MainActivity : ComponentActivity() {
-                                     val amount = parsedSlip.amount ?: 0.0
-                                     val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
-                                     val date = parsedSlip.date?.let {
--                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
--                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
--                                        sdf.format(it)
-+                                        slipDateFormat.format(it)
-                                     }
-                                     viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date)
-                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
-@@ -133,9 +145,7 @@ class MainActivity : ComponentActivity() {
-                                     val amount = parsedSlip.amount ?: 0.0
-                                     val note = "Slip: ${parsedSlip.bankName ?: "Unknown"}"
-                                     val date = parsedSlip.date?.let {
--                                        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US)
--                                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
--                                        sdf.format(it)
-+                                        slipDateFormat.format(it)
-                                     }
-                                     viewModel.saveDraft(amount, jarId, "wallet-bank", note, date)
-                                     android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
-@@ -155,13 +165,10 @@ class MainActivity : ComponentActivity() {
+@@ -103,8 +104,23 @@ class MainActivity : ComponentActivity() {
+                         is Screen.Settings -> SettingsScreen(
+                              onBack = { currentScreen = Screen.Dashboard },
+                              onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
++                             onNavigateToMigration = { currentScreen = Screen.Migration },
+                              viewModel = viewModel
                          )
-                         is Screen.ManageWallets -> com.oatrice.jarwise.ui.managewallets.ManageWalletsScreen(
-                             onNavigateBack = { currentScreen = Screen.Settings },
--                            // viewModel = manageWalletsViewModel // Explicitly pass or let it use default if we change Screen signature
--                            // Current Screen composable likely uses default viewModel() which won't work with Factory unless provided via LocalViewModelStoreOwner or passed directly.
--                            // Assuming ManageWalletsScreen instantiates VM internally with koin/hilt or we need to pass it. 
--                            // Looking at ManageWalletsScreen.kt (Step 441 in history), it uses `viewModel: ManageWalletsViewModel = viewModel()`.
--                            // Without Hilt, `viewModel()` won't pick up the Factory associated with MainActivity unless we pass the *instance* or change how it's retrieved.
--                            // Correct approach for simple DI: Pass the viewModel instance created in MainActivity.
--                            viewModel = manageWalletsViewModel 
-+                            viewModel = manageWalletsViewModel
-+                        )
-+                        is Screen.Login -> com.oatrice.jarwise.ui.login.LoginScreen(
-+                            onLoginSuccess = { currentScreen = Screen.Dashboard }
-                         )
-                     }
-                 }
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/AuthService.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthService.kt
++                        is Screen.Migration -> {
++                           val migrationViewModel: com.oatrice.jarwise.ui.migration.MigrationViewModel = org.koin.androidx.compose.koinViewModel()
++                           com.oatrice.jarwise.ui.migration.MigrationScreen(
++                               onBack = { 
++                                   migrationViewModel.resetState()
++                                   currentScreen = Screen.Settings 
++                               },
++                               onGoToDashboard = {
++                                    migrationViewModel.resetState()
++                                    currentScreen = Screen.Dashboard
++                               },
++                               viewModel = migrationViewModel
++                           )
++                        }
+                         is Screen.TransactionHistory -> TransactionHistoryScreen(
+                             transactions = transactions,
+                             selectedCurrency = selectedCurrency,
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/api/MigrationApi.kt b/app/src/main/java/com/oatrice/jarwise/data/api/MigrationApi.kt
 new file mode 100644
-index 0000000..3edc576
+index 0000000..198961d
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthService.kt
-@@ -0,0 +1,9 @@
-+package com.oatrice.jarwise.data.auth
++++ b/app/src/main/java/com/oatrice/jarwise/data/api/MigrationApi.kt
+@@ -0,0 +1,17 @@
++package com.oatrice.jarwise.data.api
 +
-+import kotlinx.coroutines.flow.StateFlow
++import com.oatrice.jarwise.data.api.model.MigrationResponse
++import okhttp3.MultipartBody
++import retrofit2.Response
++import retrofit2.http.Multipart
++import retrofit2.http.POST
++import retrofit2.http.Part
 +
-+interface AuthService {
-+    val currentUser: StateFlow<AuthUser?>
-+    suspend fun signIn(): Result<AuthUser>
-+    suspend fun signOut()
++interface MigrationApi {
++    @Multipart
++    @POST("api/v1/migrations/money-manager")
++    suspend fun uploadMigrationFiles(
++        @Part mmbakFile: MultipartBody.Part,
++        @Part xlsFile: MultipartBody.Part
++    ): Response<MigrationResponse>
 +}
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/AuthUser.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthUser.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/api/model/MigrationModels.kt b/app/src/main/java/com/oatrice/jarwise/data/api/model/MigrationModels.kt
 new file mode 100644
-index 0000000..f8a4a17
+index 0000000..36c49bc
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/auth/AuthUser.kt
-@@ -0,0 +1,8 @@
-+package com.oatrice.jarwise.data.auth
++++ b/app/src/main/java/com/oatrice/jarwise/data/api/model/MigrationModels.kt
+@@ -0,0 +1,22 @@
++package com.oatrice.jarwise.data.api.model
 +
-+data class AuthUser(
-+    val id: String,
-+    val name: String,
-+    val email: String,
-+    val photoUrl: String? = null
++import com.google.gson.annotations.SerializedName
++
++data class MigrationResponse(
++    @SerializedName("job_id")
++    val jobId: String,
++    @SerializedName("status")
++    val status: String,
++    @SerializedName("message")
++    val message: String
 +)
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/GoogleAuthService.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/GoogleAuthService.kt
++
++data class MigrationStatusResponse(
++    @SerializedName("job_id")
++    val jobId: String,
++    @SerializedName("status")
++    val status: String,
++    @SerializedName("message")
++    val message: String,
++    // Add other fields as necessary based on backend response
++)
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt
 new file mode 100644
-index 0000000..8e8afb5
+index 0000000..50c9957
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/auth/GoogleAuthService.kt
-@@ -0,0 +1,90 @@
-+package com.oatrice.jarwise.data.auth
++++ b/app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt
+@@ -0,0 +1,64 @@
++package com.oatrice.jarwise.data.repository
 +
 +import android.content.Context
-+import com.google.android.gms.auth.api.signin.GoogleSignIn
-+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-+import kotlinx.coroutines.flow.MutableStateFlow
-+import kotlinx.coroutines.flow.StateFlow
-+import kotlinx.coroutines.flow.asStateFlow
-+import kotlinx.coroutines.tasks.await
++import android.net.Uri
++import com.oatrice.jarwise.data.api.MigrationApi
++import com.oatrice.jarwise.data.api.model.MigrationResponse
++import kotlinx.coroutines.Dispatchers
++import kotlinx.coroutines.withContext
++import okhttp3.MediaType.Companion.toMediaTypeOrNull
++import okhttp3.MultipartBody
++import okhttp3.RequestBody.Companion.asRequestBody
++import java.io.File
++import java.io.FileOutputStream
 +
-+class GoogleAuthService(private val context: Context) : AuthService {
-+    private val _currentUser = MutableStateFlow<AuthUser?>(null)
-+    override val currentUser: StateFlow<AuthUser?> = _currentUser.asStateFlow()
++class MigrationRepository(
++    private val api: MigrationApi,
++    private val context: Context
++) {
 +
-+    init {
-+        // Check for existing signed-in user
-+        val account = GoogleSignIn.getLastSignedInAccount(context)
-+        if (account != null) {
-+            _currentUser.value = AuthUser(
-+                id = account.id ?: "",
-+                name = account.displayName ?: "",
-+                email = account.email ?: "",
-+                photoUrl = account.photoUrl?.toString()
-+            )
-+        }
-+    }
++    suspend fun uploadMigrationFiles(mmbakUri: Uri, xlsUri: Uri): Result<MigrationResponse> {
++        return withContext(Dispatchers.IO) {
++            try {
++                val mmbakFile = getFileFromUri(context, mmbakUri, "backup.mmbak")
++                val xlsFile = getFileFromUri(context, xlsUri, "backup.xls")
 +
-+    override suspend fun signIn(): Result<AuthUser> {
-+        // In real implementation, this needs Activity context or result launcher.
-+        // For Service, we usually just return state or handle via repository.
-+        // This is a simplified interface for now.
-+        // Real Google Sign-In requires Activity interaction (startActivityForResult).
-+        // So this method might need to be "handleSignInResult" or similar, 
-+        // OR we inject a launcher helper. 
-+        // For now, let's keep it consistent with interface but note limitations.
-+        return Result.failure(Exception("Google Sign-In requires Activity interaction"))
-+    }
-+    
-+    fun getSignInIntent(): android.content.Intent {
-+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-+            .requestEmail()
-+            .requestProfile()
-+            .requestScopes(com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_FILE), com.google.android.gms.common.api.Scope(com.google.api.services.drive.DriveScopes.DRIVE_APPDATA))
-+            .build()
-+        val client = GoogleSignIn.getClient(context, gso)
-+        return client.signInIntent
-+    }
-+
-+    suspend fun handleSignInResult(intent: android.content.Intent?): Result<AuthUser> {
-+        return try {
-+            val task = GoogleSignIn.getSignedInAccountFromIntent(intent)
-+            val account = task.await()
-+            val user = AuthUser(
-+                id = account.id ?: "",
-+                name = account.displayName ?: "",
-+                email = account.email ?: "",
-+                photoUrl = account.photoUrl?.toString()
-+            )
-+            _currentUser.value = user
-+            android.util.Log.d("GoogleAuthService", "Sign-in successful: ${user.email} (${user.name})")
-+            Result.success(user)
-+        } catch (e: Exception) {
-+            if (e is com.google.android.gms.common.api.ApiException) {
-+                android.util.Log.e("GoogleAuthService", "Sign-in failed code: ${e.statusCode}, message: ${e.message}")
-+                val message = when (e.statusCode) {
-+                    com.google.android.gms.common.api.CommonStatusCodes.NETWORK_ERROR -> "Network error. Please check your connection."
-+                    com.google.android.gms.common.api.CommonStatusCodes.INVALID_ACCOUNT -> "Invalid account."
-+                    else -> "Sign-in failed: ${e.message}"
++                if (mmbakFile == null || xlsFile == null) {
++                    return@withContext Result.failure(Exception("Failed to read files"))
 +                }
-+                Result.failure<AuthUser>(Exception(message))
-+            } else {
-+                android.util.Log.e("GoogleAuthService", "Sign-in failed", e)
-+                Result.failure<AuthUser>(e)
++
++                val mmbakRequestBody = mmbakFile.asRequestBody("application/octet-stream".toMediaTypeOrNull())
++                val xlsRequestBody = xlsFile.asRequestBody("application/vnd.ms-excel".toMediaTypeOrNull())
++
++                val mmbakPart = MultipartBody.Part.createFormData("mmbak_file", mmbakFile.name, mmbakRequestBody)
++                val xlsPart = MultipartBody.Part.createFormData("xls_file", xlsFile.name, xlsRequestBody)
++
++                val response = api.uploadMigrationFiles(mmbakPart, xlsPart)
++
++                if (response.isSuccessful && response.body() != null) {
++                    Result.success(response.body()!!)
++                } else {
++                    Result.failure(Exception("Upload failed: ${response.code()} ${response.message()}"))
++                }
++            } catch (e: Exception) {
++                Result.failure(e)
 +            }
 +        }
 +    }
 +
-+    override suspend fun signOut() {
-+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).build()
-+        val client = GoogleSignIn.getClient(context, gso)
-+        try {
-+            client.signOut().await()
-+            _currentUser.value = null
++    private fun getFileFromUri(context: Context, uri: Uri, fileName: String): File? {
++        return try {
++            val contentResolver = context.contentResolver
++            contentResolver.openInputStream(uri)?.use { inputStream ->
++                val tempFile = File(context.cacheDir, fileName)
++                FileOutputStream(tempFile).use { outputStream ->
++                    inputStream.copyTo(outputStream)
++                }
++                tempFile
++            }
 +        } catch (e: Exception) {
 +            e.printStackTrace()
-+            // Even if Google sign out fails, clear local state
-+            _currentUser.value = null
++            null
 +        }
 +    }
 +}
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/auth/MockAuthService.kt b/app/src/main/java/com/oatrice/jarwise/data/auth/MockAuthService.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt b/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt
 new file mode 100644
-index 0000000..0884b92
+index 0000000..82706e2
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/auth/MockAuthService.kt
-@@ -0,0 +1,25 @@
-+package com.oatrice.jarwise.data.auth
++++ b/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt
+@@ -0,0 +1,36 @@
++package com.oatrice.jarwise.di
 +
-+import kotlinx.coroutines.flow.MutableStateFlow
-+import kotlinx.coroutines.flow.StateFlow
-+import kotlinx.coroutines.flow.asStateFlow
++import com.oatrice.jarwise.data.api.MigrationApi
++import okhttp3.OkHttpClient
++import okhttp3.logging.HttpLoggingInterceptor
++import org.koin.dsl.module
++import retrofit2.Retrofit
++import retrofit2.converter.gson.GsonConverterFactory
++import java.util.concurrent.TimeUnit
 +
-+class MockAuthService : AuthService {
-+    private val _currentUser = MutableStateFlow<AuthUser?>(null)
-+    override val currentUser: StateFlow<AuthUser?> = _currentUser.asStateFlow()
-+
-+    override suspend fun signIn(): Result<AuthUser> {
-+        val user = AuthUser(
-+            id = "mock_id_123",
-+            name = "Mock User",
-+            email = "mock@example.com",
-+            photoUrl = "https://example.com/photo.jpg"
-+        )
-+        _currentUser.value = user
-+        return Result.success(user)
++val networkModule = module {
++    single {
++        val logger = get<com.oatrice.jarwise.utils.AppLogger>()
++        val logging = HttpLoggingInterceptor { message ->
++            logger.d("API", message)
++        }.apply {
++            level = HttpLoggingInterceptor.Level.BODY
++        }
++        OkHttpClient.Builder()
++            .addInterceptor(logging)
++            .connectTimeout(30, TimeUnit.SECONDS)
++            .readTimeout(30, TimeUnit.SECONDS)
++            .writeTimeout(30, TimeUnit.SECONDS)
++            .build()
 +    }
 +
-+    override suspend fun signOut() {
-+        _currentUser.value = null
++    single {
++        Retrofit.Builder()
++            .baseUrl("http://10.0.2.2:8080/") // Emulator localhost
++            .client(get())
++            .addConverterFactory(GsonConverterFactory.create())
++            .build()
 +    }
++
++    single { get<Retrofit>().create(MigrationApi::class.java) }
 +}
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/backup/BackupManager.kt b/app/src/main/java/com/oatrice/jarwise/data/backup/BackupManager.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt b/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
+index 8fed8ab..0daa853 100644
+--- a/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
++++ b/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
+@@ -10,4 +10,5 @@ val repositoryModule = module {
+     single { JarConfigRepository(get()) }
+     single { WalletRepository(get()) }
+     single { SlipRepository(androidContext()) }
++    single { MigrationRepository(get(), androidContext()) }
+ }
+diff --git a/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt b/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
+index 26230db..37a89ce 100644
+--- a/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
++++ b/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
+@@ -6,6 +6,7 @@ import com.oatrice.jarwise.ui.managejars.ManageJarsViewModel
+ import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
+ import com.oatrice.jarwise.ui.login.LoginViewModel
+ import com.oatrice.jarwise.ui.settings.SettingsViewModel
++import com.oatrice.jarwise.ui.migration.MigrationViewModel
+ import org.koin.androidx.viewmodel.dsl.viewModel
+ import org.koin.dsl.module
+ 
+@@ -16,4 +17,5 @@ val viewModelModule = module {
+     viewModel { ManageWalletsViewModel(get()) }
+     viewModel { LoginViewModel(get(), get()) }
+     viewModel { SettingsViewModel(get(), get()) }
++    viewModel { MigrationViewModel(get(), get()) }
+ }
+diff --git a/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
+index 3ecfa96..d88770a 100644
+--- a/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
++++ b/app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt
+@@ -32,6 +32,7 @@ import org.koin.androidx.compose.koinViewModel
+ fun SettingsScreen(
+     onBack: () -> Unit,
+     onNavigateToManageWallets: () -> Unit = {},
++    onNavigateToMigration: () -> Unit = {},
+     viewModel: MainViewModel,
+     settingsViewModel: SettingsViewModel = koinViewModel()
+ ) {
+@@ -353,9 +354,23 @@ fun SettingsScreen(
+                 ) {
+                     Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null)
+                     Text("Manage Wallets (Sub-accounts)")
++                    }
++            }
++            
++            OutlinedButton(
++                onClick = onNavigateToMigration,
++                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
++            ) {
++                 Row(
++                    horizontalArrangement = Arrangement.spacedBy(8.dp),
++                    verticalAlignment = Alignment.CenterVertically
++                ) {
++                    Icon(Icons.Rounded.CloudDone, contentDescription = null) // Using CloudDone as a placeholder if Import icon not available
++                    Text("Migrate from Money Manager")
+                 }
+             }
+ 
++
+             Text(
+                 text = "Currency",
+                 style = MaterialTheme.typography.titleMedium,
+diff --git a/app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationScreen.kt
 new file mode 100644
-index 0000000..ba4d342
+index 0000000..1eefe59
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/backup/BackupManager.kt
-@@ -0,0 +1,180 @@
-+package com.oatrice.jarwise.data.backup
++++ b/app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationScreen.kt
+@@ -0,0 +1,230 @@
++package com.oatrice.jarwise.ui.migration
 +
-+import kotlinx.coroutines.CoroutineScope
-+import kotlinx.coroutines.Job
-+import kotlinx.coroutines.delay
-+import kotlinx.coroutines.launch
-+import java.io.File
++import android.net.Uri
++import androidx.activity.compose.rememberLauncherForActivityResult
++import androidx.activity.result.contract.ActivityResultContracts
++import androidx.compose.foundation.background
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.rememberScrollState
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.foundation.verticalScroll
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.filled.ArrowBack
++import androidx.compose.material.icons.filled.CheckCircle
++import androidx.compose.material.icons.filled.Error
++import androidx.compose.material.icons.filled.UploadFile
++import androidx.compose.material3.*
++import androidx.compose.runtime.Composable
++import androidx.compose.runtime.collectAsState
++import androidx.compose.runtime.getValue
++import androidx.compose.ui.Alignment
++import androidx.compose.ui.Modifier
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.platform.LocalContext
++import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextAlign
++import androidx.compose.ui.unit.dp
++import androidx.documentfile.provider.DocumentFile
 +
-+import kotlinx.coroutines.flow.MutableStateFlow
-+import kotlinx.coroutines.flow.StateFlow
-+import kotlinx.coroutines.flow.asStateFlow
-+
-+sealed class SyncStatus {
-+    data object Idle : SyncStatus()
-+    data object Syncing : SyncStatus()
-+    data class Success(val lastSyncedTime: Long) : SyncStatus()
-+    data class Error(val message: String) : SyncStatus()
-+}
-+
-+class BackupManager(
-+    private val cloudStorageService: CloudStorageService,
-+    private val externalScope: CoroutineScope,
-+    private val dbFileProvider: () -> File,
-+    private val logger: com.oatrice.jarwise.utils.AppLogger
++@OptIn(ExperimentalMaterial3Api::class)
++@Composable
++fun MigrationScreen(
++    onBack: () -> Unit,
++    onGoToDashboard: () -> Unit = {},
++    viewModel: MigrationViewModel
 +) {
-+    private var backupJob: Job? = null
-+    private val _syncStatus = MutableStateFlow<SyncStatus>(SyncStatus.Idle)
-+    val syncStatus: StateFlow<SyncStatus> = _syncStatus.asStateFlow()
-+    
-+    companion object {
-+        private const val DEBOUNCE_DELAY_MS = 10000L
-+    }
++    val uiState by viewModel.uiState.collectAsState()
++    val mmbakFileName by viewModel.mmbakFileName.collectAsState()
++    val xlsFileName by viewModel.xlsFileName.collectAsState()
++    val context = LocalContext.current
 +
-+    private var isAutoBackupPaused = false
-+    private var isBackupPending = false
-+
-+    fun setAutoBackupPaused(paused: Boolean) {
-+        if (isAutoBackupPaused == paused) return
-+        isAutoBackupPaused = paused
-+        if (!paused && isBackupPending) {
-+            isBackupPending = false
-+            triggerAutoBackup()
++    val mmbakLauncher = rememberLauncherForActivityResult(
++        contract = ActivityResultContracts.OpenDocument()
++    ) { uri: Uri? ->
++        uri?.let {
++            val name = DocumentFile.fromSingleUri(context, it)?.name
++            viewModel.setMmbakFile(it, name)
 +        }
 +    }
 +
-+    fun triggerAutoBackup() {
-+        if (isAutoBackupPaused) {
-+            isBackupPending = true
-+            return
-+        }
-+        
-+        // Cancel previous job if it exists (debounce reset)
-+        backupJob?.cancel()
-+        
-+        backupJob = externalScope.launch {
-+            delay(DEBOUNCE_DELAY_MS)
-+            performBackup()
++    val xlsLauncher = rememberLauncherForActivityResult(
++        contract = ActivityResultContracts.OpenDocument()
++    ) { uri: Uri? ->
++        uri?.let {
++            val name = DocumentFile.fromSingleUri(context, it)?.name
++            viewModel.setXlsFile(it, name)
 +        }
 +    }
 +
-+    fun triggerManualBackup() {
-+        // Cancel any pending auto backup to avoid double upload if user clicks just after edit
-+        backupJob?.cancel()
-+        isBackupPending = false
-+        
-+        externalScope.launch {
-+            performBackup()
++    Scaffold(
++        topBar = {
++            TopAppBar(
++                title = { Text("Migrate from Money Manager") },
++                navigationIcon = {
++                    IconButton(onClick = onBack) {
++                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
++                    }
++                }
++            )
 +        }
-+    }
++    ) { padding ->
++        Column(
++            modifier = Modifier
++                .fillMaxSize()
++                .padding(padding)
++                .padding(16.dp)
++                .verticalScroll(rememberScrollState()),
++            horizontalAlignment = Alignment.CenterHorizontally,
++            verticalArrangement = Arrangement.spacedBy(16.dp)
++        ) {
++            
++            Card(
++                colors = CardDefaults.cardColors(
++                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
++                ),
++                shape = RoundedCornerShape(12.dp)
++            ) {
++                 Column(modifier = Modifier.padding(16.dp)) {
++                     Text(
++                        text = "Instructions",
++                        style = MaterialTheme.typography.titleMedium,
++                        fontWeight = FontWeight.Bold,
++                        color = MaterialTheme.colorScheme.primary
++                    )
++                    Spacer(modifier = Modifier.height(8.dp))
++                    Text(
++                        text = "1. Export your data from Money Manager app as .mmbak (Backup) and .xls (Excel).\n" +
++                                "2. Select both files below.\n" +
++                                "3. Click 'Start Migration' to import your history.",
++                        style = MaterialTheme.typography.bodyMedium
++                    )
++                 }
++            }
 +
-+    private suspend fun performBackup() {
-+        val file = dbFileProvider()
-+        logger.d("BackupManager", "Start backup: ${file.name}")
-+        _s
++            Spacer(modifier = Modifier.height(8.dp))
++
++            // Mmbak File Picker
++            FilePickerItem(
++                label = "Select .mmbak File (Backup)",
++                fileName = mmbakFileName,
++                onPick = { mmbakLauncher.launch(arrayOf("application/octet-stream", "*/*")) }
++            )
++
++            // XLS File Picker
++            FilePickerItem(
++                label = "Select .xls File (Excel)",
++                fileName = xlsFileName,
++                onPick = { xlsLauncher.launch(arrayOf("application/vnd.ms-excel", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "*/*")) }
++            )
++
++            Spacer(modifier = Modifier.height(24.dp))
++
++            // Action Button & Status
++            when (val state = uiState) {
++                is MigrationUiState.Idle, is MigrationUiState.Error -> {
++                    Button(
++                        onClick = { viewModel.startMigration() },
++                        enabled = mmbakFileName != null && xlsFileName != null,
++                        modifier = Modifier.fillMaxWidth().height(50.dp)
++                    ) {
++                        Icon(Icons.Default.UploadFile, contentDescription = null)
++                        Spacer(modifier = Modifier.width(8.dp))
++                        Text("Start Migration")
++                    }
++                    
++                    if (state is MigrationUiState.Error) {
++                        Spacer(modifier = Modifier.height(16.dp))
++                        Card(
++                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer)
++                        ) {
++                             Row(
++                                modifier = Modifier.padding(16.dp).fillMaxWidth(),
++                                verticalAlignment = Alignment.CenterVertically
++                            ) {
++                                Icon(Icons.Default.Error, contentDescription = "Error", tint = MaterialTheme.colorScheme.onErrorContainer)
++                                Spacer(modifier = Modifier.width(8.dp))
++                                Text(state.message, color = 
 ... (Diff truncated for size) ...
 
 PR TEMPLATE:

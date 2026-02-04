@@ -32,6 +32,7 @@ import org.koin.androidx.compose.koinViewModel
 fun SettingsScreen(
     onBack: () -> Unit,
     onNavigateToManageWallets: () -> Unit = {},
+    onNavigateToMigration: () -> Unit = {},
     viewModel: MainViewModel,
     settingsViewModel: SettingsViewModel = koinViewModel()
 ) {
@@ -353,8 +354,22 @@ fun SettingsScreen(
                 ) {
                     Icon(Icons.Rounded.AccountBalanceWallet, contentDescription = null)
                     Text("Manage Wallets (Sub-accounts)")
+                    }
+            }
+            
+            OutlinedButton(
+                onClick = onNavigateToMigration,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+            ) {
+                 Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(Icons.Rounded.CloudDone, contentDescription = null) // Using CloudDone as a placeholder if Import icon not available
+                    Text("Migrate from Money Manager")
                 }
             }
+
 
             Text(
                 text = "Currency",

@@ -15,7 +15,7 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.7.0"
+        versionName = "1.8.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -147,6 +147,12 @@ dependencies {
     implementation(libs.google.auth.library.oauth2.http)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.google.http.client.android)
+
+    // Networking
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 }
 
 ksp {

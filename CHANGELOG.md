@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0] - 2026-02-04
+### Added
+- **Money Manager Import**: Easily transfer your existing financial data from the Money Manager app directly into JarWise. The new migration screen guides you through the process and navigates you to the dashboard upon completion.
+
+### Fixed
+- **Security**: Strengthened network security configurations to better protect your data in transit.
+- **Data Import**: Made the new data migration process more robust with improved error handling.
+
 ## [1.7.0] - 2026-02-03
 ### Added
 - **Google Sign-In & Cloud Backup**: You can now sign in with your Google account to automatically back up your financial data to your personal Google Drive.

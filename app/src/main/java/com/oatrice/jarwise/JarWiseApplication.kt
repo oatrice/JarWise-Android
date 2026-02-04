@@ -3,6 +3,7 @@ package com.oatrice.jarwise
 import android.app.Application
 import com.oatrice.jarwise.di.appModule
 import com.oatrice.jarwise.di.dataModule
+import com.oatrice.jarwise.di.networkModule
 import com.oatrice.jarwise.di.repositoryModule
 import com.oatrice.jarwise.di.viewModelModule
 import com.oatrice.jarwise.di.authModule
@@ -25,7 +26,8 @@ class JarWiseApplication : Application() {
                     dataModule,
                     repositoryModule,
                     viewModelModule,
-                    authModule
+                    authModule,
+                    networkModule
                 )
             }
             

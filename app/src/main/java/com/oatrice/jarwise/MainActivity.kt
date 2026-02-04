@@ -35,6 +35,7 @@ sealed class Screen {
     data object Settings : Screen()
     data object ManageJars : Screen()
     data object ManageWallets : Screen()
+    data object Migration : Screen()
     data object Login : Screen()
 }
 
@@ -103,8 +104,23 @@ class MainActivity : ComponentActivity() {
                         is Screen.Settings -> SettingsScreen(
                              onBack = { currentScreen = Screen.Dashboard },
                              onNavigateToManageWallets = { currentScreen = Screen.ManageWallets },
+                             onNavigateToMigration = { currentScreen = Screen.Migration },
                              viewModel = viewModel
                         )
+                        is Screen.Migration -> {
+                           val migrationViewModel: com.oatrice.jarwise.ui.migration.MigrationViewModel = org.koin.androidx.compose.koinViewModel()
+                           com.oatrice.jarwise.ui.migration.MigrationScreen(
+                               onBack = { 
+                                   migrationViewModel.resetState()
+                                   currentScreen = Screen.Settings 
+                               },
+                               onGoToDashboard = {
+                                    migrationViewModel.resetState()
+                                    currentScreen = Screen.Dashboard
+                               },
+                               viewModel = migrationViewModel
+                           )
+                        }
                         is Screen.TransactionHistory -> TransactionHistoryScreen(
                             transactions = transactions,
                             selectedCurrency = selectedCurrency,
