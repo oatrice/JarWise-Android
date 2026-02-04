@@ -10,7 +10,10 @@ import java.util.concurrent.TimeUnit
 
 val networkModule = module {
     single {
-        val logging = HttpLoggingInterceptor().apply {
+        val logger = get<com.oatrice.jarwise.utils.AppLogger>()
+        val logging = HttpLoggingInterceptor { message ->
+            logger.d("API", message)
+        }.apply {
             level = HttpLoggingInterceptor.Level.BODY
         }
         OkHttpClient.Builder()

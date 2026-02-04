@@ -17,5 +17,5 @@ val viewModelModule = module {
     viewModel { ManageWalletsViewModel(get()) }
     viewModel { LoginViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
-    viewModel { MigrationViewModel(get()) }
+    viewModel { MigrationViewModel(get(), get()) }
 }

@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.oatrice.jarwise.utils.AppLogger
+
 class MigrationViewModel(
-    private val repository: MigrationRepository
+    private val repository: MigrationRepository,
+    private val logger: AppLogger
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<MigrationUiState>(MigrationUiState.Idle)
@@ -53,15 +56,19 @@ class MigrationViewModel(
 
         if (mmbak == null || xls == null) {
             _uiState.value = MigrationUiState.Error("Please select both files.")
+            logger.e("Migration", "Attempted start without files.")
             return
         }
 
         viewModelScope.launch {
             _uiState.value = MigrationUiState.Uploading
+            logger.d("Migration", "Starting upload. Mmbak: ${_mmbakFileName.value}, Xls: ${_xlsFileName.value}")
             val result = repository.uploadMigrationFiles(mmbak, xls)
             result.onSuccess { response ->
+                logger.d("Migration", "Upload success: ${response.message}")
                 _uiState.value = MigrationUiState.Success(response.message)
             }.onFailure { error ->
+                logger.e("Migration", "Upload failed", error)
                 _uiState.value = MigrationUiState.Error(error.message ?: "Unknown error occurred")
             }
         }

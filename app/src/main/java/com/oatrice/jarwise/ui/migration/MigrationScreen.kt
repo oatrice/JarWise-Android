@@ -128,7 +128,7 @@ fun MigrationScreen(
                     ) {
                         Icon(Icons.Default.UploadFile, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Start Business")
+                        Text("Start Migration")
                     }
                     
                     if (state is MigrationUiState.Error) {
