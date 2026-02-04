@@ -47,7 +47,9 @@ fun TransactionCard(
         isoFormat.timeZone = TimeZone.getTimeZone("UTC")
         val date = isoFormat.parse(transaction.date)
         val displayFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
-        displayFormat.format(date!!)
+        isoFormat.parse(transaction.date)?.let { date ->
+            displayFormat.format(date)
+        } ?: transaction.date
     } catch (e: Exception) {
         transaction.date // Fallback
     }

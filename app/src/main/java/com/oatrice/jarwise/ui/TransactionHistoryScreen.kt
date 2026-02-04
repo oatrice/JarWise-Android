@@ -67,7 +67,17 @@ fun TransactionHistoryScreen(
     onBack: () -> Unit,
     onNavigate: (NavPage) -> Unit = {}
 ) {
-    val totalSpent = transactions.sumOf { it.amount }
+    // Fix: Only sum expenses and exclude transfers for "Total Spent"
+    val totalSpent = remember(transactions) {
+        transactions
+            .filter { it.type == "expense" && it.linkedTransactionId == null }
+            .sumOf { it.amount }
+    }
+    
+    // Create lookup map for O(1) access
+    val transactionsById = remember(transactions) {
+        transactions.associateBy { it.id.toString() }
+    }
     
     // Scroll behavior for TopAppBar hide/show
     val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior()
@@ -158,9 +168,9 @@ fun TransactionHistoryScreen(
                         
                         // Transactions for this day
                         items(group.transactions) { transaction ->
-                            // Lookup linked transaction for transfer display
+                            // Optimized O(1) lookup
                             val linkedTransaction = transaction.linkedTransactionId?.let { linkedId ->
-                                transactions.find { it.id.toString() == linkedId }
+                                transactionsById[linkedId]
                             }
                             TransactionCard(
                                 transaction = transaction,

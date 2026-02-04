@@ -32,8 +32,15 @@ class CreateTransferUseCaseTest {
         }
 
         override suspend fun createTransfer(expenseTransaction: Transaction, incomeTransaction: Transaction) {
-            transactions.add(expenseTransaction)
-            transactions.add(incomeTransaction)
+            // Simulate logic: Assign IDs and Link
+            val expenseId = (transactions.maxOfOrNull { it.id } ?: 0L) + 1
+            val incomeId = expenseId + 1
+
+            val finalExpense = expenseTransaction.copy(id = expenseId, linkedTransactionId = incomeId.toString())
+            val finalIncome = incomeTransaction.copy(id = incomeId, linkedTransactionId = expenseId.toString())
+
+            transactions.add(finalExpense)
+            transactions.add(finalIncome)
         }
 
         override suspend fun unlinkTransaction(transactionId: Long) {
@@ -69,5 +76,9 @@ class CreateTransferUseCaseTest {
         
         assertEquals("Income check", amount, income.amount, 0.0)
         assertEquals("Income wallet", toWalletId, income.walletId)
+
+        // Verify Linking
+        assertEquals("Expense should be linked to income", income.id.toString(), expense.linkedTransactionId)
+        assertEquals("Income should be linked to expense", expense.id.toString(), income.linkedTransactionId)
     }
 }

@@ -1,123 +1,132 @@
 # Luma Code Review Report
 
-**Date:** 2026-02-04 11:30:51
-**Files Reviewed:** ['app/src/main/java/com/oatrice/jarwise/MainActivity.kt', 'app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt', 'app/build.gradle.kts', 'app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt', 'app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationScreen.kt', 'app/src/main/AndroidManifest.xml', 'app/src/main/java/com/oatrice/jarwise/utils/AppLogger.kt', 'app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt', 'app/src/main/java/com/oatrice/jarwise/data/api/MigrationApi.kt', 'app/src/main/java/com/oatrice/jarwise/data/api/model/MigrationModels.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt', 'app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt', 'app/src/main/java/com/oatrice/jarwise/ui/SettingsScreen.kt', 'gradle/libs.versions.toml', 'app/src/main/java/com/oatrice/jarwise/ui/migration/MigrationViewModel.kt', '.luma_state.json']
+**Date:** 2026-02-04 19:13:46
+**Files Reviewed:** ['app/src/main/java/com/oatrice/jarwise/ui/DashboardScreen.kt', 'app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt', 'app/src/test/java/com/oatrice/jarwise/domain/use_case/CreateTransferUseCaseTest.kt', 'app/src/main/java/com/oatrice/jarwise/di/DomainModule.kt', 'app/src/main/java/com/oatrice/jarwise/ui/components/TransactionCard.kt', 'app/src/main/java/com/oatrice/jarwise/data/Transaction.kt', '.luma_state.json', 'app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt', 'app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt', 'app/src/main/java/com/oatrice/jarwise/domain/use_case/UnlinkTransactionsUseCase.kt', 'app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt', 'app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/TransactionRepository.kt', 'app/src/main/java/com/oatrice/jarwise/domain/use_case/CreateTransferUseCase.kt', 'draft_pr_prompt.md', 'draft_pr_body.md', 'app/src/main/java/com/oatrice/jarwise/ui/AddTransactionScreen.kt', 'app/schemas/com.oatrice.jarwise.data.AppDatabase/7.json', 'app/src/main/java/com/oatrice/jarwise/utils/TransactionGroupingUtils.kt', 'app/src/main/java/com/oatrice/jarwise/di/DataModule.kt', 'app/src/main/java/com/oatrice/jarwise/MainActivity.kt', 'app/src/main/java/com/oatrice/jarwise/ui/MainViewModel.kt', 'app/src/main/java/com/oatrice/jarwise/utils/Constants.kt', 'app/src/main/java/com/oatrice/jarwise/data/TransactionDao.kt']
 
 ## 📝 Reviewer Feedback
 
-There are several issues in the provided code changes regarding security, resource management, and performance.
+There are several issues in the provided code, including a significant performance problem, a logic error in a calculation, a potential null pointer exception, and an incomplete unit test.
 
-### 1. Security Vulnerability: Cleartext Traffic Enabled
-**File:** `app/src/main/AndroidManifest.xml` and `app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt`
+### 1. Critical Performance Issue in `TransactionHistoryScreen`
 
-**Problem:** The application manifest is configured with `android:usesCleartextTraffic="true"`, and the `NetworkModule` uses a hardcoded HTTP URL (`http://10.0.2.2:8080/`). This allows the application to send and receive unencrypted network traffic, which is a major security risk for production builds as it exposes data to interception. While this setup is common for local development against an emulator, it should not be present in a release version.
+**File:** `app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt`
 
-**Fix:** For better security, restrict cleartext traffic to only debug builds and specific domains.
+**Problem:** Inside the `LazyColumn`, you are looking up the `linkedTransaction` for each item by iterating through the entire list of transactions (`transactions.find { ... }`). This creates an O(N^2) complexity, which will cause severe performance issues and UI lag as the number of transactions grows.
 
-1.  **Create a Network Security Configuration file** at `app/src/main/res/xml/network_security_config.xml`:
-    ```xml
-    <?xml version="1.0" encoding="utf-8"?>
-    <network-security-config>
-        <base-config cleartextTrafficPermitted="false">
-            <trust-anchors>
-                <certificates src="system" />
-            </trust-anchors>
-        </base-config>
-        <domain-config cleartextTrafficPermitted="true">
-            <domain includeSubdomains="true">10.0.2.2</domain>
-        </domain-config>
-    </network-security-config>
-    ```
-2.  **Update `AndroidManifest.xml`**: Remove `android:usesCleartextTraffic="true"` and add a reference to the new configuration file within the `<application>` tag.
-    ```xml
-    <application
-        ...
-        android:networkSecurityConfig="@xml/network_security_config"
-        tools:targetApi="24">
-        ...
-    </application>
-    ```
-3.  **Use Build Variants for Base URL**: In `NetworkModule.kt`, avoid hardcoding the URL. Use `BuildConfig` to differentiate between debug and release URLs.
-
-### 2. Performance Issue: Inefficient Executor Creation in Logger
-**File:** `app/src/main/java/com/oatrice/jarwise/utils/AppLogger.kt`
-
-**Problem:** The `writeToFile` method in `AndroidAppLogger` creates a new `ExecutorService` with `Executors.newSingleThreadExecutor()` on every single log call. This is highly inefficient, creating unnecessary overhead and potentially leading to resource exhaustion if logging is frequent.
-
-**Fix:** Instantiate the `ExecutorService` once as a private property of the class and reuse it for all subsequent logging operations.
+**Fix:** You should process the list once to create a lookup map before rendering the `LazyColumn`. This will change the lookup time from O(N) to O(1) for each item.
 
 ```kotlin
-// In app/src/main/java/com/oatrice/jarwise/utils/AppLogger.kt
+// At the top of the TransactionHistoryScreen composable
+val transactionsById = remember(transactions) {
+    transactions.associateBy { it.id.toString() }
+}
 
-class AndroidAppLogger(val context: Context? = null) : AppLogger {
-    private val logFileName = "jarwise_app.log"
-    // Create a single, reusable executor instance
-    private val logExecutor = java.util.concurrent.Executors.newSingleThreadExecutor()
-
-    override fun d(tag: String, message: String) {
-        android.util.Log.d(tag, message)
-        writeToFile("DEBUG: $tag: $message")
+// ... inside the LazyColumn's items block
+items(group.transactions) { transaction ->
+    // Now this lookup is an efficient O(1) operation
+    val linkedTransaction = transaction.linkedTransactionId?.let { linkedId ->
+        transactionsById[linkedId]
     }
-
-    override fun e(tag: String, message: String, throwable: Throwable?) {
-        android.util.Log.e(tag, message, throwable)
-        writeToFile("ERROR: $tag: $message \n ${throwable?.stackTraceToString() ?: ""}")
-    }
-
-    private fun writeToFile(log: String) {
-        context?.let { ctx ->
-            try {
-                val timestamp = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(java.util.Date())
-                val logEntry = "$timestamp - $log\n"
-                
-                // Use the shared executor instance
-                logExecutor.execute {
-                    try {
-                        val file = java.io.File(ctx.filesDir, logFileName)
-                        java.io.FileOutputStream(file, true).use { stream ->
-                            stream.write(logEntry.toByteArray())
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
+    TransactionCard(
+        transaction = transaction,
+        linkedTransaction = linkedTransaction,
+        // ...
+    )
 }
 ```
 
-### 3. Potential Resource Leak in Repository
-**File:** `app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt`
+### 2. Logic Error in "Total Spent" Calculation
 
-**Problem:** In the `getFileFromUri` function, the `InputStream` and `FileOutputStream` are closed manually. If an exception occurs during the `inputStream.copyTo(outputStream)` operation, the `close()` methods will be skipped, causing a resource leak (specifically, a file descriptor leak).
+**File:** `app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt`
 
-**Fix:** Use the idiomatic Kotlin `use` extension function, which guarantees that the streams are closed correctly, even if an error occurs.
+**Problem:** The `totalSpent` variable is calculated by summing the `amount` of all transactions, regardless of their type (`expense` or `income`). Since `amount` is always a positive value, this calculation is incorrect and does not represent the total amount spent.
+
+**Fix:** The calculation should filter for only `expense` transactions and should also exclude transfers to avoid misrepresenting the total.
 
 ```kotlin
-// In app/src/main/java/com/oatrice/jarwise/data/repository/MigrationRepository.kt
+// Replace this line:
+val totalSpent = transactions.sumOf { it.amount }
 
-private fun getFileFromUri(context: Context, uri: Uri, fileName: String): File? {
-    return try {
-        val tempFile = File(context.cacheDir, fileName)
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            FileOutputStream(tempFile).use { outputStream ->
-                inputStream.copyTo(outputStream)
-            }
-        } ?: return null // Return null if the inputStream could not be opened
-        tempFile
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
+// With this:
+val totalSpent = transactions
+    .filter { it.type == "expense" && it.linkedTransactionId == null }
+    .sumOf { it.amount }
+```
+
+### 3. Potential NullPointerException in `TransactionCard`
+
+**File:** `app/src/main/java/com/oatrice/jarwise/ui/components/TransactionCard.kt`
+
+**Problem:** The result of `isoFormat.parse(transaction.date)` can be `null` if the date string is malformed. The code force-unwraps this result using `!!` (`date!!`), which will cause a crash if parsing fails.
+
+**Fix:** Handle the potentially null result safely using a null check or a safe call (`?.let`).
+
+```kotlin
+// Replace this block:
+val displayDate = try {
+    val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+    isoFormat.timeZone = TimeZone.getTimeZone("UTC")
+    val date = isoFormat.parse(transaction.date)
+    val displayFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
+    displayFormat.format(date!!) // <-- Unsafe call
+} catch (e: Exception) {
+    transaction.date // Fallback
+}
+
+// With this safer version:
+val displayDate = try {
+    val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
+        timeZone = TimeZone.getTimeZone("UTC")
     }
+    val displayFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
+    
+    isoFormat.parse(transaction.date)?.let { date ->
+        displayFormat.format(date)
+    } ?: transaction.date // Fallback if parsing returns null or throws exception
+} catch (e: Exception) {
+    transaction.date // Fallback
+}
+```
+
+### 4. Incomplete Unit Test for `CreateTransferUseCase`
+
+**File:** `app/src/test/java/com/oatrice/jarwise/domain/use_case/CreateTransferUseCaseTest.kt`
+
+**Problem:** The unit test verifies that two transactions (an expense and an income) are created, but it fails to test the most critical part of the transfer logic: that the two transactions are correctly linked to each other via `linkedTransactionId`. The `FakeTransactionRepository` is too simplistic and doesn't simulate the ID generation and linking logic of the real implementation.
+
+**Fix:** Enhance the `FakeTransactionRepository` to simulate the linking behavior and add assertions to the test to verify the links are created correctly.
+
+```kotlin
+// In FakeTransactionRepository
+override suspend fun createTransfer(expenseTransaction: Transaction, incomeTransaction: Transaction) {
+    val expenseId = (transactions.maxOfOrNull { it.id } ?: 0L) + 1
+    val incomeId = expenseId + 1
+
+    val finalExpense = expenseTransaction.copy(id = expenseId, linkedTransactionId = incomeId.toString())
+    val finalIncome = incomeTransaction.copy(id = incomeId, linkedTransactionId = expenseId.toString())
+
+    transactions.add(finalExpense)
+    transactions.add(finalIncome)
+}
+
+// In the test method
+@Test
+fun `invoke should create transfer with correct data and links`() = runTest {
+    // ... Arrange and Act ...
+
+    // Assert
+    // ... existing asserts ...
+    val expense = repository.transactions.find { it.type == "expense" }!!
+    val income = repository.transactions.find { it.type == "income" }!!
+
+    assertEquals("Expense should be linked to income", income.id.toString(), expense.linkedTransactionId)
+    assertEquals("Income should be linked to expense", expense.id.toString(), income.linkedTransactionId)
 }
 ```
 
 ## 🧪 Test Suggestions
 
-*   **Delayed Authentication on Cold Start:** Simulate a scenario where the app starts, and the `authService` takes a moment to confirm the user's logged-in status. The `currentUser` state will initially be `null` before quickly changing to a non-null value. The test should verify that the app correctly navigates to the `Dashboard` screen and does not get stuck on the `Login` screen, which might be composed first.
-*   **Dynamic Session Invalidation (Logout):** Start the app with a logged-in user, landing on the `Dashboard`. Then, simulate a session invalidation event (e.g., the user is logged out from a server-side action) which causes the `authService.currentUser` state to change from non-null to `null`. The test must verify that the UI reacts by automatically navigating the user back to the `Login` screen.
-*   **App Launch with No Network Connection:** For a user who was previously logged in, launch the app without a network connection. The test should verify how the app behaves. Does it rely on a cached token and proceed to the `Dashboard` (potentially with stale data), or does it fail the auth check and fall back to the `Login` screen? The expected behavior should be defined and verified.
+*   Verify the behavior of the `LazyColumn` when the data source is empty. The UI should display a clear "empty state" message or placeholder, rather than a blank screen, to guide the user.
+*   Trigger a device configuration change (e.g., screen rotation) while the `DropdownMenu` (likely triggered by the `MoreVert` icon) is open. The app must not crash, and the menu should be gracefully dismissed without corrupting the UI state.
+*   Test the rendering of the `DropdownMenu` when its anchor icon is positioned at the very edge of the screen (e.g., top-right). The menu should intelligently reposition itself to ensure all its items are fully visible and clickable, not rendered off-screen.
 
