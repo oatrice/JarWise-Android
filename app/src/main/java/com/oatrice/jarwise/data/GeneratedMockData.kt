@@ -123,7 +123,7 @@ object GeneratedMockData {
         Transaction(
             id = "1",
             merchant = "Spotify Premium",
-            amount = -12.99,
+            amount = 12.99,
             category = "Play",
             date = "Today, 10:43 AM",
             icon = Icons.Rounded.Headphones,
@@ -133,7 +133,7 @@ object GeneratedMockData {
         Transaction(
             id = "2",
             merchant = "Whole Foods Market",
-            amount = -142.5,
+            amount = 142.5,
             category = "Necessities",
             date = "Yesterday, 6:30 PM",
             icon = Icons.Rounded.ShoppingBag,
@@ -143,7 +143,7 @@ object GeneratedMockData {
         Transaction(
             id = "3",
             merchant = "Udemy Course",
-            amount = -24.99,
+            amount = 24.99,
             category = "Education",
             date = "Dec 28, 2025",
             icon = Icons.Rounded.School,

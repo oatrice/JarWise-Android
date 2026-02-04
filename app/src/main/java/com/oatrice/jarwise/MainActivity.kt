@@ -74,7 +74,10 @@ class MainActivity : ComponentActivity() {
                     when (page) {
                         com.oatrice.jarwise.ui.components.NavPage.DASHBOARD -> currentScreen = Screen.Dashboard
                         com.oatrice.jarwise.ui.components.NavPage.HISTORY -> currentScreen = Screen.TransactionHistory
-                        com.oatrice.jarwise.ui.components.NavPage.ADD -> currentScreen = Screen.AddTransaction
+                        com.oatrice.jarwise.ui.components.NavPage.ADD -> {
+                            previousScreen = currentScreen
+                            currentScreen = Screen.AddTransaction
+                        }
                         com.oatrice.jarwise.ui.components.NavPage.BUDGET -> {
                             // Wallets update via StateFlow automatically
                             previousScreen = currentScreen // likely Dashboard or whatever tab
@@ -99,7 +102,10 @@ class MainActivity : ComponentActivity() {
                                 onNavigateToHistory = { currentScreen = Screen.TransactionHistory },
                                 onNavigateToScan = { currentScreen = Screen.Scan },
                                 onNavigateToImport = { currentScreen = Screen.SlipImport },
-                                onNavigateToAdd = { currentScreen = Screen.AddTransaction },
+                                onNavigateToAdd = { 
+                                    previousScreen = Screen.Dashboard
+                                    currentScreen = Screen.AddTransaction 
+                                },
                                 onNavigateToSettings = { currentScreen = Screen.Settings },
                                 onNavigateToManageJars = {
                                     manageJarsViewModel.revertUnsavedChanges()
@@ -165,7 +171,7 @@ class MainActivity : ComponentActivity() {
                                     val date = parsedSlip.date?.let {
                                         slipDateFormat.format(it)
                                     }
-                                    viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date)
+                                    viewModel.saveTransaction(amount, jarId, "wallet-bank", note, date, "expense")
                                     android.widget.Toast.makeText(applicationContext, "Slip saved successfully", android.widget.Toast.LENGTH_SHORT).show()
                                 },
                                 onSaveDraft = { _, parsedSlip, jarId ->
@@ -174,20 +180,25 @@ class MainActivity : ComponentActivity() {
                                     val date = parsedSlip.date?.let {
                                         slipDateFormat.format(it)
                                     }
-                                    viewModel.saveDraft(amount, jarId, "wallet-bank", note, date)
+                                    viewModel.saveDraft(amount, jarId, "wallet-bank", note, date, "expense")
                                     android.widget.Toast.makeText(applicationContext, "Draft saved!", android.widget.Toast.LENGTH_SHORT).show()
                                 }
                             )
                         }
                         is Screen.AddTransaction -> AddTransactionScreen(
-                            onBack = { currentScreen = Screen.Dashboard },
-                            onSave = { amount, jarId, walletId, note, date ->
-                                viewModel.saveTransaction(amount, jarId, walletId, note, date)
-                                currentScreen = Screen.Dashboard
+                            onBack = { 
+                                currentScreen = previousScreen ?: Screen.Dashboard 
+                                previousScreen = null
+                            },
+                            onSave = { amount, jarId, walletId, note, date, type ->
+                                viewModel.saveTransaction(amount, jarId, walletId, note, date, type)
+                                currentScreen = previousScreen ?: Screen.Dashboard
+                                previousScreen = null
                             },
                             onSaveTransfer = { amount, fromWalletId, toWalletId, note, date ->
                                 viewModel.saveTransfer(amount, fromWalletId, toWalletId, note, date)
-                                currentScreen = Screen.Dashboard
+                                currentScreen = previousScreen ?: Screen.Dashboard
+                                previousScreen = null
                             }
                         )
                         is Screen.ManageJars -> ManageJarsScreen(

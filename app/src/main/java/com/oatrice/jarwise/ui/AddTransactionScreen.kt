@@ -45,7 +45,7 @@ import java.util.*
 @Composable
 fun AddTransactionScreen(
     onBack: () -> Unit,
-    onSave: (Double, String, String, String, String) -> Unit, // amount, jarId, walletId, note, date
+    onSave: (Double, String, String, String, String, String) -> Unit, // amount, jarId, walletId, note, date, type
     onSaveTransfer: (Double, String, String, String, String) -> Unit // amount, fromWalletId, toWalletId, note, date
 ) {
     val context = LocalContext.current
@@ -143,17 +143,8 @@ fun AddTransactionScreen(
                         // Expense/Income
                         val result = TransactionValidator.validateTransaction(amount, selectedJarId)
                         if (result.isValid) {
-                            // TODO: Pass type (Expense/Income) if supported by onSave. Currently onSave assumes Expense usually?
-                            // Existing implementation: onSave(Double, String, String, String, String).
-                            // It doesn't take Type! It seems existing app only supports Expense or assumes Jar implies expense?
-                            // Checking Transaction.kt, type default is "expense".
-                            // If I want to support Income, I need to update onSave signature or logic.
-                            // BUT given requirements for Transfer, I assume existing flow is Expense-centric.
-                            // I will proceed with calling onSave. If user selected Income, we might need a hack or update logic later.
-                            // For now, prompt task is "Transfer". I will focus on Transfer.
-                            // Ideally I should pass 'type' to onSave.
-                            // But sticking to prompt scope: Implement Transfer.
-                            onSave(amountVal, selectedJarId, selectedWalletId, note, isoFormatter.format(selectedDate))
+                            val type = if (selectedTab == 1) "income" else "expense"
+                            onSave(amountVal, selectedJarId, selectedWalletId, note, isoFormatter.format(selectedDate), type)
                         } else {
                             amountError = result.errors["amount"]
                             jarError = result.errors["jarId"]

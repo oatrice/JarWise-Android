@@ -97,17 +97,18 @@ class MainViewModel(
         initialValue = emptyList()
     )
 
-    fun saveTransaction(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
+    fun saveTransaction(amount: Double, jarId: String, walletId: String, note: String, date: String? = null, type: String = "expense") {
         viewModelScope.launch {
             val transaction = Transaction(
                 amount = amount,
                 jarId = jarId,
                 walletId = walletId,
                 note = note,
-                date = date ?: getCurrentIsoDate()
+                date = date ?: getCurrentIsoDate(),
+                type = type
             )
             dao.insert(transaction)
-            logger.d("Transaction", "Saved new transaction")
+            logger.d("Transaction", "Saved new transaction ($type)")
         }
     }
 
@@ -124,7 +125,7 @@ class MainViewModel(
         }
     }
 
-    fun saveDraft(amount: Double, jarId: String, walletId: String, note: String, date: String? = null) {
+    fun saveDraft(amount: Double, jarId: String, walletId: String, note: String, date: String? = null, type: String = "expense") {
         viewModelScope.launch {
             val transaction = Transaction(
                 amount = amount,
@@ -132,7 +133,8 @@ class MainViewModel(
                 walletId = walletId,
                 note = note,
                 date = date ?: getCurrentIsoDate(),
-                status = "draft"
+                status = "draft",
+                type = type
             )
             dao.insert(transaction)
         }
