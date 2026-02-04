@@ -10,4 +10,5 @@ val repositoryModule = module {
     single { JarConfigRepository(get()) }
     single { WalletRepository(get()) }
     single { SlipRepository(androidContext()) }
+    single { MigrationRepository(get(), androidContext()) }
 }

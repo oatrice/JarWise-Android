@@ -147,6 +147,12 @@ dependencies {
     implementation(libs.google.auth.library.oauth2.http)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.google.http.client.android)
+
+    // Networking
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 }
 
 ksp {
