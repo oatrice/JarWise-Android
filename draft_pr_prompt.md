@@ -10,6 +10,7 @@ ISSUE: {
 
 GIT CONTEXT:
 COMMITS:
+fcf4a61 feat: [Feature] Migrate Data from Money Manager App (.mm...
 5ab9549 feat: [Feature] Migrate Data from Money Manager App (.mm...
 2f6074b ✨ feat(import): add money manager import and security improvements
 a9932b2 🔒 fix(security): enforce network security configuration and improve resource handling
@@ -38,9 +39,9 @@ STATS:
  .../java/com/oatrice/jarwise/utils/AppLogger.kt    |  28 +
  app/src/main/res/xml/network_security_config.xml   |  12 +
  code_review.md                                     | 132 +++-
- draft_pr_prompt.md                                 | 855 ++++++++++-----------
+ draft_pr_prompt.md                                 | 857 ++++++++++-----------
  gradle/libs.versions.toml                          |   8 +
- 21 files changed, 1125 insertions(+), 453 deletions(-)
+ 21 files changed, 1127 insertions(+), 453 deletions(-)
 
 KEY FILE DIFFS:
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
