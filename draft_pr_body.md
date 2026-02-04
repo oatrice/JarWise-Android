@@ -1,5 +1,5 @@
 # 📋 Summary
-This PR implements a complete data migration feature that allows users to import their transaction history from the Money Manager app (.mmbak backup and .xls export files). The feature includes a dedicated migration screen with file selection UI, API integration for uploading files to the backend migration service, and comprehensive error handling and logging throughout the migration process.
+This PR implements comprehensive transaction linking and transfer functionality for JarWise, allowing users to track money movements between wallets and jars. The feature introduces bidirectional transaction linking, a dedicated transfer flow with a new UI, and improved transaction type support with proper domain layer architecture.
 
 ## ✅ Checklist
 - [x] 🏗️ I have moved the related issue to "In Progress" on the Kanban board
@@ -8,8 +8,8 @@ This PR implements a complete data migration feature that allows users to import
 - [ ] 🐛 Bug fix
 - [x] ✨ New feature
 - [ ] ⚡ Performance improvement
-- [ ] 🔧 Refactoring
-- [ ] 🎨 UI Update (Jetpack Compose)
+- [x] 🔧 Refactoring
+- [x] 🎨 UI Update (Jetpack Compose)
 - [ ] 🤖 SDK/Dependency Update
 - [ ] 💥 Breaking change
 
@@ -21,79 +21,100 @@ This PR implements a complete data migration feature that allows users to import
 
 # 📝 Changes
 
-## New Features
-- **Migration Screen**: Added a new dedicated screen (`MigrationScreen.kt`) with Material3 design for importing Money Manager data
-  - File picker support for .mmbak (backup) and .xls (Excel) files
-  - Real-time migration status updates (Idle, Loading, Success, Error states)
-  - Clear instructions and user-friendly UI with proper error feedback
-  - Navigation integration from Settings screen to Migration screen
+## 🏗️ Architecture & Domain Layer
+- **New Domain Module**: Added `DomainModule.kt` with dependency injection for use cases
+- **Use Cases**:
+  - `CreateTransferUseCase`: Handles atomic creation of linked expense/income transaction pairs
+  - `UnlinkTransactionsUseCase`: Manages unlinking of transaction relationships
+- **Repository Pattern**: Implemented `TransactionRepository` interface with `TransactionRepositoryImpl` for better separation of concerns
 
-- **API Integration**: Implemented complete API layer for migration
-  - `MigrationApi.kt`: Retrofit interface for multipart file upload endpoint
-  - `MigrationModels.kt`: Response models for migration and status tracking
-  - `MigrationRepository.kt`: Repository layer handling file upload and error management
-  - Network module configuration with OkHttp and Retrofit
+## 💾 Data Layer
+- **Database Migration (6→7)**: Added `linkedTransactionId` field to transactions table
+- **Enhanced TransactionDao**: 
+  - New methods for unlinking transactions
+  - Optimized linked transaction lookups with proper SQL queries
+- **Transaction Entity**: Added `linkedTransactionId: String?` field to support bidirectional linking
 
-- **ViewModel Architecture**: Created `MigrationViewModel.kt` with proper state management
-  - File URI and filename tracking with StateFlow
-  - Migration process orchestration
-  - State reset functionality for navigation scenarios
-  - Comprehensive error handling with user-friendly messages
+## 🎨 UI Enhancements
+- **AddTransactionScreen**:
+  - Added transaction type selector (Expense/Income/Transfer)
+  - Transfer mode with source and destination wallet/jar selection
+  - Dynamic UI that adapts based on selected transaction type
+  - Improved form validation and state management
+- **TransactionCard**: 
+  - Visual indicators for transfer transactions
+  - Shows source → destination for linked transactions
+  - Enhanced display with transfer-specific styling
+- **DashboardScreen**: Updated to handle navigation to transfer flow
+- **TransactionHistoryScreen**: Improved grouping and display of linked transactions
 
-## Infrastructure & Security Improvements
-- **Network Security Configuration**: Added `network_security_config.xml` to enforce secure network policies
-- **Enhanced Logging**: Expanded `AppLogger.kt` with dedicated API and migration logging utilities
-- **Dependency Management**: Added Retrofit, OkHttp, and Gson libraries for network operations
+## 🔧 Core Functionality
+- **Bidirectional Linking**: Expense and income transactions are atomically linked using database transactions
+- **Transfer Flow**: Complete workflow for moving money between wallets/jars
+- **Type Support**: Added `transactionType` field with support for "expense", "income", and "transfer"
+- **Total Spent Calculation Fix**: Optimized to exclude linked transactions and prevent double-counting
+- **Navigation Improvements**: Added previous screen tracking for better UX flow
 
-## UI/UX Enhancements
-- Settings screen now includes navigation button to Migration feature
-- Dashboard navigation from migration screen after successful import
-- Proper back navigation with state cleanup
-- Loading indicators and success/error feedback
+## 🧪 Testing
+- Added `CreateTransferUseCaseTest.kt` with comprehensive test coverage
 
-## Version Bump
-- Updated version from 1.7.0 to 1.8.0 to reflect the new migration feature
+## 📦 Other Updates
+- Updated app version: `1.8.0` → `1.9.0`
+- Updated dependency injection configuration across all modules
+- Updated CHANGELOG.md with new features
+- Code review improvements and refactoring
 
 # 📸 UI/UX Screenshots
-<!-- Screenshots to be added showing:
-- Settings screen with new Migration button
-- Migration screen with file selection
-- Success state after migration
-- Error state with user-friendly messages
+<!-- Include screenshots from the Android device/emulator showing:
+- Transfer transaction type selection
+- Source/Destination wallet selection
+- Completed transfer in transaction list
+- TransactionCard showing transfer indicator
 -->
 
 # 🧪 Testing
 - [x] `./gradlew build` passes
-- [ ] Unit Tests pass
-
-## Manual Testing Performed
-- File selection for both .mmbak and .xls files
-- Migration API call with proper multipart upload
-- Error handling for network failures
-- State management across navigation
-- UI responsiveness and Material3 theming
+- [x] Unit Tests pass
+  - CreateTransferUseCaseTest: Tests atomic transfer creation and linking
+  - Repository layer tests for transaction operations
 
 # 🚀 Migration/Deployment
-- [ ] Database migration required (Room)
+- [x] Database migration required (Room)
 - [ ] Environment variables/Secrets updated
 - [x] New Dependencies added
 
-## New Dependencies Added
-```gradle
-// Networking
-implementation(libs.retrofit)
-implementation(libs.converter.gson)
-implementation(libs.okhttp)
-implementation(libs.logging.interceptor)
+```bash
+# Database Migration 6→7
+# Automatically handled by Room migration
+# Adds linkedTransactionId field to transactions table
+# Migration runs on app upgrade
 ```
 
-## Backend Requirements
-This feature requires the backend API endpoint:
-- `POST /api/v1/migrations/money-manager` - Accepts multipart/form-data with .mmbak and .xls files
-- Response should include `job_id`, `status`, and `message` fields
+## Database Schema Changes
+```sql
+ALTER TABLE transactions ADD COLUMN linkedTransactionId TEXT;
+ALTER TABLE transactions ADD COLUMN transactionType TEXT NOT NULL DEFAULT 'expense';
+```
 
 # 🔗 Related Issues
-- Closes https://github.com/oatrice/JarWise-Root/issues/65
+- Closes https://github.com/oatrice/JarWise-Root/issues/71
 
 **Breaking Changes**: No  
-**Migration Required**: No (only new dependencies and optional feature)
+**Migration Required**: Yes (Database schema v6→v7)
+
+---
+
+## 🎯 Key Highlights
+- ✅ Atomic transfer operations with database transactions for data consistency
+- ✅ Clean architecture with domain layer separation
+- ✅ Comprehensive transfer UI with type selection
+- ✅ Optimized SQL queries for linked transaction lookups
+- ✅ Proper dependency injection setup
+- ✅ Test coverage for critical use cases
+
+## 📊 Impact
+**Files Changed**: 29 files  
+**Insertions**: +1060 lines  
+**Deletions**: -318 lines
+
+This feature significantly improves JarWise's money management capabilities by allowing users to accurately track fund movements between different accounts and jars, providing better financial visibility and organization.
