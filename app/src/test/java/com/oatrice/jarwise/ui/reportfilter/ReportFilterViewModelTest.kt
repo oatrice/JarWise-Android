@@ -1,13 +1,12 @@
 package com.oatrice.jarwise.ui.reportfilter
 
+import com.oatrice.jarwise.data.repository.WalletSource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.ui.graphics.Color
-import com.oatrice.jarwise.data.JarConfig
-import com.oatrice.jarwise.data.repository.JarConfigSource
-import com.oatrice.jarwise.data.repository.WalletSource
 import com.oatrice.jarwise.model.Wallet
 import com.oatrice.jarwise.util.MainDispatcherRule
+import com.oatrice.jarwise.utils.JARS_METADATA
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -28,12 +27,6 @@ class ReportFilterViewModelTest {
 
     @Before
     fun setUp() {
-        val jarSource = FakeJarConfigSource(
-            listOf(
-                JarConfig("jar-1", "Necessities", 55, "blue", "home"),
-                JarConfig("jar-2", "Play", 10, "pink", "gamepad")
-            )
-        )
         val walletSource = FakeWalletSource(
             listOf(
                 Wallet(
@@ -52,7 +45,7 @@ class ReportFilterViewModelTest {
                 )
             )
         )
-        viewModel = ReportFilterViewModel(jarSource, walletSource)
+        viewModel = ReportFilterViewModel(walletSource)
     }
 
     @Test
@@ -60,8 +53,8 @@ class ReportFilterViewModelTest {
         val uiState = viewModel.uiState.first { !it.isLoading }
 
         assertFalse(uiState.isLoading)
-        assertEquals(2, uiState.jars.size)
-        assertEquals("Necessities", uiState.jars[0].name)
+        assertEquals(JARS_METADATA.size, uiState.jars.size)
+        assertEquals("Necessities", uiState.jars.first().name)
         assertEquals(2, uiState.wallets.size)
         assertEquals("Cash", uiState.wallets[0].name)
         assertTrue(uiState.jars.all { !it.isSelected })
@@ -72,14 +65,14 @@ class ReportFilterViewModelTest {
     fun `toggleJarSelection updates selected state`() = runTest {
         viewModel.uiState.first { !it.isLoading }
 
-        viewModel.toggleJarSelection("jar-1")
+        viewModel.toggleJarSelection("necessities")
 
         val uiState = viewModel.uiState.value
-        assertTrue(uiState.jars.first { it.id == "jar-1" }.isSelected)
-        assertFalse(uiState.jars.first { it.id == "jar-2" }.isSelected)
+        assertTrue(uiState.jars.first { it.id == "necessities" }.isSelected)
+        assertFalse(uiState.jars.first { it.id == "education" }.isSelected)
 
         val selected = viewModel.getSelectedFilterIds()
-        assertTrue(selected.first.contains("jar-1"))
+        assertTrue(selected.first.contains("necessities"))
     }
 
     @Test
@@ -100,7 +93,7 @@ class ReportFilterViewModelTest {
     fun `clearSelections resets all selections`() = runTest {
         viewModel.uiState.first { !it.isLoading }
 
-        viewModel.toggleJarSelection("jar-1")
+        viewModel.toggleJarSelection("necessities")
         viewModel.toggleWalletSelection("wallet-2")
 
         viewModel.clearSelections()
@@ -113,13 +106,6 @@ class ReportFilterViewModelTest {
         assertTrue(selected.first.isEmpty())
         assertTrue(selected.second.isEmpty())
     }
-}
-
-private class FakeJarConfigSource(
-    private val jars: List<JarConfig>
-) : JarConfigSource {
-    override suspend fun getAllJarConfigs(): List<JarConfig> = jars
-    override suspend fun initializeDefaultsIfEmpty() = Unit
 }
 
 private class FakeWalletSource(

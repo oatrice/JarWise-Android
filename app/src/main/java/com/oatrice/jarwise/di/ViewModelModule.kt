@@ -19,5 +19,5 @@ val viewModelModule = module {
     viewModel { LoginViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { MigrationViewModel(get(), get()) }
-    viewModel { ReportFilterViewModel(get(), get()) }
+    viewModel { ReportFilterViewModel(get()) }
 }

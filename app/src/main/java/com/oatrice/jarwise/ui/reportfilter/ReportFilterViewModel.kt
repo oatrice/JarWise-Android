@@ -2,15 +2,14 @@ package com.oatrice.jarwise.ui.reportfilter
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.oatrice.jarwise.data.repository.JarConfigSource
 import com.oatrice.jarwise.data.repository.WalletSource
+import com.oatrice.jarwise.utils.JARS_METADATA
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class ReportFilterViewModel(
-    private val jarConfigSource: JarConfigSource,
     private val walletSource: WalletSource
 ) : ViewModel() {
 
@@ -34,16 +33,14 @@ class ReportFilterViewModel(
         viewModelScope.launch {
             _uiState.value = ReportFilterUiState(isLoading = true)
 
-            jarConfigSource.initializeDefaultsIfEmpty()
             walletSource.initializeDefaultsIfEmpty()
 
-            val jarConfigs = jarConfigSource.getAllJarConfigs()
             val wallets = walletSource.getAllWallets()
 
-            allJars = jarConfigs.associate { it.id to it.name }
+            allJars = JARS_METADATA.associate { it.id to it.name }
             allWallets = wallets.associate { it.id to it.name }
 
-            allJarIds = jarConfigs.map { it.id }
+            allJarIds = JARS_METADATA.map { it.id }
             allWalletIds = wallets.map { it.id }
 
             updateUiState()
