@@ -7,6 +7,7 @@ import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
 import com.oatrice.jarwise.ui.login.LoginViewModel
 import com.oatrice.jarwise.ui.settings.SettingsViewModel
 import com.oatrice.jarwise.ui.migration.MigrationViewModel
+import com.oatrice.jarwise.ui.reportfilter.ReportFilterViewModel
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
 
@@ -18,4 +19,5 @@ val viewModelModule = module {
     viewModel { LoginViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { MigrationViewModel(get(), get()) }
+    viewModel { ReportFilterViewModel(get(), get()) }
 }

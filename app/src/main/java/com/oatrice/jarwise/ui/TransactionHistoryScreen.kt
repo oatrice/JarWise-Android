@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -26,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,11 +51,17 @@ import com.oatrice.jarwise.ui.components.BottomNav
 import com.oatrice.jarwise.ui.components.NavPage
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MediumTopAppBar
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import kotlin.math.abs
+import com.oatrice.jarwise.ui.reportfilter.ReportFilterSheet
+import com.oatrice.jarwise.ui.reportfilter.ReportFilterViewModel
+import org.koin.androidx.compose.koinViewModel
 
 /**
  * Transaction History Screen
@@ -67,9 +75,34 @@ fun TransactionHistoryScreen(
     onBack: () -> Unit,
     onNavigate: (NavPage) -> Unit = {}
 ) {
+    val reportFilterViewModel: ReportFilterViewModel = koinViewModel()
+    var showFilters by remember { mutableStateOf(false) }
+    var activeJarFilters by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var activeWalletFilters by remember { mutableStateOf<Set<String>>(emptySet()) }
+
+    val hasActiveFilters = activeJarFilters.isNotEmpty() || activeWalletFilters.isNotEmpty()
+
+    LaunchedEffect(showFilters) {
+        if (showFilters) {
+            reportFilterViewModel.setSelections(activeJarFilters, activeWalletFilters)
+        }
+    }
+
+    val filteredTransactions = remember(transactions, activeJarFilters, activeWalletFilters) {
+        if (!hasActiveFilters) {
+            transactions
+        } else {
+            transactions.filter { tx ->
+                val jarMatch = activeJarFilters.isEmpty() || activeJarFilters.contains(tx.jarId)
+                val walletMatch = activeWalletFilters.isEmpty() || activeWalletFilters.contains(tx.walletId)
+                jarMatch && walletMatch
+            }
+        }
+    }
+
     // Fix: Only sum expenses and exclude transfers for "Total Spent"
-    val totalSpent = remember(transactions) {
-        transactions
+    val totalSpent = remember(filteredTransactions) {
+        filteredTransactions
             .filter { it.type == "expense" && it.linkedTransactionId == null }
             .sumOf { it.amount }
     }
@@ -121,6 +154,13 @@ fun TransactionHistoryScreen(
                                 tint = Gray400
                             )
                         }
+                        IconButton(onClick = { showFilters = true }) {
+                            Icon(
+                                Icons.Rounded.FilterList,
+                                contentDescription = "Filter",
+                                tint = if (hasActiveFilters) Blue400 else Gray400
+                            )
+                        }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Gray950.copy(alpha = 0.8f)
@@ -130,7 +170,7 @@ fun TransactionHistoryScreen(
             }
         ) { paddingValues ->
             // Group transactions by date
-            val groupedTransactions = TransactionGroupingUtils.groupByDate(transactions)
+            val groupedTransactions = TransactionGroupingUtils.groupByDate(filteredTransactions)
             
             Box(
                 modifier = Modifier
@@ -149,7 +189,7 @@ fun TransactionHistoryScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         SummaryCard(
                             totalSpent = totalSpent,
-                            transactionCount = transactions.size,
+                            transactionCount = filteredTransactions.size,
                             currencyCode = selectedCurrency
                         )
                     }
@@ -181,6 +221,16 @@ fun TransactionHistoryScreen(
                         }
                     }
 
+                    if (filteredTransactions.isEmpty()) {
+                        item {
+                            Spacer(modifier = Modifier.height(24.dp))
+                            EmptyState(
+                                title = if (hasActiveFilters) "No matches found" else "No transactions yet",
+                                subtitle = if (hasActiveFilters) "Try adjusting your filters." else "Your transaction history will appear here."
+                            )
+                        }
+                    }
+
                     // Bottom Spacer for BottomNav
                     item {
                         Spacer(modifier = Modifier.height(120.dp))
@@ -197,6 +247,21 @@ fun TransactionHistoryScreen(
                 activePage = NavPage.HISTORY,
                 visible = isHeaderVisible.value,
                 onNavigate = onNavigate
+            )
+        }
+
+        if (showFilters) {
+            ReportFilterSheet(
+                viewModel = reportFilterViewModel,
+                onApply = { jarIds, walletIds ->
+                    activeJarFilters = jarIds
+                    activeWalletFilters = walletIds
+                    showFilters = false
+                },
+                onDismiss = {
+                    reportFilterViewModel.setSelections(activeJarFilters, activeWalletFilters)
+                    showFilters = false
+                }
             )
         }
     }
@@ -323,6 +388,35 @@ private fun SummaryCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EmptyState(title: String, subtitle: String) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.Search,
+            contentDescription = null,
+            tint = Gray500,
+            modifier = Modifier.size(40.dp)
+        )
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = subtitle,
+            color = Gray500,
+            fontSize = 13.sp
+        )
     }
 }
 
