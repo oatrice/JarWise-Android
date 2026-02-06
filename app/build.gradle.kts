@@ -1,6 +1,7 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.ksp)
     alias(libs.plugins.google.services)
@@ -42,9 +43,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
     }
@@ -69,14 +67,21 @@ android {
 
     sourceSets {
         getByName("test") {
-            assets.srcDirs("$projectDir/schemas")
+            assets.srcDir("$projectDir/schemas")
         }
         getByName("androidTest") {
-            assets.srcDirs("$projectDir/schemas")
+            assets.srcDir("$projectDir/schemas")
         }
         getByName("release") {
-            assets.srcDirs("$projectDir/schemas")
+            assets.srcDir("$projectDir/schemas")
         }
+    }
+}
+
+// Kotlin compiler options moved to the new DSL.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
