@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.android.legacy.kapt)
     alias(libs.plugins.google.services)
 }
 
@@ -23,11 +23,6 @@ android {
             useSupportLibrary = true
         }
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
-        }
     }
 
     buildTypes {
@@ -66,14 +61,15 @@ android {
     }
 
     sourceSets {
+        val roomSchemas = file("$projectDir/schemas").path
         getByName("test") {
-            assets.srcDir("$projectDir/schemas")
+            assets.directories.add(roomSchemas)
         }
         getByName("androidTest") {
-            assets.srcDir("$projectDir/schemas")
+            assets.directories.add(roomSchemas)
         }
         getByName("release") {
-            assets.srcDir("$projectDir/schemas")
+            assets.directories.add(roomSchemas)
         }
     }
 }
@@ -92,7 +88,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -157,6 +153,8 @@ dependencies {
     implementation(libs.logging.interceptor)
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
+kapt {
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
 }
