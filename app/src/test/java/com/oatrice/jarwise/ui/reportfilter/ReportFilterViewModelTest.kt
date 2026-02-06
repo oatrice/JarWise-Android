@@ -106,11 +106,61 @@ class ReportFilterViewModelTest {
         assertTrue(selected.first.isEmpty())
         assertTrue(selected.second.isEmpty())
     }
+
+    @Test
+    fun `init handles empty wallet list`() = runTest {
+        val emptyWalletSource = FakeWalletSource(emptyList())
+        val emptyViewModel = ReportFilterViewModel(emptyWalletSource)
+
+        val uiState = emptyViewModel.uiState.first { !it.isLoading }
+
+        assertEquals(JARS_METADATA.size, uiState.jars.size)
+        assertTrue(uiState.wallets.isEmpty())
+    }
+
+    @Test
+    fun `init handles wallet source failure gracefully`() = runTest {
+        val failingViewModel = ReportFilterViewModel(FailingWalletSource())
+
+        val uiState = failingViewModel.uiState.first { !it.isLoading }
+
+        assertEquals(JARS_METADATA.size, uiState.jars.size)
+        assertTrue(uiState.wallets.isEmpty())
+    }
+
+    @Test
+    fun `wallets with unusual names are preserved`() = runTest {
+        val walletSource = FakeWalletSource(
+            listOf(
+                Wallet(
+                    id = "wallet-special",
+                    name = "Bank & Co. (Primary)",
+                    balance = 0.0,
+                    color = Color(0xFF3B82F6),
+                    icon = Icons.Default.AccountBalanceWallet
+                )
+            )
+        )
+        val customViewModel = ReportFilterViewModel(walletSource)
+
+        val uiState = customViewModel.uiState.first { !it.isLoading }
+
+        assertEquals(1, uiState.wallets.size)
+        assertEquals("Bank & Co. (Primary)", uiState.wallets[0].name)
+    }
 }
 
 private class FakeWalletSource(
     private val wallets: List<Wallet>
 ) : WalletSource {
     override suspend fun getAllWallets(): List<Wallet> = wallets
+    override suspend fun initializeDefaultsIfEmpty() = Unit
+}
+
+private class FailingWalletSource : WalletSource {
+    override suspend fun getAllWallets(): List<Wallet> {
+        throw IllegalStateException("Wallet data unavailable")
+    }
+
     override suspend fun initializeDefaultsIfEmpty() = Unit
 }

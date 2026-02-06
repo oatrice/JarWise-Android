@@ -16,9 +16,6 @@ class ReportFilterViewModel(
     private val _uiState = MutableStateFlow(ReportFilterUiState())
     val uiState: StateFlow<ReportFilterUiState> = _uiState.asStateFlow()
 
-    private var allJarIds: List<String> = emptyList()
-    private var allWalletIds: List<String> = emptyList()
-
     private var allJars: Map<String, String> = emptyMap()
     private var allWallets: Map<String, String> = emptyMap()
 
@@ -33,15 +30,14 @@ class ReportFilterViewModel(
         viewModelScope.launch {
             _uiState.value = ReportFilterUiState(isLoading = true)
 
-            walletSource.initializeDefaultsIfEmpty()
-
-            val wallets = walletSource.getAllWallets()
-
             allJars = JARS_METADATA.associate { it.id to it.name }
-            allWallets = wallets.associate { it.id to it.name }
-
-            allJarIds = JARS_METADATA.map { it.id }
-            allWalletIds = wallets.map { it.id }
+            try {
+                walletSource.initializeDefaultsIfEmpty()
+                val wallets = walletSource.getAllWallets()
+                allWallets = wallets.associate { it.id to it.name }
+            } catch (error: Exception) {
+                allWallets = emptyMap()
+            }
 
             updateUiState()
         }
@@ -50,11 +46,11 @@ class ReportFilterViewModel(
     private fun updateUiState() {
         _uiState.value = ReportFilterUiState(
             isLoading = false,
-            jars = allJarIds.map { id ->
-                SelectableItem(id = id, name = allJars[id].orEmpty(), isSelected = id in selectedJarIds)
+            jars = allJars.map { (id, name) ->
+                SelectableItem(id = id, name = name, isSelected = id in selectedJarIds)
             },
-            wallets = allWalletIds.map { id ->
-                SelectableItem(id = id, name = allWallets[id].orEmpty(), isSelected = id in selectedWalletIds)
+            wallets = allWallets.map { (id, name) ->
+                SelectableItem(id = id, name = name, isSelected = id in selectedWalletIds)
             }
         )
     }

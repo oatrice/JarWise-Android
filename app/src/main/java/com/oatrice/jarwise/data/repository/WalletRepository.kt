@@ -77,8 +77,7 @@ open class WalletRepository(private val walletDao: WalletDao) : WalletSource {
      * Initialize default wallets if database is empty
      */
     override suspend fun initializeDefaultsIfEmpty() {
-        val currentWallets = walletDao.getAllWallets().first()
-        if (currentWallets.isEmpty()) { 
+        if (walletDao.count() == 0) {
              val defaults = listOf(
                  Wallet(id = "wallet-cash", name = "Cash", balance = 0.0, color = Color(0xFF22C55E), icon = Icons.Default.AccountBalanceWallet),
                  Wallet(id = "wallet-bank", name = "Bank Account", balance = 0.0, color = Color(0xFF3B82F6), icon = Icons.Default.AccountBalance),

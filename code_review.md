@@ -1,132 +1,135 @@
 # Luma Code Review Report
 
-**Date:** 2026-02-04 19:13:46
-**Files Reviewed:** ['app/src/main/java/com/oatrice/jarwise/ui/DashboardScreen.kt', 'app/src/main/java/com/oatrice/jarwise/JarWiseApplication.kt', 'app/src/test/java/com/oatrice/jarwise/domain/use_case/CreateTransferUseCaseTest.kt', 'app/src/main/java/com/oatrice/jarwise/di/DomainModule.kt', 'app/src/main/java/com/oatrice/jarwise/ui/components/TransactionCard.kt', 'app/src/main/java/com/oatrice/jarwise/data/Transaction.kt', '.luma_state.json', 'app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt', 'app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt', 'app/src/main/java/com/oatrice/jarwise/domain/use_case/UnlinkTransactionsUseCase.kt', 'app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt', 'app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/TransactionRepository.kt', 'app/src/main/java/com/oatrice/jarwise/domain/use_case/CreateTransferUseCase.kt', 'draft_pr_prompt.md', 'draft_pr_body.md', 'app/src/main/java/com/oatrice/jarwise/ui/AddTransactionScreen.kt', 'app/schemas/com.oatrice.jarwise.data.AppDatabase/7.json', 'app/src/main/java/com/oatrice/jarwise/utils/TransactionGroupingUtils.kt', 'app/src/main/java/com/oatrice/jarwise/di/DataModule.kt', 'app/src/main/java/com/oatrice/jarwise/MainActivity.kt', 'app/src/main/java/com/oatrice/jarwise/ui/MainViewModel.kt', 'app/src/main/java/com/oatrice/jarwise/utils/Constants.kt', 'app/src/main/java/com/oatrice/jarwise/data/TransactionDao.kt']
+**Date:** 2026-02-05 20:01:39
+**Files Reviewed:** ['app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/WalletSource.kt', 'app/src/test/java/com/oatrice/jarwise/ui/reportfilter/ReportFilterViewModelTest.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt', 'app/src/main/java/com/oatrice/jarwise/ui/reportfilter/ReportFilterUiState.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt', 'app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt', 'app/src/main/java/com/oatrice/jarwise/ui/reportfilter/ReportFilterSheet.kt', 'app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt', 'app/src/main/java/com/oatrice/jarwise/ui/reportfilter/ReportFilterViewModel.kt', 'app/src/test/java/com/oatrice/jarwise/util/MainDispatcherRule.kt', 'app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigSource.kt']
 
 ## 📝 Reviewer Feedback
 
-There are several issues in the provided code, including a significant performance problem, a logic error in a calculation, a potential null pointer exception, and an incomplete unit test.
+There are a couple of areas for improvement regarding best practices and performance.
 
-### 1. Critical Performance Issue in `TransactionHistoryScreen`
+### 1. Inefficient Database Check in `WalletRepository.kt`
 
-**File:** `app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt`
+In `app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt`, the `initializeDefaultsIfEmpty` function is inefficient.
 
-**Problem:** Inside the `LazyColumn`, you are looking up the `linkedTransaction` for each item by iterating through the entire list of transactions (`transactions.find { ... }`). This creates an O(N^2) complexity, which will cause severe performance issues and UI lag as the number of transactions grows.
-
-**Fix:** You should process the list once to create a lookup map before rendering the `LazyColumn`. This will change the lookup time from O(N) to O(1) for each item.
+**Problem:**
+The current implementation fetches all wallet entities from the database into a list just to check if the database table is empty.
 
 ```kotlin
-// At the top of the TransactionHistoryScreen composable
-val transactionsById = remember(transactions) {
-    transactions.associateBy { it.id.toString() }
-}
-
-// ... inside the LazyColumn's items block
-items(group.transactions) { transaction ->
-    // Now this lookup is an efficient O(1) operation
-    val linkedTransaction = transaction.linkedTransactionId?.let { linkedId ->
-        transactionsById[linkedId]
+// app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt:L72
+override suspend fun initializeDefaultsIfEmpty() {
+    val currentWallets = walletDao.getAllWallets().first() // <-- Fetches all records
+    if (currentWallets.isEmpty()) { 
+         // ... insert defaults
     }
-    TransactionCard(
-        transaction = transaction,
-        linkedTransaction = linkedTransaction,
-        // ...
-    )
 }
 ```
 
-### 2. Logic Error in "Total Spent" Calculation
+This can be slow and memory-intensive if the table were to ever contain many records. A much more efficient approach is to use a `COUNT` query. The `JarConfigRepository.kt` already uses this better pattern.
 
-**File:** `app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt`
+**Fix:**
+Modify `WalletRepository` to use a `count()` method from the DAO, similar to `JarConfigRepository`. This requires adding a `count()` function to `WalletDao`.
 
-**Problem:** The `totalSpent` variable is calculated by summing the `amount` of all transactions, regardless of their type (`expense` or `income`). Since `amount` is always a positive value, this calculation is incorrect and does not represent the total amount spent.
-
-**Fix:** The calculation should filter for only `expense` transactions and should also exclude transfers to avoid misrepresenting the total.
-
-```kotlin
-// Replace this line:
-val totalSpent = transactions.sumOf { it.amount }
-
-// With this:
-val totalSpent = transactions
-    .filter { it.type == "expense" && it.linkedTransactionId == null }
-    .sumOf { it.amount }
-```
-
-### 3. Potential NullPointerException in `TransactionCard`
-
-**File:** `app/src/main/java/com/oatrice/jarwise/ui/components/TransactionCard.kt`
-
-**Problem:** The result of `isoFormat.parse(transaction.date)` can be `null` if the date string is malformed. The code force-unwraps this result using `!!` (`date!!`), which will cause a crash if parsing fails.
-
-**Fix:** Handle the potentially null result safely using a null check or a safe call (`?.let`).
+**Example Fix in `WalletRepository.kt` (assuming `walletDao.count()` is added):**
 
 ```kotlin
-// Replace this block:
-val displayDate = try {
-    val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-    isoFormat.timeZone = TimeZone.getTimeZone("UTC")
-    val date = isoFormat.parse(transaction.date)
-    val displayFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
-    displayFormat.format(date!!) // <-- Unsafe call
-} catch (e: Exception) {
-    transaction.date // Fallback
-}
-
-// With this safer version:
-val displayDate = try {
-    val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US).apply {
-        timeZone = TimeZone.getTimeZone("UTC")
+// app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt
+override suspend fun initializeDefaultsIfEmpty() {
+    if (walletDao.count() == 0) { // <-- More efficient check
+         val defaults = listOf(
+             Wallet(id = "wallet-cash", name = "Cash", balance = 0.0, color = Color(0xFF22C55E), icon = Icons.Default.AccountBalanceWallet),
+             Wallet(id = "wallet-bank", name = "Bank Account", balance = 0.0, color = Color(0xFF3B82F6), icon = Icons.Default.AccountBalance),
+             Wallet(id = "wallet-credit", name = "Credit Card", balance = 0.0, color = Color(0xFFA855F7), icon = Icons.Default.CreditCard)
+         )
+         
+         defaults.forEach { insertWallet(it) }
     }
-    val displayFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
-    
-    isoFormat.parse(transaction.date)?.let { date ->
-        displayFormat.format(date)
-    } ?: transaction.date // Fallback if parsing returns null or throws exception
-} catch (e: Exception) {
-    transaction.date // Fallback
 }
 ```
 
-### 4. Incomplete Unit Test for `CreateTransferUseCase`
+### 2. Redundant State in `ReportFilterViewModel.kt`
 
-**File:** `app/src/test/java/com/oatrice/jarwise/domain/use_case/CreateTransferUseCaseTest.kt`
+In `app/src/main/java/com/oatrice/jarwise/ui/reportfilter/ReportFilterViewModel.kt`, there are redundant properties that make the code more complex than necessary.
 
-**Problem:** The unit test verifies that two transactions (an expense and an income) are created, but it fails to test the most critical part of the transfer logic: that the two transactions are correctly linked to each other via `linkedTransactionId`. The `FakeTransactionRepository` is too simplistic and doesn't simulate the ID generation and linking logic of the real implementation.
-
-**Fix:** Enhance the `FakeTransactionRepository` to simulate the linking behavior and add assertions to the test to verify the links are created correctly.
+**Problem:**
+The ViewModel stores both a `Map` and a `List` for jars and wallets (`allJars` and `allJarIds`, `allWallets` and `allWalletIds`). The list of IDs is redundant because the IDs are already available as keys in the map.
 
 ```kotlin
-// In FakeTransactionRepository
-override suspend fun createTransfer(expenseTransaction: Transaction, incomeTransaction: Transaction) {
-    val expenseId = (transactions.maxOfOrNull { it.id } ?: 0L) + 1
-    val incomeId = expenseId + 1
+// app/src/main/java/com/oatrice/jarwise/ui/reportfilter/ReportFilterViewModel.kt
+private var allJarIds: List<String> = emptyList() // Redundant
+private var allWalletIds: List<String> = emptyList() // Redundant
 
-    val finalExpense = expenseTransaction.copy(id = expenseId, linkedTransactionId = incomeId.toString())
-    val finalIncome = incomeTransaction.copy(id = incomeId, linkedTransactionId = expenseId.toString())
+private var allJars: Map<String, String> = emptyMap()
+private var allWallets: Map<String, String> = emptyMap()
+```
 
-    transactions.add(finalExpense)
-    transactions.add(finalIncome)
-}
+**Fix:**
+Remove the `allJarIds` and `allWalletIds` properties. Modify `updateUiState` to create the list of `SelectableItem`s by iterating directly over the `allJars` and `allWallets` maps. This simplifies the state management within the ViewModel.
 
-// In the test method
-@Test
-fun `invoke should create transfer with correct data and links`() = runTest {
-    // ... Arrange and Act ...
+**Example Fix in `ReportFilterViewModel.kt`:**
 
-    // Assert
-    // ... existing asserts ...
-    val expense = repository.transactions.find { it.type == "expense" }!!
-    val income = repository.transactions.find { it.type == "income" }!!
+```kotlin
+// app/src/main/java/com/oatrice/jarwise/ui/reportfilter/ReportFilterViewModel.kt
 
-    assertEquals("Expense should be linked to income", income.id.toString(), expense.linkedTransactionId)
-    assertEquals("Income should be linked to expense", expense.id.toString(), income.linkedTransactionId)
+// ... (imports)
+
+class ReportFilterViewModel(
+    private val walletSource: WalletSource
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ReportFilterUiState())
+    val uiState: StateFlow<ReportFilterUiState> = _uiState.asStateFlow()
+
+    // Remove redundant properties:
+    // private var allJarIds: List<String> = emptyList()
+    // private var allWalletIds: List<String> = emptyList()
+
+    private var allJars: Map<String, String> = emptyMap()
+    private var allWallets: Map<String, String> = emptyMap()
+
+    // ... (selected IDs properties)
+
+    init {
+        loadInitialData()
+    }
+
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            _uiState.value = ReportFilterUiState(isLoading = true)
+            walletSource.initializeDefaultsIfEmpty()
+            val wallets = walletSource.getAllWallets()
+
+            allJars = JARS_METADATA.associate { it.id to it.name }
+            allWallets = wallets.associate { it.id to it.name }
+
+            // Remove assignments to redundant properties
+
+            updateUiState()
+        }
+    }
+
+    private fun updateUiState() {
+        _uiState.value = ReportFilterUiState(
+            isLoading = false,
+            // Iterate over the map directly
+            jars = allJars.map { (id, name) ->
+                SelectableItem(id = id, name = name, isSelected = id in selectedJarIds)
+            },
+            // Iterate over the map directly
+            wallets = allWallets.map { (id, name) ->
+                SelectableItem(id = id, name = name, isSelected = id in selectedWalletIds)
+            }
+        )
+    }
+
+    // ... (rest of the ViewModel)
 }
 ```
 
 ## 🧪 Test Suggestions
 
-*   Verify the behavior of the `LazyColumn` when the data source is empty. The UI should display a clear "empty state" message or placeholder, rather than a blank screen, to guide the user.
-*   Trigger a device configuration change (e.g., screen rotation) while the `DropdownMenu` (likely triggered by the `MoreVert` icon) is open. The app must not crash, and the menu should be gracefully dismissed without corrupting the UI state.
-*   Test the rendering of the `DropdownMenu` when its anchor icon is positioned at the very edge of the screen (e.g., top-right). The menu should intelligently reposition itself to ensure all its items are fully visible and clickable, not rendered off-screen.
+*   **Empty Wallet List:** The existing test initializes `FakeWalletSource` with two wallets. A critical edge case is when the source returns an empty list (`emptyList()`). The test should verify that the `ReportFilterViewModel` handles this state gracefully, ensuring the UI state is updated correctly (e.g., the list of wallets to filter is empty) and the application does not crash.
+
+*   **Data Source Failure:** The `getAllWallets()` function is a suspend function, implying it could fail due to I/O errors. A test case should be added where the `FakeWalletSource` is configured to throw an exception. The test must verify that the ViewModel catches this exception and updates its `uiState` to reflect an error condition, preventing an application crash.
+
+*   **Wallets with Unusual Data:** Test how the ViewModel handles wallets with edge-case data. This includes a wallet with an extremely long name, a name containing special characters or emojis, or a name that is empty/whitespace. This ensures that any processing or display logic within the ViewModel or downstream UI does not break when handling non-standard string inputs.
 
