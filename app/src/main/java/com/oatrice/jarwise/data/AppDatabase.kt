@@ -5,12 +5,13 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 7, exportSchema = true)
+@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class, SubTransaction::class], version = 8, exportSchema = true)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
     abstract fun jarConfigDao(): JarConfigDao
     abstract fun allocationDao(): AllocationDao
     abstract fun walletDao(): WalletDao
+    abstract fun subTransactionDao(): SubTransactionDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -102,6 +103,21 @@ abstract class AppDatabase : RoomDatabase() {
         val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE transactions ADD COLUMN linkedTransactionId TEXT")
+            }
+        }
+
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS `sub_transactions` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
+                        `parentId` INTEGER NOT NULL, 
+                        `description` TEXT NOT NULL, 
+                        `amount` REAL NOT NULL, 
+                        FOREIGN KEY(`parentId`) REFERENCES `transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_sub_transactions_parentId` ON `sub_transactions` (`parentId`)")
             }
         }
 

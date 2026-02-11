@@ -8,48 +8,9 @@ import com.oatrice.jarwise.ui.theme.*
 
 // WARNING: This file is auto-generated. Do not edit directly.
 // Generated from: shared-spec/data/mockData.json
-// Generated at: 2026-01-31T11:24:59.073Z
+// Generated at: 2026-02-06T07:25:19.853Z
 
 object GeneratedMockData {
-    val wallets = listOf(
-        com.oatrice.jarwise.model.Wallet(
-            id = "101",
-            name = "Bank Account",
-            balance = 15430.00,
-            color = Blue500,
-            icon = Icons.Rounded.AccountBalance,
-            parentId = null,
-            level = 0
-        ),
-        com.oatrice.jarwise.model.Wallet(
-            id = "102",
-            name = "K-Bank Savings",
-            balance = 12000.00,
-            color = Green500,
-            icon = Icons.Rounded.Savings,
-            parentId = "101",
-            level = 1
-        ),
-        com.oatrice.jarwise.model.Wallet(
-            id = "103",
-            name = "SCB Checking",
-            balance = 3430.00,
-            color = Purple500,
-            icon = Icons.Rounded.CreditCard,
-            parentId = "101",
-            level = 1
-        ),
-        com.oatrice.jarwise.model.Wallet(
-            id = "104",
-            name = "Cash Wallet",
-            balance = 1250.00,
-            color = Yellow500,
-            icon = Icons.Rounded.Wallet,
-            parentId = null,
-            level = 0
-        )
-    )
-
     val jars = listOf(
         Jar(
             id = "1",
@@ -123,7 +84,7 @@ object GeneratedMockData {
         Transaction(
             id = "1",
             merchant = "Spotify Premium",
-            amount = 12.99,
+            amount = -12.99,
             category = "Play",
             date = "Today, 10:43 AM",
             icon = Icons.Rounded.Headphones,
@@ -133,7 +94,7 @@ object GeneratedMockData {
         Transaction(
             id = "2",
             merchant = "Whole Foods Market",
-            amount = 142.5,
+            amount = -142.5,
             category = "Necessities",
             date = "Yesterday, 6:30 PM",
             icon = Icons.Rounded.ShoppingBag,
@@ -143,7 +104,7 @@ object GeneratedMockData {
         Transaction(
             id = "3",
             merchant = "Udemy Course",
-            amount = 24.99,
+            amount = -24.99,
             category = "Education",
             date = "Dec 28, 2025",
             icon = Icons.Rounded.School,
