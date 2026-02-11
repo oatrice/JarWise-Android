@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0] - 2026-02-11
+### Added
+- **Transaction & Report Filtering**: A new filter option is now available on the transaction history screen. You can filter your transactions by date range and specific jars to get a clearer view of your finances.
+
+### Changed
+- **Enhanced Database Structure**: The app's database has been upgraded to support a more detailed transaction model, including allocations to specific jars. This change improves data integrity and paves the way for more advanced reporting features in the future.
+
 ## [1.9.0] - 2026-02-04
 ### Added
 - **Transfers Between Jars**: You can now record transfers between your jars. Transfers are a dedicated transaction type, making it simple to track your money's movement without affecting your overall income or expense totals.
