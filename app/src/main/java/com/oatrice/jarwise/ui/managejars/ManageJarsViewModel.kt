@@ -33,7 +33,8 @@ data class EditableJar(
 
 class ManageJarsViewModel(
     private val allocationDao: AllocationDao,
-    private val backupManager: com.oatrice.jarwise.data.backup.BackupManager
+    private val backupManager: com.oatrice.jarwise.data.backup.BackupManager,
+    private val graphRepository: com.oatrice.jarwise.data.repository.GraphRepository
 ) : ViewModel() {
 
     private val _jars = MutableStateFlow<List<EditableJar>>(emptyList())
@@ -42,6 +43,15 @@ class ManageJarsViewModel(
 
     private val _selectedJarId = MutableStateFlow<Long?>(null)
     val selectedJarId: StateFlow<Long?> = _selectedJarId.asStateFlow()
+
+    private val _graphData = MutableStateFlow<List<com.oatrice.jarwise.data.model.GraphDataPointDto>>(emptyList())
+    val graphData = _graphData.asStateFlow()
+
+    private val _graphPeriod = MutableStateFlow("monthly")
+    val graphPeriod = _graphPeriod.asStateFlow()
+
+    private val _isLoadingGraph = MutableStateFlow(false)
+    val isLoadingGraph = _isLoadingGraph.asStateFlow()
 
     private val _showResetDialog = MutableStateFlow(false)
     val showResetDialog: StateFlow<Boolean> = _showResetDialog.asStateFlow()
@@ -110,7 +120,36 @@ class ManageJarsViewModel(
     }
 
     fun selectJar(id: Long?) {
-        _selectedJarId.value = if (_selectedJarId.value == id) null else id
+        val newSelection = if (_selectedJarId.value == id) null else id
+        _selectedJarId.value = newSelection
+        
+        if (newSelection != null && newSelection > 0) { // Only load for real jars
+            loadGraphData(newSelection)
+        }
+    }
+
+    private fun loadGraphData(jarId: Long) {
+        val period = _graphPeriod.value
+        _isLoadingGraph.value = true
+        viewModelScope.launch {
+            graphRepository.getExpenseGraphData(jarId.toString(), period, "category")
+                .catch { e ->
+                    e.printStackTrace()
+                    _isLoadingGraph.value = false
+                    _graphData.value = emptyList()
+                }
+                .collect { data ->
+                    _graphData.value = data
+                    _isLoadingGraph.value = false
+                }
+        }
+    }
+
+    fun setGraphPeriod(period: String) {
+        _graphPeriod.value = period
+        _selectedJarId.value?.let { 
+             if (it > 0) loadGraphData(it) 
+        }
     }
 
     fun updateJar(id: Long, name: String? = null, percentage: Int? = null, colorName: String? = null, iconName: String? = null) {

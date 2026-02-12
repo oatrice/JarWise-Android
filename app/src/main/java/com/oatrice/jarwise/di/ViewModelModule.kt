@@ -14,7 +14,7 @@ import org.koin.dsl.module
 val viewModelModule = module {
     viewModel { MainViewModel(get(), get(), get(), get(), get()) }
     viewModel { SlipViewModel(get(), get()) }
-    viewModel { ManageJarsViewModel(get(), get()) }
+    viewModel { ManageJarsViewModel(get(), get(), get()) }
     viewModel { ManageWalletsViewModel(get()) }
     viewModel { LoginViewModel(get(), get()) }
     viewModel { SettingsViewModel(get(), get()) }

@@ -33,6 +33,11 @@ fun ManageJarsScreen(
     val isValid by viewModel.isValid.collectAsState()
     val showResetDialog by viewModel.showResetDialog.collectAsState()
 
+    // Graph State
+    val graphData by viewModel.graphData.collectAsState()
+    val graphPeriod by viewModel.graphPeriod.collectAsState()
+    val isLoadingGraph by viewModel.isLoadingGraph.collectAsState()
+
     DisposableEffect(Unit) {
         viewModel.setBackupPaused(true)
         onDispose {
@@ -191,7 +196,13 @@ fun ManageJarsScreen(
                                         viewModel.selectJar(jar.id) // Ensure selected
                                         viewModel.showDeleteConfirmation(jar) 
                                     },
-                                    onAddCategory = { viewModel.addCategory(jar.id) }
+                                    onAddCategory = { viewModel.addCategory(jar.id) },
+                                    
+                                    // Graph Props
+                                    graphData = if (selectedJarId == jar.id) graphData else emptyList(),
+                                    graphPeriod = graphPeriod,
+                                    isLoadingGraph = isLoadingGraph,
+                                    onGraphPeriodChange = { viewModel.setGraphPeriod(it) }
                                 )
                             }
                         }
@@ -284,7 +295,13 @@ private fun JarEditCard(
     onColorChange: (String) -> Unit,
     onIconChange: (String) -> Unit,
     onDelete: () -> Unit,
-    onAddCategory: () -> Unit
+    onAddCategory: () -> Unit,
+    
+    // Graph Props
+    graphData: List<com.oatrice.jarwise.data.model.GraphDataPointDto>,
+    graphPeriod: String,
+    isLoadingGraph: Boolean,
+    onGraphPeriodChange: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -457,7 +474,20 @@ private fun JarEditCard(
                             Text("Delete ${if (jar.level==0) "Jar" else "Cat"}", color = Color.White, fontSize = 12.sp)
                         }
                     }
+                        // Expense Graph (Only if ID > 0, i.e., real jar)
+                        if (jar.id > 0) {
+                             Spacer(modifier = Modifier.height(24.dp))
+                             HorizontalDivider()
+                             com.oatrice.jarwise.ui.components.ExpenseGraph(
+                                data = graphData,
+                                period = graphPeriod,
+                                onPeriodChange = onGraphPeriodChange,
+                                isLoading = isLoadingGraph
+                             )
+                        }
+                    }
                 }
+
             }
         }
     }

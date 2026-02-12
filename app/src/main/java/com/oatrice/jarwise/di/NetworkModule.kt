@@ -33,4 +33,5 @@ val networkModule = module {
     }
 
     single { get<Retrofit>().create(MigrationApi::class.java) }
+    single { get<Retrofit>().create(com.oatrice.jarwise.data.api.GraphApi::class.java) }
 }
