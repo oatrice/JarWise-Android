@@ -56,7 +56,11 @@ fun ManageJarsScreen(
                 },
                 actions = {
                     TextButton(onClick = { viewModel.showResetConfirmation() }) {
-                        Icon(Icons.Rounded.Refresh, contentDescription = "Discard Changes", modifier = Modifier.size(18.dp))
+                        Icon(
+                            Icons.Rounded.Refresh,
+                            contentDescription = "Discard Changes",
+                            modifier = Modifier.size(18.dp)
+                        )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Revert")
                     }
@@ -67,7 +71,11 @@ fun ManageJarsScreen(
                             containerColor = if (isValid) Green500 else MaterialTheme.colorScheme.surfaceVariant
                         )
                     ) {
-                        Icon(Icons.Rounded.Save, contentDescription = "Save", modifier = Modifier.size(18.dp))
+                        Icon(
+                            Icons.Rounded.Save,
+                            contentDescription = "Save",
+                            modifier = Modifier.size(18.dp)
+                        )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text("Save")
                     }
@@ -139,10 +147,18 @@ fun ManageJarsScreen(
                     // Connector Lines Logic
                     // Ideally we need to know if it's the last child to stop the vertical line.
                     // For simple MVP without complex tree calculation in UI, we draw basic L shape.
-                    
-                    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
-                        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-                             if (jar.level > 0) {
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(IntrinsicSize.Min)
+                        ) {
+                            if (jar.level > 0) {
                                 // Indentation and Connector
                                 Box(
                                     modifier = Modifier
@@ -152,7 +168,7 @@ fun ManageJarsScreen(
                                     // Vertical line from parent (simple approximation: full height)
                                     // ideally we want to stop if it's the last child.
                                     // For now, let's just draw an L shape for the item itself
-                                    
+
                                     // Vertical Line
                                     // We need to draw a line at offset. 
                                     // Let's use a simpler visual: Just the L shape for THIS item.
@@ -162,17 +178,18 @@ fun ManageJarsScreen(
                                     // Top-center to Center-center (Vertical)
                                     // Center-center to Right-center (Horizontal)
                                     // AND if not last child, Center-center to Bottom-center.
-                                    
+
                                     // Simplified: Just draw the L for current item relative to the "slot"
-                                    Spacer(modifier = Modifier
-                                        .width(2.dp)
-                                        .fillMaxHeight() // This assumes continuous line. 
-                                        .align(Alignment.CenterEnd)
-                                        .offset(x = (-12).dp) // Center of the 24dp indent
-                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                    Spacer(
+                                        modifier = Modifier
+                                            .width(2.dp)
+                                            .fillMaxHeight() // This assumes continuous line.
+                                            .align(Alignment.CenterEnd)
+                                            .offset(x = (-12).dp) // Center of the 24dp indent
+                                            .background(MaterialTheme.colorScheme.surfaceVariant)
                                     )
                                 }
-                                
+
                                 // Small horizontal connector
                                 Box(
                                     modifier = Modifier
@@ -182,22 +199,27 @@ fun ManageJarsScreen(
                                         .background(MaterialTheme.colorScheme.surfaceVariant)
                                 )
                             }
-                            
+
                             Box(modifier = Modifier.weight(1f)) {
                                 JarEditCard(
                                     jar = jar,
                                     isExpanded = selectedJarId == jar.id,
                                     onClick = { viewModel.selectJar(jar.id) },
                                     onNameChange = { viewModel.updateJar(jar.id, name = it) },
-                                    onPercentageChange = { viewModel.updateJar(jar.id, percentage = it) },
+                                    onPercentageChange = {
+                                        viewModel.updateJar(
+                                            jar.id,
+                                            percentage = it
+                                        )
+                                    },
                                     onColorChange = { viewModel.updateJar(jar.id, colorName = it) },
                                     onIconChange = { viewModel.updateJar(jar.id, iconName = it) },
-                                    onDelete = { 
+                                    onDelete = {
                                         viewModel.selectJar(jar.id) // Ensure selected
-                                        viewModel.showDeleteConfirmation(jar) 
+                                        viewModel.showDeleteConfirmation(jar)
                                     },
                                     onAddCategory = { viewModel.addCategory(jar.id) },
-                                    
+
                                     // Graph Props
                                     graphData = if (selectedJarId == jar.id) graphData else emptyList(),
                                     graphPeriod = graphPeriod,
@@ -208,16 +230,22 @@ fun ManageJarsScreen(
                         }
                     }
                 }
-                
+
                 // Add New Jar Button
                 item {
                     Button(
                         onClick = { viewModel.addJar() },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Icon(Icons.Rounded.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                        Icon(
+                            Icons.Rounded.Add,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Add New Jar", color = MaterialTheme.colorScheme.onPrimaryContainer)
                     }
@@ -248,14 +276,14 @@ fun ManageJarsScreen(
             }
         )
     }
-    
+
     // Delete Confirmation Dialog
     val jarToDelete by viewModel.jarToDelete.collectAsState()
     if (jarToDelete != null) {
         AlertDialog(
             onDismissRequest = { viewModel.cancelDelete() },
             title = { Text("Delete ${if (jarToDelete!!.level == 0) "Jar" else "Category"}?") },
-            text = { 
+            text = {
                 Column {
                     Text("Are you sure you want to delete '${jarToDelete!!.name}'?")
                     if (jarToDelete!!.level == 0) {
@@ -296,7 +324,7 @@ private fun JarEditCard(
     onIconChange: (String) -> Unit,
     onDelete: () -> Unit,
     onAddCategory: () -> Unit,
-    
+
     // Graph Props
     graphData: List<com.oatrice.jarwise.data.model.GraphDataPointDto>,
     graphPeriod: String,
@@ -308,9 +336,9 @@ private fun JarEditCard(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = CardDefaults.cardColors(
-            containerColor = if (isExpanded) 
-                MaterialTheme.colorScheme.surfaceVariant 
-            else 
+            containerColor = if (isExpanded)
+                MaterialTheme.colorScheme.surfaceVariant
+            else
                 MaterialTheme.colorScheme.surface
         ),
         shape = RoundedCornerShape(16.dp)
@@ -329,20 +357,33 @@ private fun JarEditCard(
                         .background(jar.color.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(jar.icon, contentDescription = null, tint = jar.color, modifier = Modifier.size(24.dp))
+                    Icon(
+                        jar.icon,
+                        contentDescription = null,
+                        tint = jar.color,
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(jar.name, fontWeight = FontWeight.SemiBold)
                     // Hide allocation subtitle for categories if needed, but keeping for now
                     if (jar.level == 0) {
-                        Text("${jar.percentage}% allocation", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                        Text(
+                            "${jar.percentage}% allocation",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
                     } else {
-                        Text("Category", color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                        Text(
+                            "Category",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
                     }
                 }
                 if (jar.level == 0) {
-                     Box(
+                    Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
                             .background(jar.color.copy(alpha = 0.2f))
@@ -359,7 +400,11 @@ private fun JarEditCard(
                     HorizontalDivider(modifier = Modifier.padding(bottom = 16.dp))
 
                     // Name Input
-                    Text("Name", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "Name",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     OutlinedTextField(
                         value = jar.name,
@@ -373,20 +418,31 @@ private fun JarEditCard(
 
                     // Percentage Slider (Only for Top Level Jars)
                     if (jar.level == 0) {
-                        Text("Percentage: ${jar.percentage}%", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text(
+                            "Percentage: ${jar.percentage}%",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                         Slider(
                             value = jar.percentage.toFloat(),
                             onValueChange = { onPercentageChange(it.toInt()) },
                             valueRange = 0f..100f,
                             steps = 99,
-                            colors = SliderDefaults.colors(thumbColor = jar.color, activeTrackColor = jar.color)
+                            colors = SliderDefaults.colors(
+                                thumbColor = jar.color,
+                                activeTrackColor = jar.color
+                            )
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                     }
 
                     // Color Picker
                     // ... (keep color picker) ...
-                    Text("Color", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(
+                        "Color",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ManageJarsViewModel.AVAILABLE_COLORS.forEach { colorName ->
@@ -400,7 +456,12 @@ private fun JarEditCard(
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (jar.colorName == colorName) {
-                                    Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                                    Icon(
+                                        Icons.Rounded.Check,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(18.dp)
+                                    )
                                 }
                             }
                         }
@@ -409,8 +470,12 @@ private fun JarEditCard(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     // Icon Picker
-                     // ... (keep icon picker) ...
-                    Text("Icon", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    // ... (keep icon picker) ...
+                    Text(
+                        "Icon",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ManageJarsViewModel.AVAILABLE_ICONS.forEach { iconName ->
@@ -437,9 +502,9 @@ private fun JarEditCard(
                             }
                         }
                     }
-                    
+
                     Spacer(modifier = Modifier.height(24.dp))
-                    
+
                     // Actions Row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -456,7 +521,11 @@ private fun JarEditCard(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Icon(Icons.Rounded.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Icon(
+                                    Icons.Rounded.Add,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text("Add Category", fontSize = 12.sp)
                             }
@@ -469,26 +538,34 @@ private fun JarEditCard(
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Rounded.Delete, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Icon(
+                                Icons.Rounded.Delete,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Delete ${if (jar.level==0) "Jar" else "Cat"}", color = Color.White, fontSize = 12.sp)
+                            Text(
+                                "Delete ${if (jar.level == 0) "Jar" else "Cat"}",
+                                color = Color.White,
+                                fontSize = 12.sp
+                            )
                         }
                     }
-                        // Expense Graph (Only if ID > 0, i.e., real jar)
-                        if (jar.id > 0) {
-                             Spacer(modifier = Modifier.height(24.dp))
-                             HorizontalDivider()
-                             com.oatrice.jarwise.ui.components.ExpenseGraph(
-                                data = graphData,
-                                period = graphPeriod,
-                                onPeriodChange = onGraphPeriodChange,
-                                isLoading = isLoadingGraph
-                             )
-                        }
+                    // Expense Graph (Only if ID > 0, i.e., real jar)
+                    if (jar.id > 0) {
+                        Spacer(modifier = Modifier.height(24.dp))
+                        HorizontalDivider()
+                        com.oatrice.jarwise.ui.components.ExpenseGraph(
+                            data = graphData,
+                            period = graphPeriod,
+                            onPeriodChange = onGraphPeriodChange,
+                            isLoading = isLoadingGraph
+                        )
                     }
                 }
-
             }
+
         }
     }
 }
