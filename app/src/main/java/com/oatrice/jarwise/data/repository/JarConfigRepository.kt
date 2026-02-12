@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Repository for managing jar configurations
  */
-class JarConfigRepository(private val jarConfigDao: JarConfigDao) {
+class JarConfigRepository(private val jarConfigDao: JarConfigDao) : JarConfigSource {
     
     /**
      * Get all jar configs as Flow (reactive updates)
@@ -17,7 +17,7 @@ class JarConfigRepository(private val jarConfigDao: JarConfigDao) {
     /**
      * Get all jar configs (one-shot)
      */
-    suspend fun getAllJarConfigs(): List<JarConfig> = jarConfigDao.getAll()
+    override suspend fun getAllJarConfigs(): List<JarConfig> = jarConfigDao.getAll()
     
     /**
      * Get jar config by ID
@@ -45,7 +45,7 @@ class JarConfigRepository(private val jarConfigDao: JarConfigDao) {
     /**
      * Initialize default jars if database is empty
      */
-    suspend fun initializeDefaultsIfEmpty() {
+    override suspend fun initializeDefaultsIfEmpty() {
         if (jarConfigDao.count() == 0) {
             jarConfigDao.insertAll(JarConfig.DEFAULTS)
         }

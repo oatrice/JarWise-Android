@@ -20,7 +20,8 @@ val dataModule = module {
                 AppDatabase.MIGRATION_3_4,
                 AppDatabase.MIGRATION_4_5,
                 AppDatabase.MIGRATION_5_6,
-                AppDatabase.MIGRATION_6_7
+                AppDatabase.MIGRATION_6_7,
+                AppDatabase.MIGRATION_7_8
             )
             .addCallback(AppDatabase.SEED_CALLBACK)
             .fallbackToDestructiveMigration()
@@ -32,6 +33,7 @@ val dataModule = module {
     single { get<AppDatabase>().jarConfigDao() }
     single { get<AppDatabase>().allocationDao() }
     single { get<AppDatabase>().walletDao() }
+    single { get<AppDatabase>().subTransactionDao() }
 
     // Services
     single<SlipDetectorService> { SlipDetectorServiceImpl(androidContext()) }

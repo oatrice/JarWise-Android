@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.first
 
-open class WalletRepository(private val walletDao: WalletDao) {
+open class WalletRepository(private val walletDao: WalletDao) : WalletSource {
 
     open val wallets: Flow<List<Wallet>> = walletDao.getAllWallets().map { entities ->
         entities.map { it.toWallet() }
@@ -76,9 +76,8 @@ open class WalletRepository(private val walletDao: WalletDao) {
     /**
      * Initialize default wallets if database is empty
      */
-    suspend open fun initializeDefaultsIfEmpty() {
-        val currentWallets = walletDao.getAllWallets().first()
-        if (currentWallets.isEmpty()) { 
+    override suspend fun initializeDefaultsIfEmpty() {
+        if (walletDao.count() == 0) {
              val defaults = listOf(
                  Wallet(id = "wallet-cash", name = "Cash", balance = 0.0, color = Color(0xFF22C55E), icon = Icons.Default.AccountBalanceWallet),
                  Wallet(id = "wallet-bank", name = "Bank Account", balance = 0.0, color = Color(0xFF3B82F6), icon = Icons.Default.AccountBalance),
@@ -87,5 +86,9 @@ open class WalletRepository(private val walletDao: WalletDao) {
              
              defaults.forEach { insertWallet(it) }
         }
+    }
+
+    override suspend fun getAllWallets(): List<Wallet> {
+        return wallets.first()
     }
 }

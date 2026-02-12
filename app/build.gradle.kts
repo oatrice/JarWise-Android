@@ -1,32 +1,28 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.jetbrains.kotlin.android)
-    alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.android.legacy.kapt)
     alias(libs.plugins.google.services)
 }
 
 android {
     namespace = "com.oatrice.jarwise"
     compileSdk = 34
-    buildToolsVersion = "34.0.0"
 
     defaultConfig {
         applicationId = "com.oatrice.jarwise"
         minSdk = 24
         targetSdk = 34
         versionCode = 1
-        versionName = "1.9.0"
+        versionName = "1.10.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
-        }
     }
 
     buildTypes {
@@ -42,14 +38,8 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
     buildFeatures {
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
     }
     packaging {
         resources {
@@ -71,15 +61,23 @@ android {
     }
 
     sourceSets {
+        val roomSchemas = file("$projectDir/schemas").path
         getByName("test") {
-            assets.srcDirs("$projectDir/schemas")
+            assets.directories.add(roomSchemas)
         }
         getByName("androidTest") {
-            assets.srcDirs("$projectDir/schemas")
+            assets.directories.add(roomSchemas)
         }
         getByName("release") {
-            assets.srcDirs("$projectDir/schemas")
+            assets.directories.add(roomSchemas)
         }
+    }
+}
+
+// Kotlin compiler options moved to the new DSL.
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
     }
 }
 
@@ -90,7 +88,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
+    kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -155,6 +153,8 @@ dependencies {
     implementation(libs.logging.interceptor)
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
+kapt {
+    arguments {
+        arg("room.schemaLocation", "$projectDir/schemas")
+    }
 }
