@@ -13,7 +13,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Person
-import androidx.compose.material.icons.rounded.AccountBalanceWallet
+import androidx.compose.material.icons.rounded.Assessment
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,7 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.oatrice.jarwise.ui.theme.JarWiseTheme
 
 enum class NavPage {
-    DASHBOARD, HISTORY, ADD, BUDGET, PROFILE
+    DASHBOARD, HISTORY, ADD, REPORTS, PROFILE
 }
 
 /**
@@ -111,11 +111,11 @@ fun BottomNav(
                 )
             }
             
-            // Budget/Wallet
+            // Reports
             NavItem(
-                icon = Icons.Rounded.AccountBalanceWallet,
-                isActive = activePage == NavPage.BUDGET,
-                onClick = { onNavigate(NavPage.BUDGET) }
+                icon = Icons.Rounded.Assessment,
+                isActive = activePage == NavPage.REPORTS,
+                onClick = { onNavigate(NavPage.REPORTS) }
             )
             
             // Profile

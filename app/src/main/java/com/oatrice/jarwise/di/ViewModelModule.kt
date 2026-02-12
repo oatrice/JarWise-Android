@@ -20,4 +20,5 @@ val viewModelModule = module {
     viewModel { SettingsViewModel(get(), get()) }
     viewModel { MigrationViewModel(get(), get()) }
     viewModel { ReportFilterViewModel(get()) }
+    viewModel { com.oatrice.jarwise.ui.reports.ReportsViewModel() }
 }
