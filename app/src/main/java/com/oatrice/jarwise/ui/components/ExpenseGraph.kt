@@ -49,7 +49,9 @@ fun ExpenseGraph(
             }
             chartModelProducer = ChartEntryModelProducer(entries)
         } else {
-             chartModelProducer = null
+             // Generate empty graph data so the chart structure is visible
+             val emptyEntries = List(7) { index -> entryOf(index.toFloat(), 0f) }
+             chartModelProducer = ChartEntryModelProducer(emptyEntries)
         }
     }
 
@@ -86,8 +88,8 @@ fun ExpenseGraph(
 
         if (isLoading) {
              Text(text = "Loading...", style = MaterialTheme.typography.bodySmall)
-        } else if (data.isEmpty() || chartModelProducer == null) {
-             Text(text = "No data available for this period", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        } else if (chartModelProducer == null) {
+             Text(text = "Preparing graph...", style = MaterialTheme.typography.bodySmall)
         } else {
             Chart(
                 chart = columnChart(),
