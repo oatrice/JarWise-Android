@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.11.0] - 2026-03-10
+### Added
+- **Expense Reports Screen**: Introduced a new "Reports" section, accessible via the bottom navigation, to provide visual insights into your spending.
+- **Visual Expense Graph**: Integrated a chart on the Reports screen to help you visualize spending patterns over time, powered by Vico charts.
+
+### Changed
+- **UI Modernization**: Updated various UI elements to Material 3 components for a refreshed and more modern user experience.
+
+### Fixed
+- **Chart Display**: Ensured the expense chart now correctly displays an empty state when there is no transaction data, preventing potential crashes.
+
 ## [1.10.0] - 2026-02-11
 ### Added
 - **Transaction & Report Filtering**: A new filter option is now available on the transaction history screen. You can filter your transactions by date range and specific jars to get a clearer view of your finances.

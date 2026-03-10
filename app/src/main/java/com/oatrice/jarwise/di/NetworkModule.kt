@@ -26,11 +26,12 @@ val networkModule = module {
 
     single {
         Retrofit.Builder()
-            .baseUrl("http://10.0.2.2:8080/") // Emulator localhost
+            .baseUrl("http://10.0.2.2:8081/") // Emulator localhost
             .client(get())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
 
     single { get<Retrofit>().create(MigrationApi::class.java) }
+    single { get<Retrofit>().create(com.oatrice.jarwise.data.api.GraphApi::class.java) }
 }

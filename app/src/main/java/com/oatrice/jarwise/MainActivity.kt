@@ -37,6 +37,7 @@ sealed class Screen {
     data object ManageWallets : Screen()
     data object Migration : Screen()
     data object Login : Screen()
+    data object Reports : Screen()
 }
 
 private val slipDateFormat = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.US).apply {
@@ -78,10 +79,9 @@ class MainActivity : ComponentActivity() {
                             previousScreen = currentScreen
                             currentScreen = Screen.AddTransaction
                         }
-                        com.oatrice.jarwise.ui.components.NavPage.BUDGET -> {
-                            // Wallets update via StateFlow automatically
-                            previousScreen = currentScreen // likely Dashboard or whatever tab
-                            currentScreen = Screen.ManageWallets
+                        com.oatrice.jarwise.ui.components.NavPage.REPORTS -> {
+                            // Reports
+                            currentScreen = Screen.Reports
                         }
                         com.oatrice.jarwise.ui.components.NavPage.PROFILE -> currentScreen = Screen.Settings
                     }
@@ -121,7 +121,9 @@ class MainActivity : ComponentActivity() {
                                  currentScreen = Screen.ManageWallets 
                              },
                              onNavigateToMigration = { currentScreen = Screen.Migration },
-                             viewModel = viewModel
+
+                             viewModel = viewModel,
+                             onNavigate = handleNavigation
                         )
                         is Screen.Migration -> {
                            val migrationViewModel: com.oatrice.jarwise.ui.migration.MigrationViewModel = org.koin.androidx.compose.koinViewModel()
@@ -214,6 +216,10 @@ class MainActivity : ComponentActivity() {
                         )
                         is Screen.Login -> com.oatrice.jarwise.ui.login.LoginScreen(
                             onLoginSuccess = { currentScreen = Screen.Dashboard }
+                        )
+                        is Screen.Reports -> com.oatrice.jarwise.ui.reports.ReportsScreen(
+                            onBack = { currentScreen = Screen.Dashboard },
+                            onNavigate = handleNavigation
                         )
                     }
                 }
