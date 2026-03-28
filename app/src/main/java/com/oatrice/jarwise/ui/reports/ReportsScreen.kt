@@ -49,6 +49,45 @@ fun ReportsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
     var selectedRange by remember { mutableStateOf("month") }
+    
+    // Custom range state
+    var showDatePicker by remember { mutableStateOf(false) }
+    var customStartDate by remember { mutableStateOf<String?>(null) }
+    var customEndDate by remember { mutableStateOf<String?>(null) }
+
+    if (showDatePicker) {
+        val dateRangePickerState = rememberDateRangePickerState()
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val start = dateRangePickerState.selectedStartDateMillis
+                    val end = dateRangePickerState.selectedEndDateMillis
+                    if (start != null && end != null) {
+                        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                        customStartDate = sdf.format(Date(start))
+                        customEndDate = sdf.format(Date(end))
+                        viewModel.fetchReport("custom", customStartDate, customEndDate)
+                        selectedRange = "custom"
+                    }
+                    showDatePicker = false
+                }) {
+                    Text("Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DateRangePicker(
+                state = dateRangePickerState,
+                modifier = Modifier.padding(16.dp).height(500.dp),
+                title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
+            )
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         Scaffold(
@@ -76,7 +115,7 @@ fun ReportsScreen(
 
                         IconButton(
                             onClick = {
-                                viewModel.exportReport(selectedRange) { bytes ->
+                                viewModel.exportReport(selectedRange, customStartDate, customEndDate) { bytes ->
                                     csvBytes = bytes
                                     launcher.launch("jarwise-export-${selectedRange}.csv")
                                 }
@@ -113,13 +152,25 @@ fun ReportsScreen(
                         .padding(4.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    val ranges = listOf("month" to "Month", "quarter" to "Quarter", "year" to "Year")
+                    val ranges = listOf(
+                        "month" to "Month", 
+                        "quarter" to "Quarter", 
+                        "year" to "Year",
+                        "all" to "All",
+                        "custom" to "Custom"
+                    )
                     ranges.forEach { (key, label) ->
                         FilterChip(
                             selected = selectedRange == key,
                             onClick = { 
-                                selectedRange = key
-                                viewModel.fetchReport(key)
+                                if (key == "custom") {
+                                    showDatePicker = true
+                                } else {
+                                    selectedRange = key
+                                    customStartDate = null
+                                    customEndDate = null
+                                    viewModel.fetchReport(key)
+                                }
                             },
                             label = { Text(label) },
                             colors = FilterChipDefaults.filterChipColors(

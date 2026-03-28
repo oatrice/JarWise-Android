@@ -43,24 +43,34 @@ class ReportsViewModel(
         fetchReport("month")
     }
 
-    fun fetchReport(range: String) {
+    fun fetchReport(range: String, customStart: String? = null, customEnd: String? = null) {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-            val now = Calendar.getInstance()
-            val start = Calendar.getInstance()
+            
+            val startDateStr: String
+            val endDateStr: String
 
-            when (range) {
-                "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
-                "quarter" -> start.add(Calendar.MONTH, -3)
-                "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+            if (customStart != null && customEnd != null) {
+                startDateStr = customStart
+                endDateStr = customEnd
+            } else {
+                val now = Calendar.getInstance()
+                val start = Calendar.getInstance()
+
+                when (range) {
+                    "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
+                    "quarter" -> start.add(Calendar.MONTH, -3)
+                    "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+                    "all" -> start.set(2000, 0, 1) // Default "All Time" to year 2000
+                }
+                
+                startDateStr = sdf.format(start.time)
+                endDateStr = sdf.format(now.time)
             }
 
-            val startDate = sdf.format(start.time)
-            val endDate = sdf.format(now.time)
-
-            repository.getReport(startDate, endDate).collect { response ->
+            repository.getReport(startDateStr, endDateStr).collect { response ->
                 if (response != null) {
                     updateUiState(response)
                 } else {
@@ -107,22 +117,32 @@ class ReportsViewModel(
         )
     }
 
-    fun exportReport(range: String, onResult: (ByteArray?) -> Unit) {
+    fun exportReport(range: String, customStart: String? = null, customEnd: String? = null, onResult: (ByteArray?) -> Unit) {
         viewModelScope.launch {
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
-            val now = Calendar.getInstance()
-            val start = Calendar.getInstance()
+            
+            val startDateStr: String
+            val endDateStr: String
 
-            when (range) {
-                "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
-                "quarter" -> start.add(Calendar.MONTH, -3)
-                "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+            if (customStart != null && customEnd != null) {
+                startDateStr = customStart
+                endDateStr = customEnd
+            } else {
+                val now = Calendar.getInstance()
+                val start = Calendar.getInstance()
+
+                when (range) {
+                    "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
+                    "quarter" -> start.add(Calendar.MONTH, -3)
+                    "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+                    "all" -> start.set(2000, 0, 1)
+                }
+                
+                startDateStr = sdf.format(start.time)
+                endDateStr = sdf.format(now.time)
             }
 
-            val startDate = sdf.format(start.time)
-            val endDate = sdf.format(now.time)
-
-            repository.exportReport(startDate, endDate).collect { response ->
+            repository.exportReport(startDateStr, endDateStr).collect { response ->
                 onResult(response?.bytes())
             }
         }
