@@ -48,6 +48,8 @@ import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
 import com.patrykandpatrick.vico.compose.axis.axisLineComponent
 import com.patrykandpatrick.vico.compose.axis.axisGuidelineComponent
 import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
+import com.patrykandpatrick.vico.core.axis.AxisPosition
+import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
@@ -70,6 +72,10 @@ private val PIE_COLORS = listOf(
     Color(0xFF60A5FA), // Blue
     Color(0xFF93C5FD)  // Light Blue
 )
+
+private val yAxisFormatter = AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
+    if (value >= 1000) "${(value / 1000).toInt()}k" else value.toInt().toString()
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -309,12 +315,16 @@ fun ReportsScreen(
                                 startAxis = rememberStartAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                     axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                    guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                    guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
+                                    valueFormatter = yAxisFormatter
                                 ),
                                 bottomAxis = rememberBottomAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                     axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                    guideline = null
+                                    guideline = null,
+                                    valueFormatter = { value, _ ->
+                                        uiState.trendLabels.getOrNull(value.toInt()) ?: ""
+                                    }
                                 ),
                                 isZoomEnabled = false,
                                 horizontalLayout = HorizontalLayout.fullWidth()
@@ -350,12 +360,16 @@ fun ReportsScreen(
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                         axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                        guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                        guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
+                                        valueFormatter = yAxisFormatter
                                     ),
                                     bottomAxis = rememberBottomAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                         axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                        guideline = null
+                                        guideline = null,
+                                        valueFormatter = { value, _ ->
+                                            uiState.incomeLabels.getOrNull(value.toInt()) ?: ""
+                                        }
                                     ),
                                     isZoomEnabled = false,
                                     horizontalLayout = HorizontalLayout.fullWidth()
@@ -401,12 +415,16 @@ fun ReportsScreen(
                                 startAxis = rememberStartAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                     axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                    guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                    guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
+                                    valueFormatter = yAxisFormatter
                                 ),
                                 bottomAxis = rememberBottomAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                     axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                    guideline = null
+                                    guideline = null,
+                                    valueFormatter = { value, _ ->
+                                        uiState.expenseLabels.getOrNull(value.toInt()) ?: ""
+                                    }
                                 ),
                                 isZoomEnabled = false,
                                 horizontalLayout = HorizontalLayout.fullWidth()
@@ -439,12 +457,16 @@ fun ReportsScreen(
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                         axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                        guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                        guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
+                                        valueFormatter = yAxisFormatter
                                     ),
                                     bottomAxis = rememberBottomAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                         axis = axisLineComponent(color = Color(0xFF374151), brush = null),
-                                        guideline = null
+                                        guideline = null,
+                                        valueFormatter = { value, _ ->
+                                            uiState.comparisonLabels.getOrNull(value.toInt()) ?: ""
+                                        }
                                     ),
                                     isZoomEnabled = false,
                                     horizontalLayout = HorizontalLayout.fullWidth()

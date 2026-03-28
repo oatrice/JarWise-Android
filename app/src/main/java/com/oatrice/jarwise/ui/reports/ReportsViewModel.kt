@@ -23,7 +23,11 @@ data class ReportsUiState(
     val expenseBreakdownData: ChartEntryModelProducer = ChartEntryModelProducer(),
     val incomeDistribution: List<JarDistribution> = emptyList(),
     val expenseDistribution: List<JarDistribution> = emptyList(),
-    val comparisonData: ChartEntryModelProducer = ChartEntryModelProducer()
+    val comparisonData: ChartEntryModelProducer = ChartEntryModelProducer(),
+    val trendLabels: List<String> = emptyList(),
+    val incomeLabels: List<String> = emptyList(),
+    val expenseLabels: List<String> = emptyList(),
+    val comparisonLabels: List<String> = listOf("รายรับ", "รายจ่าย", "คงเหลือ")
 )
 
 data class JarDistribution(
@@ -96,16 +100,29 @@ class ReportsViewModel(
         val incomeDist = incomeCategories.mapIndexed { i, c ->
             JarDistribution(c.id, c.name, c.income, colors[i % colors.size])
         }
+        val incomeLabels = incomeCategories.map { it.name }
 
         // Process expense categories
         val expenseBreakdownEntries = listOf(
             report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.expense.toFloat()) },
             report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.prevExpense.toFloat()) }
         )
+        val expenseLabels = report.byCategory.map { it.name }
         
         // Distribution by Jar (Expense focus)
         val expenseDist = report.byJar.mapIndexed { i, j ->
             JarDistribution(j.id, j.name, j.amount, colors[i % colors.size])
+        }
+
+        val trendLabels = report.trend.map { p ->
+            try {
+                val inputSdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                val outputSdf = SimpleDateFormat("dd/MM", Locale.US)
+                val date = inputSdf.parse(p.date)
+                outputSdf.format(date ?: Date())
+            } catch (e: Exception) {
+                ""
+            }
         }
 
         val comparisonEntries = report.comparison?.let {
@@ -132,7 +149,10 @@ class ReportsViewModel(
             expenseBreakdownData = ChartEntryModelProducer(expenseBreakdownEntries),
             incomeDistribution = incomeDist,
             expenseDistribution = expenseDist,
-            comparisonData = ChartEntryModelProducer(comparisonEntries)
+            comparisonData = ChartEntryModelProducer(comparisonEntries),
+            trendLabels = trendLabels,
+            incomeLabels = incomeLabels,
+            expenseLabels = expenseLabels
         )
     }
 
