@@ -45,6 +45,7 @@ enum class NavPage {
 fun BottomNav(
     activePage: NavPage = NavPage.DASHBOARD,
     visible: Boolean = true,
+    modifier: Modifier = Modifier,
     onNavigate: (NavPage) -> Unit
 ) {
     // Animate visibility
@@ -55,7 +56,7 @@ fun BottomNav(
     )
     
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.navigationBars) // Handle system navigation bar
             .padding(horizontal = 20.dp)
