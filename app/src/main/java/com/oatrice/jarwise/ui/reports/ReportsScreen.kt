@@ -50,6 +50,8 @@ import com.patrykandpatrick.vico.compose.axis.axisGuidelineComponent
 import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
+import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
@@ -309,14 +311,17 @@ fun ReportsScreen(
                                                 Brush.verticalGradient(listOf(Color(0xFFF43F5E).copy(alpha = 0.3f), Color.Transparent))
                                             )
                                         )
-                                    )
+                                    ),
+                                    minY = 0f,
+                                    maxY = uiState.trendMaxY
                                 ),
                                 chartModelProducer = uiState.trendData,
                                 startAxis = rememberStartAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                     axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                     guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
-                                    valueFormatter = yAxisFormatter
+                                    valueFormatter = yAxisFormatter,
+                                    itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 5)
                                 ),
                                 bottomAxis = rememberBottomAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
@@ -354,14 +359,17 @@ fun ReportsScreen(
                                                 thicknessDp = 8f,
                                                 shape = Shapes.roundedCornerShape(allPercent = 40)
                                             )
-                                        )
+                                        ),
+                                        minY = 0f,
+                                        maxY = uiState.incomeMaxY
                                     ),
                                     chartModelProducer = uiState.incomeBreakdownData,
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                         axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                         guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
-                                        valueFormatter = yAxisFormatter
+                                        valueFormatter = yAxisFormatter,
+                                        itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 5)
                                     ),
                                     bottomAxis = rememberBottomAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
@@ -409,14 +417,17 @@ fun ReportsScreen(
                                             thicknessDp = 8f,
                                             shape = Shapes.roundedCornerShape(allPercent = 40)
                                         )
-                                    )
+                                    ),
+                                    minY = 0f,
+                                    maxY = uiState.expenseMaxY
                                 ),
                                 chartModelProducer = uiState.expenseBreakdownData,
                                 startAxis = rememberStartAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                     axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                     guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
-                                    valueFormatter = yAxisFormatter
+                                    valueFormatter = yAxisFormatter,
+                                    itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 5)
                                 ),
                                 bottomAxis = rememberBottomAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
@@ -452,13 +463,14 @@ fun ReportsScreen(
                         ) {
                             ChartSection(title = "⚖️ เทียบกับช่วงก่อนหน้า", icon = Icons.Rounded.Wallet) {
                                 Chart(
-                                    chart = columnChart(),
+                                    chart = columnChart(minY = 0f, maxY = uiState.comparisonMaxY),
                                     chartModelProducer = uiState.comparisonData,
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
                                         axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                         guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f)),
-                                        valueFormatter = yAxisFormatter
+                                        valueFormatter = yAxisFormatter,
+                                        itemPlacer = AxisItemPlacer.Vertical.default(maxItemCount = 5)
                                     ),
                                     bottomAxis = rememberBottomAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),

@@ -27,7 +27,11 @@ data class ReportsUiState(
     val trendLabels: List<String> = emptyList(),
     val incomeLabels: List<String> = emptyList(),
     val expenseLabels: List<String> = emptyList(),
-    val comparisonLabels: List<String> = listOf("รายรับ", "รายจ่าย", "คงเหลือ")
+    val comparisonLabels: List<String> = listOf("รายรับ", "รายจ่าย", "คงเหลือ"),
+    val trendMaxY: Float = 0f,
+    val incomeMaxY: Float = 0f,
+    val expenseMaxY: Float = 0f,
+    val comparisonMaxY: Float = 0f
 )
 
 data class JarDistribution(
@@ -152,8 +156,29 @@ class ReportsViewModel(
             comparisonData = ChartEntryModelProducer(comparisonEntries),
             trendLabels = trendLabels,
             incomeLabels = incomeLabels,
-            expenseLabels = expenseLabels
+            expenseLabels = expenseLabels,
+            trendMaxY = roundUpAxisMax(report.trend.map { Math.max(it.income, it.expense) }.maxOrNull() ?: 0.0),
+            incomeMaxY = roundUpAxisMax(incomeCategories.map { Math.max(it.income, it.prevIncome) }.maxOrNull() ?: 0.0),
+            expenseMaxY = roundUpAxisMax(report.byCategory.map { Math.max(it.expense, it.prevExpense) }.maxOrNull() ?: 0.0),
+            comparisonMaxY = roundUpAxisMax(report.comparison?.let { 
+                listOf(it.current.income, it.current.expense, it.current.net, it.previous.income, it.previous.expense, it.previous.net).maxOrNull() 
+            } ?: 0.0)
         )
+    }
+
+    private fun roundUpAxisMax(max: Double): Float {
+        if (max <= 0.0) return 100f
+        val power = Math.pow(10.0, Math.floor(Math.log10(max)))
+        val normalized = max / power
+        val roundedNormalized = when {
+            normalized <= 1.0 -> 1.0
+            normalized <= 2.0 -> 2.0
+            normalized <= 2.5 -> 2.5
+            normalized <= 5.0 -> 5.0
+            normalized <= 7.5 -> 7.5
+            else -> 10.0
+        }
+        return (roundedNormalized * power).toFloat()
     }
 
     fun exportReport(range: String, customStart: String? = null, customEnd: String? = null, onResult: (ByteArray?) -> Unit) {
