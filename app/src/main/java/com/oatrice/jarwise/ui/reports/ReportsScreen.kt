@@ -52,6 +52,7 @@ import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
 import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
 import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
+import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
@@ -312,8 +313,7 @@ fun ReportsScreen(
                                             )
                                         )
                                     ),
-                                    minY = 0f,
-                                    maxY = uiState.trendMaxY
+                                    axisValuesOverrider = AxisValuesOverrider.fixed(minY = 0f, maxY = uiState.trendMaxY)
                                 ),
                                 chartModelProducer = uiState.trendData,
                                 startAxis = rememberStartAxis(
@@ -360,8 +360,7 @@ fun ReportsScreen(
                                                 shape = Shapes.roundedCornerShape(allPercent = 40)
                                             )
                                         ),
-                                        minY = 0f,
-                                        maxY = uiState.incomeMaxY
+                                        axisValuesOverrider = AxisValuesOverrider.fixed(minY = 0f, maxY = uiState.incomeMaxY)
                                     ),
                                     chartModelProducer = uiState.incomeBreakdownData,
                                     startAxis = rememberStartAxis(
@@ -418,8 +417,7 @@ fun ReportsScreen(
                                             shape = Shapes.roundedCornerShape(allPercent = 40)
                                         )
                                     ),
-                                    minY = 0f,
-                                    maxY = uiState.expenseMaxY
+                                    axisValuesOverrider = AxisValuesOverrider.fixed(minY = 0f, maxY = uiState.expenseMaxY)
                                 ),
                                 chartModelProducer = uiState.expenseBreakdownData,
                                 startAxis = rememberStartAxis(
@@ -463,7 +461,7 @@ fun ReportsScreen(
                         ) {
                             ChartSection(title = "⚖️ เทียบกับช่วงก่อนหน้า", icon = Icons.Rounded.Wallet) {
                                 Chart(
-                                    chart = columnChart(minY = 0f, maxY = uiState.comparisonMaxY),
+                                    chart = columnChart(axisValuesOverrider = AxisValuesOverrider.fixed(minY = 0f, maxY = uiState.comparisonMaxY)),
                                     chartModelProducer = uiState.comparisonData,
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
