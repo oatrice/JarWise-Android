@@ -44,7 +44,13 @@ import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.layout.fullWidth
+import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
+import com.patrykandpatrick.vico.core.component.shape.LineComponent
+import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
+import com.patrykandpatrick.vico.core.chart.line.LineChart
+import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShader
+import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.oatrice.jarwise.ui.components.BottomNav
 import com.oatrice.jarwise.ui.components.NavPage
@@ -167,8 +173,6 @@ fun ReportsScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     val ranges = listOf(
-                        "7d" to "7 วัน",
-                        "30d" to "30 วัน",
                         "month" to "เดือน", 
                         "quarter" to "ไตรมาส", 
                         "year" to "ปี",
@@ -271,28 +275,20 @@ fun ReportsScreen(
                         visible = true,
                         enter = fadeIn(animationSpec = tween(600)) + slideInVertically(initialOffsetY = { 60 })
                     ) {
-                        ChartSection(title = "📈 แนวโน้มรายรับ-รายจ่าย", icon = Icons.Rounded.TrendingUp) {
+                        ChartSection(title = "📈 แนวโน้มรายรับ-รายจ่าย") {
                             Chart(
                                 chart = lineChart(
                                     lines = listOf(
-                                        com.patrykandpatrick.vico.core.chart.line.LineChart.LineSpec(
+                                        LineChart.LineSpec(
                                             lineColor = Color(0xFF10B981).toArgb(),
-                                            areaBrush = com.patrykandpatrick.vico.core.component.shape.shader.ComponentShader(
-                                                com.patrykandpatrick.vico.core.component.shape.ShapeComponent(
-                                                    fill = com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders.fromBrush(
-                                                        Brush.verticalGradient(listOf(Color(0xFF10B981).copy(alpha = 0.3f), Color.Transparent))
-                                                    )
-                                                )
+                                            lineBackgroundShader = DynamicShaders.fromBrush(
+                                                Brush.verticalGradient(listOf(Color(0xFF10B981).copy(alpha = 0.3f), Color.Transparent))
                                             )
                                         ),
-                                        com.patrykandpatrick.vico.core.chart.line.LineChart.LineSpec(
+                                        LineChart.LineSpec(
                                             lineColor = Color(0xFFF43F5E).toArgb(),
-                                            areaBrush = com.patrykandpatrick.vico.core.component.shape.shader.ComponentShader(
-                                                com.patrykandpatrick.vico.core.component.shape.ShapeComponent(
-                                                    fill = com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders.fromBrush(
-                                                        Brush.verticalGradient(listOf(Color(0xFFF43F5E).copy(alpha = 0.3f), Color.Transparent))
-                                                    )
-                                                )
+                                            lineBackgroundShader = DynamicShaders.fromBrush(
+                                                Brush.verticalGradient(listOf(Color(0xFFF43F5E).copy(alpha = 0.3f), Color.Transparent))
                                             )
                                         )
                                     )
@@ -314,23 +310,19 @@ fun ReportsScreen(
                             visible = true,
                             enter = fadeIn(animationSpec = tween(800)) + slideInVertically(initialOffsetY = { 80 })
                         ) {
-                            ChartSection(title = "💰 วิเคราะห์รายรับตามหมวดหมู่", icon = Icons.Rounded.TrendingUp) {
+                            ChartSection(title = "💰 วิเคราะห์รายรับตามหมวดหมู่") {
                                 Chart(
                                     chart = columnChart(
                                         columns = listOf(
-                                            com.patrykandpatrick.vico.core.chart.column.ColumnChart.ColumnSpec(
-                                                com.patrykandpatrick.vico.core.component.shape.LineComponent(
-                                                    color = Color(0xFF10B981).toArgb(),
-                                                    thicknessDp = 8f,
-                                                    shape = com.patrykandpatrick.vico.core.component.shape.Shapes.roundedCornerShape(allPercent = 40)
-                                                )
+                                            LineComponent(
+                                                color = Color(0xFF10B981).toArgb(),
+                                                thicknessDp = 8f,
+                                                shape = Shapes.roundedCornerShape(allPercent = 40)
                                             ),
-                                            com.patrykandpatrick.vico.core.chart.column.ColumnChart.ColumnSpec(
-                                                com.patrykandpatrick.vico.core.component.shape.LineComponent(
-                                                    color = Color(0xFF10B981).copy(alpha = 0.3f).toArgb(),
-                                                    thicknessDp = 8f,
-                                                    shape = com.patrykandpatrick.vico.core.component.shape.Shapes.roundedCornerShape(allPercent = 40)
-                                                )
+                                            LineComponent(
+                                                color = Color(0xFF10B981).copy(alpha = 0.3f).toArgb(),
+                                                thicknessDp = 8f,
+                                                shape = Shapes.roundedCornerShape(allPercent = 40)
                                             )
                                         )
                                     ),
@@ -365,19 +357,15 @@ fun ReportsScreen(
                             Chart(
                                 chart = columnChart(
                                     columns = listOf(
-                                        com.patrykandpatrick.vico.core.chart.column.ColumnChart.ColumnSpec(
-                                            com.patrykandpatrick.vico.core.component.shape.LineComponent(
-                                                color = Color(0xFFF43F5E).toArgb(),
-                                                thicknessDp = 8f,
-                                                shape = com.patrykandpatrick.vico.core.component.shape.Shapes.roundedCornerShape(allPercent = 40)
-                                            )
+                                        LineComponent(
+                                            color = Color(0xFFF43F5E).toArgb(),
+                                            thicknessDp = 8f,
+                                            shape = Shapes.roundedCornerShape(allPercent = 40)
                                         ),
-                                        com.patrykandpatrick.vico.core.chart.column.ColumnChart.ColumnSpec(
-                                            com.patrykandpatrick.vico.core.component.shape.LineComponent(
-                                                color = Color(0xFFF43F5E).copy(alpha = 0.3f).toArgb(),
-                                                thicknessDp = 8f,
-                                                shape = com.patrykandpatrick.vico.core.component.shape.Shapes.roundedCornerShape(allPercent = 40)
-                                            )
+                                        LineComponent(
+                                            color = Color(0xFFF43F5E).copy(alpha = 0.3f).toArgb(),
+                                            thicknessDp = 8f,
+                                            shape = Shapes.roundedCornerShape(allPercent = 40)
                                         )
                                     )
                                 ),
