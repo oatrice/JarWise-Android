@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.12.0] - 2026-03-28
+
+### Added
+- ✨ feat(reports): Enhance error handling and date range options
+- feat(reports): add chart legends for income, expense, and comparison charts
+- ✨ feat(reports): Improve chart axis scaling
+- ✨ feat(reports): Enhance chart axis formatting
+- ✨ feat(reports): Enhance financial reporting UI and data
+
+### Fixed
+- refactor(ui): use AxisValuesOverrider for chart axes
+- ✨ feat(reports): Enhance chart axis formatting
+- fix(reports): remove gradient brush from chart axis lines
+
+### Changed
+- refactor: update chart axis styling for improved readability and add pie chart colors
+- refactor: update vico chart implementation and simplify report filters
+- refactor(reports): Replace ViewModel with Koin injection
+
 ## [1.11.0] - 2026-03-10
 ### Added
 - **Expense Reports Screen**: Introduced a new "Reports" section, accessible via the bottom navigation, to provide visual insights into your spending.
