@@ -334,6 +334,15 @@ fun ReportsScreen(
                                 isZoomEnabled = false,
                                 horizontalLayout = HorizontalLayout.fullWidth()
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                ChartLegendItem(color = Color(0xFF10B981), label = "รายรับ")
+                                Spacer(modifier = Modifier.width(16.dp))
+                                ChartLegendItem(color = Color(0xFFF43F5E), label = "รายจ่าย")
+                            }
                         }
                     }
 
@@ -381,6 +390,15 @@ fun ReportsScreen(
                                     isZoomEnabled = false,
                                     horizontalLayout = HorizontalLayout.fullWidth()
                                 )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    ChartLegendItem(color = Color(0xFF10B981), label = "เดือนนี้")
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    ChartLegendItem(color = Color(0xFF10B981).copy(alpha = 0.3f), label = "เดือนที่แล้ว")
+                                }
                             }
                         }
                         
@@ -438,6 +456,15 @@ fun ReportsScreen(
                                 isZoomEnabled = false,
                                 horizontalLayout = HorizontalLayout.fullWidth()
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                ChartLegendItem(color = Color(0xFFF43F5E), label = "เดือนนี้")
+                                Spacer(modifier = Modifier.width(16.dp))
+                                ChartLegendItem(color = Color(0xFFF43F5E).copy(alpha = 0.3f), label = "เดือนที่แล้ว")
+                            }
                         }
                     }
 
@@ -461,7 +488,21 @@ fun ReportsScreen(
                         ) {
                             ChartSection(title = "⚖️ เทียบกับช่วงก่อนหน้า", icon = Icons.Rounded.Wallet) {
                                 Chart(
-                                    chart = columnChart(axisValuesOverrider = AxisValuesOverrider.fixed(minY = 0f, maxY = uiState.comparisonMaxY)),
+                                    chart = columnChart(
+                                        columns = listOf(
+                                            LineComponent(
+                                                color = Color(0xFF6366F1).toArgb(),
+                                                thicknessDp = 8f,
+                                                shape = Shapes.roundedCornerShape(allPercent = 40)
+                                            ),
+                                            LineComponent(
+                                                color = Color(0xFF6366F1).copy(alpha = 0.3f).toArgb(),
+                                                thicknessDp = 8f,
+                                                shape = Shapes.roundedCornerShape(allPercent = 40)
+                                            )
+                                        ),
+                                        axisValuesOverrider = AxisValuesOverrider.fixed(minY = 0f, maxY = uiState.comparisonMaxY)
+                                    ),
                                     chartModelProducer = uiState.comparisonData,
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
@@ -481,6 +522,15 @@ fun ReportsScreen(
                                     isZoomEnabled = false,
                                     horizontalLayout = HorizontalLayout.fullWidth()
                                 )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    ChartLegendItem(color = Color(0xFF6366F1), label = "เดือนนี้")
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    ChartLegendItem(color = Color(0xFF6366F1).copy(alpha = 0.3f), label = "เดือนที่แล้ว")
+                                }
                             }
                         }
                     }
@@ -513,13 +563,27 @@ fun ChartSection(title: String, icon: ImageVector? = null, content: @Composable 
         Card(
             colors = CardDefaults.cardColors(containerColor = Gray900.copy(alpha = 0.6f)),
             shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.height(260.dp).fillMaxWidth(),
+            modifier = Modifier.height(280.dp).fillMaxWidth(),
             border = androidx.compose.foundation.BorderStroke(1.dp, Color.Gray.copy(alpha = 0.1f))
         ) {
-            Box(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(16.dp)) {
                 content()
             }
         }
+    }
+}
+
+@Composable
+fun ChartLegendItem(color: Color, label: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(6.dp))
+        Text(label, color = Color.Gray, fontSize = 10.sp)
     }
 }
 
