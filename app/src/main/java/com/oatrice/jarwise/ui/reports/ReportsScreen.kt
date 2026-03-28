@@ -153,6 +153,8 @@ fun ReportsScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
                     val ranges = listOf(
+                        "7d" to "7D",
+                        "30d" to "30D",
                         "month" to "Month", 
                         "quarter" to "Quarter", 
                         "year" to "Year",
@@ -169,7 +171,23 @@ fun ReportsScreen(
                                     selectedRange = key
                                     customStartDate = null
                                     customEndDate = null
-                                    viewModel.fetchReport(key)
+                                    
+                                    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                                    val nowStr = sdf.format(Date())
+                                    
+                                    when (key) {
+                                        "7d" -> {
+                                            val c = Calendar.getInstance()
+                                            c.add(Calendar.DAY_OF_YEAR, -7)
+                                            viewModel.fetchReport("custom", sdf.format(c.time), nowStr)
+                                        }
+                                        "30d" -> {
+                                            val c = Calendar.getInstance()
+                                            c.add(Calendar.DAY_OF_YEAR, -30)
+                                            viewModel.fetchReport("custom", sdf.format(c.time), nowStr)
+                                        }
+                                        else -> viewModel.fetchReport(key)
+                                    }
                                 }
                             },
                             label = { Text(label) },
@@ -181,6 +199,15 @@ fun ReportsScreen(
                             border = null
                         )
                     }
+                }
+
+                if (selectedRange == "custom" && customStartDate != null && customEndDate != null) {
+                    Text(
+                        text = "Range: ${customStartDate!!.split("T")[0]} - ${customEndDate!!.split("T")[0]}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF6366F1).copy(alpha = 0.8f),
+                        modifier = Modifier.padding(start = 4.dp, bottom = 12.dp)
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
