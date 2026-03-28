@@ -197,6 +197,8 @@ fun ReportsScreen(
                         "month" to "เดือน", 
                         "quarter" to "ไตรมาส", 
                         "year" to "ปี",
+                        "7d" to "7 วัน",
+                        "30d" to "30 วัน",
                         "all" to "ทั้งหมด",
                         "custom" to "กำหนดเอง"
                     )
@@ -254,6 +256,20 @@ fun ReportsScreen(
                 if (uiState.isLoading) {
                     Box(modifier = Modifier.fillMaxWidth().height(400.dp), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = Color(0xFF6366F1))
+                    }
+                } else if (uiState.error != null) {
+                    Box(modifier = Modifier.fillMaxWidth().height(400.dp), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = null, tint = Color.Gray) // Placeholder icon
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(uiState.error!!, color = Color.Gray)
+                            Button(
+                                onClick = { viewModel.fetchReport(selectedRange, customStartDate, customEndDate) },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6366F1))
+                            ) {
+                                Text("ลองใหม่")
+                            }
+                        }
                     }
                 } else {
                     // Summary Cards
@@ -606,17 +622,27 @@ fun DistributionSection(title: String, items: List<JarDistribution>) {
                 Box(modifier = Modifier.size(120.dp), contentAlignment = Alignment.Center) {
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         val total = items.sumOf { it.amount }.toFloat()
-                        var startAngle = -90f
-                        items.forEach { item ->
-                            val sweepAngle = (item.amount.toFloat() / total) * 360f
+                        if (total > 0f) {
+                            var startAngle = -90f
+                            items.forEach { item ->
+                                val sweepAngle = (item.amount.toFloat() / total) * 360f
+                                drawArc(
+                                    color = Color(item.color),
+                                    startAngle = startAngle,
+                                    sweepAngle = sweepAngle,
+                                    useCenter = false,
+                                    style = Stroke(width = 30f)
+                                )
+                                startAngle += sweepAngle
+                            }
+                        } else {
                             drawArc(
-                                color = Color(item.color),
-                                startAngle = startAngle,
-                                sweepAngle = sweepAngle,
+                                color = Color.Gray.copy(alpha = 0.2f),
+                                startAngle = 0f,
+                                sweepAngle = 360f,
                                 useCenter = false,
                                 style = Stroke(width = 30f)
                             )
-                            startAngle += sweepAngle
                         }
                     }
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {

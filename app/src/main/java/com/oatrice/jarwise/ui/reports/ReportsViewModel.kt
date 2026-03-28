@@ -31,7 +31,8 @@ data class ReportsUiState(
     val trendMaxY: Float = 0f,
     val incomeMaxY: Float = 0f,
     val expenseMaxY: Float = 0f,
-    val comparisonMaxY: Float = 0f
+    val comparisonMaxY: Float = 0f,
+    val error: String? = null
 )
 
 data class JarDistribution(
@@ -48,6 +49,9 @@ class ReportsViewModel(
     private val _uiState = MutableStateFlow(ReportsUiState())
     val uiState: StateFlow<ReportsUiState> = _uiState.asStateFlow()
 
+    private var fetchJob: kotlinx.coroutines.Job? = null
+    private var exportJob: kotlinx.coroutines.Job? = null
+
     private val colors = listOf(0xFF6366F1, 0xFF8B5CF6, 0xFFA78BFA, 0xFFC4B5FD, 0xFF60A5FA, 0xFF93C5FD)
 
     init {
@@ -55,8 +59,9 @@ class ReportsViewModel(
     }
 
     fun fetchReport(range: String, customStart: String? = null, customEnd: String? = null) {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             
@@ -85,7 +90,10 @@ class ReportsViewModel(
                 if (response != null) {
                     updateUiState(response)
                 } else {
-                    _uiState.value = _uiState.value.copy(isLoading = false)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false, 
+                        error = "ไม่สามารถโหลดข้อมูลรายงานได้"
+                    )
                 }
             }
         }
@@ -182,7 +190,8 @@ class ReportsViewModel(
     }
 
     fun exportReport(range: String, customStart: String? = null, customEnd: String? = null, onResult: (ByteArray?) -> Unit) {
-        viewModelScope.launch {
+        exportJob?.cancel()
+        exportJob = viewModelScope.launch {
             val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             
             val startDateStr: String
