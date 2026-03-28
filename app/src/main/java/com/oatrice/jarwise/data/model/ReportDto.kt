@@ -27,7 +27,9 @@ data class CategoryAmountDto(
     @SerializedName("name") val name: String,
     @SerializedName("income") val income: Double,
     @SerializedName("expense") val expense: Double,
-    @SerializedName("amount") val amount: Double
+    @SerializedName("amount") val amount: Double,
+    @SerializedName("prev_income") val prevIncome: Double = 0.0,
+    @SerializedName("prev_expense") val prevExpense: Double = 0.0
 )
 
 data class JarAmountDto(
@@ -35,7 +37,9 @@ data class JarAmountDto(
     @SerializedName("name") val name: String,
     @SerializedName("income") val income: Double,
     @SerializedName("expense") val expense: Double,
-    @SerializedName("amount") val amount: Double
+    @SerializedName("amount") val amount: Double,
+    @SerializedName("prev_income") val prevIncome: Double = 0.0,
+    @SerializedName("prev_expense") val prevExpense: Double = 0.0
 )
 
 data class ComparisonDataDto(

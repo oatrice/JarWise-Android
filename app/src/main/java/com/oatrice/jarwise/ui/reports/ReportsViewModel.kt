@@ -19,12 +19,15 @@ data class ReportsUiState(
     val expense: Double = 0.0,
     val net: Double = 0.0,
     val trendData: ChartEntryModelProducer = ChartEntryModelProducer(),
-    val categoryData: ChartEntryModelProducer = ChartEntryModelProducer(),
-    val jarData: List<JarDistribution> = emptyList(),
+    val incomeBreakdownData: ChartEntryModelProducer = ChartEntryModelProducer(),
+    val expenseBreakdownData: ChartEntryModelProducer = ChartEntryModelProducer(),
+    val incomeDistribution: List<JarDistribution> = emptyList(),
+    val expenseDistribution: List<JarDistribution> = emptyList(),
     val comparisonData: ChartEntryModelProducer = ChartEntryModelProducer()
 )
 
 data class JarDistribution(
+    val id: String,
     val name: String,
     val amount: Double,
     val color: Long
@@ -84,11 +87,25 @@ class ReportsViewModel(
         val incomeTrend = report.trend.mapIndexed { i, p -> FloatEntry(i.toFloat(), p.income.toFloat()) }
         val expenseTrend = report.trend.mapIndexed { i, p -> FloatEntry(i.toFloat(), p.expense.toFloat()) }
 
-        val categoryIncome = report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.income.toFloat()) }
-        val categoryExpense = report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.expense.toFloat()) }
+        // Filter and process income categories
+        val incomeCategories = report.byCategory.filter { it.income > 0.01 }
+        val incomeBreakdownEntries = listOf(
+            incomeCategories.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.income.toFloat()) },
+            incomeCategories.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.prevIncome.toFloat()) }
+        )
+        val incomeDist = incomeCategories.mapIndexed { i, c ->
+            JarDistribution(c.id, c.name, c.income, colors[i % colors.size])
+        }
 
-        val jarDist = report.byJar.mapIndexed { i, j ->
-            JarDistribution(j.name, j.amount, colors[i % colors.size])
+        // Process expense categories
+        val expenseBreakdownEntries = listOf(
+            report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.expense.toFloat()) },
+            report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.prevExpense.toFloat()) }
+        )
+        
+        // Distribution by Jar (Expense focus)
+        val expenseDist = report.byJar.mapIndexed { i, j ->
+            JarDistribution(j.id, j.name, j.amount, colors[i % colors.size])
         }
 
         val comparisonEntries = report.comparison?.let {
@@ -111,9 +128,11 @@ class ReportsViewModel(
             expense = report.summary.expense,
             net = report.summary.net,
             trendData = ChartEntryModelProducer(listOf(incomeTrend, expenseTrend)),
-            categoryData = ChartEntryModelProducer(listOf(categoryIncome, categoryExpense)),
-            comparisonData = ChartEntryModelProducer(comparisonEntries),
-            jarData = jarDist
+            incomeBreakdownData = ChartEntryModelProducer(incomeBreakdownEntries),
+            expenseBreakdownData = ChartEntryModelProducer(expenseBreakdownEntries),
+            incomeDistribution = incomeDist,
+            expenseDistribution = expenseDist,
+            comparisonData = ChartEntryModelProducer(comparisonEntries)
         )
     }
 
