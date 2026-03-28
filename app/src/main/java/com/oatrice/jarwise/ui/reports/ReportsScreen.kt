@@ -44,6 +44,9 @@ import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
 import com.patrykandpatrick.vico.compose.chart.line.lineChart
 import com.patrykandpatrick.vico.compose.chart.layout.fullWidth
+import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
+import com.patrykandpatrick.vico.compose.axis.axisLineComponent
+import com.patrykandpatrick.vico.compose.axis.axisGuidelineComponent
 import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
@@ -58,6 +61,15 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+
+private val PIE_COLORS = listOf(
+    Color(0xFF6366F1), // Indigo
+    Color(0xFF8B5CF6), // Violet
+    Color(0xFFA78BFA), // Purple
+    Color(0xFFC4B5FD), // Lavender
+    Color(0xFF60A5FA), // Blue
+    Color(0xFF93C5FD)  // Light Blue
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -294,8 +306,16 @@ fun ReportsScreen(
                                     )
                                 ),
                                 chartModelProducer = uiState.trendData,
-                                startAxis = rememberStartAxis(),
-                                bottomAxis = rememberBottomAxis(),
+                                startAxis = rememberStartAxis(
+                                    label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                ),
+                                bottomAxis = rememberBottomAxis(
+                                    label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    guideline = null
+                                ),
                                 isZoomEnabled = false,
                                 horizontalLayout = HorizontalLayout.fullWidth()
                             )
@@ -327,8 +347,16 @@ fun ReportsScreen(
                                         )
                                     ),
                                     chartModelProducer = uiState.incomeBreakdownData,
-                                    startAxis = rememberStartAxis(),
-                                    bottomAxis = rememberBottomAxis(),
+                                    startAxis = rememberStartAxis(
+                                        label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                    ),
+                                    bottomAxis = rememberBottomAxis(
+                                        label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        guideline = null
+                                    ),
                                     isZoomEnabled = false,
                                     horizontalLayout = HorizontalLayout.fullWidth()
                                 )
@@ -370,8 +398,16 @@ fun ReportsScreen(
                                     )
                                 ),
                                 chartModelProducer = uiState.expenseBreakdownData,
-                                startAxis = rememberStartAxis(),
-                                bottomAxis = rememberBottomAxis(),
+                                startAxis = rememberStartAxis(
+                                    label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                ),
+                                bottomAxis = rememberBottomAxis(
+                                    label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    guideline = null
+                                ),
                                 isZoomEnabled = false,
                                 horizontalLayout = HorizontalLayout.fullWidth()
                             )
@@ -400,8 +436,16 @@ fun ReportsScreen(
                                 Chart(
                                     chart = columnChart(),
                                     chartModelProducer = uiState.comparisonData,
-                                    startAxis = rememberStartAxis(),
-                                    bottomAxis = rememberBottomAxis(),
+                                    startAxis = rememberStartAxis(
+                                        label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
+                                    ),
+                                    bottomAxis = rememberBottomAxis(
+                                        label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
+                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        guideline = null
+                                    ),
                                     isZoomEnabled = false,
                                     horizontalLayout = HorizontalLayout.fullWidth()
                                 )
