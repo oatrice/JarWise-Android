@@ -2,21 +2,25 @@ package com.oatrice.jarwise.ui.reports
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.oatrice.jarwise.data.model.ReportResponse
+import com.oatrice.jarwise.data.repository.ReportRepository
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.FloatEntry
-import com.patrykandpatrick.vico.core.entry.entryModelOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class ReportsUiState(
-    val income: Double = 45000.0,
-    val expense: Double = 28500.0,
-    val net: Double = 16500.0,
+    val isLoading: Boolean = false,
+    val income: Double = 0.0,
+    val expense: Double = 0.0,
+    val net: Double = 0.0,
     val trendData: ChartEntryModelProducer = ChartEntryModelProducer(),
     val categoryData: ChartEntryModelProducer = ChartEntryModelProducer(),
-    val jarData: List<JarDistribution> = emptyList(), // Vico doesn't have native Pie yet, will use custom or simple list first
+    val jarData: List<JarDistribution> = emptyList(),
     val comparisonData: ChartEntryModelProducer = ChartEntryModelProducer()
 )
 
@@ -26,65 +30,80 @@ data class JarDistribution(
     val color: Long
 )
 
-class ReportsViewModel : ViewModel() {
+class ReportsViewModel(
+    private val repository: ReportRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportsUiState())
     val uiState: StateFlow<ReportsUiState> = _uiState.asStateFlow()
 
+    private val colors = listOf(0xFF6366F1, 0xFF8B5CF6, 0xFFA78BFA, 0xFFC4B5FD, 0xFF60A5FA, 0xFF93C5FD)
+
     init {
-        loadMockData()
+        fetchReport("month")
     }
 
-    private fun loadMockData() {
+    fun fetchReport(range: String) {
         viewModelScope.launch {
-            // Trend (Income vs Expense)
-            // Vico Multi-line: need multiple series
-            val incomeEntries = listOf(
-                FloatEntry(0f, 42000f),
-                FloatEntry(1f, 38000f),
-                FloatEntry(2f, 41000f),
-                FloatEntry(3f, 44000f),
-                FloatEntry(4f, 45000f),
-            )
-            val expenseEntries = listOf(
-                FloatEntry(0f, 31000f),
-                FloatEntry(1f, 27000f),
-                FloatEntry(2f, 29500f),
-                FloatEntry(3f, 32000f),
-                FloatEntry(4f, 28500f),
-            )
-            
-            // Category (Bar)
-            val categoryEntries = listOf(
-                FloatEntry(0f, 9500f), // Food
-                FloatEntry(1f, 5200f), // Transport
-                FloatEntry(2f, 4800f), // Shopping
-                FloatEntry(3f, 4000f), // Bills
-                FloatEntry(4f, 2500f), // Health
-            )
+            _uiState.value = _uiState.value.copy(isLoading = true)
 
-            // Comparison (Grouped Bar) - Current vs Previous
-            val currentEntries = listOf(
-                FloatEntry(0f, 45000f), // Income
-                FloatEntry(1f, 28500f), // Expense
-            )
-            val previousEntries = listOf(
-                FloatEntry(0f, 44000f), // Income
-                FloatEntry(1f, 32000f), // Expense
-            )
-            
-            _uiState.value = ReportsUiState(
-                trendData = ChartEntryModelProducer(listOf(incomeEntries, expenseEntries)),
-                categoryData = ChartEntryModelProducer(listOf(categoryEntries)),
-                comparisonData = ChartEntryModelProducer(listOf(currentEntries, previousEntries)),
-                jarData = listOf(
-                    JarDistribution("Food", 9500.0, 0xFF6366F1),
-                    JarDistribution("Transport", 5200.0, 0xFF8B5CF6),
-                    JarDistribution("Shopping", 4800.0, 0xFFA78BFA),
-                    JarDistribution("Bills", 4000.0, 0xFFC4B5FD),
-                    JarDistribution("Health", 2500.0, 0xFF60A5FA),
-                )
-            )
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            val now = Calendar.getInstance()
+            val start = Calendar.getInstance()
+
+            when (range) {
+                "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
+                "quarter" -> start.add(Calendar.MONTH, -3)
+                "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+            }
+
+            val startDate = sdf.format(start.time)
+            val endDate = sdf.format(now.time)
+
+            repository.getReport(startDate, endDate).collect { response ->
+                if (response != null) {
+                    updateUiState(response)
+                } else {
+                    _uiState.value = _uiState.value.copy(isLoading = false)
+                }
+            }
         }
+    }
+
+    private fun updateUiState(report: ReportResponse) {
+        val incomeTrend = report.trend.mapIndexed { i, p -> FloatEntry(i.toFloat(), p.income.toFloat()) }
+        val expenseTrend = report.trend.mapIndexed { i, p -> FloatEntry(i.toFloat(), p.expense.toFloat()) }
+
+        val categoryIncome = report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.income.toFloat()) }
+        val categoryExpense = report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.expense.toFloat()) }
+
+        val jarDist = report.byJar.mapIndexed { i, j ->
+            JarDistribution(j.name, j.amount, colors[i % colors.size])
+        }
+
+        val comparisonEntries = report.comparison?.let {
+            val current = listOf(
+                FloatEntry(0f, it.current.income.toFloat()),
+                FloatEntry(1f, it.current.expense.toFloat()),
+                FloatEntry(2f, it.current.net.toFloat())
+            )
+            val previous = listOf(
+                FloatEntry(0f, it.previous.income.toFloat()),
+                FloatEntry(1f, it.previous.expense.toFloat()),
+                FloatEntry(2f, it.previous.net.toFloat())
+            )
+            listOf(current, previous)
+        } ?: emptyList()
+
+        _uiState.value = ReportsUiState(
+            isLoading = false,
+            income = report.summary.income,
+            expense = report.summary.expense,
+            net = report.summary.net,
+            trendData = ChartEntryModelProducer(listOf(incomeTrend, expenseTrend)),
+            categoryData = ChartEntryModelProducer(listOf(categoryIncome, categoryExpense)),
+            comparisonData = ChartEntryModelProducer(comparisonEntries),
+            jarData = jarDist
+        )
     }
 }
