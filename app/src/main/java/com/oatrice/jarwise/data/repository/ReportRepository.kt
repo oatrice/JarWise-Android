@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.flow
 
 interface ReportRepository {
     fun getReport(startDate: String, endDate: String, jarId: String? = null): Flow<ReportResponse?>
+    fun exportReport(startDate: String, endDate: String, jarId: String? = null): Flow<okhttp3.ResponseBody?>
 }
 
 class ReportRepositoryImpl(
@@ -16,6 +17,16 @@ class ReportRepositoryImpl(
     override fun getReport(startDate: String, endDate: String, jarId: String?): Flow<ReportResponse?> = flow {
         try {
             val response = api.getReport(startDate, endDate, jarId)
+            emit(response)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emit(null)
+        }
+    }
+
+    override fun exportReport(startDate: String, endDate: String, jarId: String?): Flow<okhttp3.ResponseBody?> = flow {
+        try {
+            val response = api.exportReport(startDate, endDate, jarId)
             emit(response)
         } catch (e: Exception) {
             e.printStackTrace()

@@ -106,4 +106,25 @@ class ReportsViewModel(
             jarData = jarDist
         )
     }
+
+    fun exportReport(range: String, onResult: (ByteArray?) -> Unit) {
+        viewModelScope.launch {
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            val now = Calendar.getInstance()
+            val start = Calendar.getInstance()
+
+            when (range) {
+                "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
+                "quarter" -> start.add(Calendar.MONTH, -3)
+                "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+            }
+
+            val startDate = sdf.format(start.time)
+            val endDate = sdf.format(now.time)
+
+            repository.exportReport(startDate, endDate).collect { response ->
+                onResult(response?.bytes())
+            }
+        }
+    }
 }

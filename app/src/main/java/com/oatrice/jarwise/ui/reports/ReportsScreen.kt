@@ -1,5 +1,7 @@
 package com.oatrice.jarwise.ui.reports
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -8,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.FileDownload
 import androidx.compose.material.icons.rounded.TrendingDown
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Wallet
@@ -18,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,6 +58,32 @@ fun ReportsScreen(
                     navigationIcon = {
                         IconButton(onClick = onBack) {
                             Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        val context = LocalContext.current
+                        var csvBytes by remember { mutableStateOf<ByteArray?>(null) }
+                        
+                        val launcher = rememberLauncherForActivityResult(
+                            contract = ActivityResultContracts.CreateDocument("text/csv")
+                        ) { uri ->
+                            uri?.let {
+                                context.contentResolver.openOutputStream(it)?.use { stream ->
+                                    csvBytes?.let { bytes -> stream.write(bytes) }
+                                }
+                            }
+                        }
+
+                        IconButton(
+                            onClick = {
+                                viewModel.exportReport(selectedRange) { bytes ->
+                                    csvBytes = bytes
+                                    launcher.launch("jarwise-export-${selectedRange}.csv")
+                                }
+                            },
+                            enabled = !uiState.isLoading
+                        ) {
+                            Icon(Icons.Rounded.FileDownload, contentDescription = "Export CSV", tint = Color.White)
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
