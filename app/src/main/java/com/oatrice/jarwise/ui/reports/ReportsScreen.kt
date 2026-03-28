@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import org.koin.androidx.compose.koinViewModel
 import com.oatrice.jarwise.ui.theme.Gray900
 import com.oatrice.jarwise.ui.theme.Gray800
 import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
@@ -44,7 +44,7 @@ import com.oatrice.jarwise.ui.components.NavPage
 fun ReportsScreen(
     onBack: () -> Unit,
     onNavigate: (NavPage) -> Unit,
-    viewModel: ReportsViewModel = viewModel()
+    viewModel: ReportsViewModel = koinViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scrollState = rememberScrollState()
