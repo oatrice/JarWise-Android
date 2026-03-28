@@ -308,12 +308,12 @@ fun ReportsScreen(
                                 chartModelProducer = uiState.trendData,
                                 startAxis = rememberStartAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                     guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
                                 ),
                                 bottomAxis = rememberBottomAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                     guideline = null
                                 ),
                                 isZoomEnabled = false,
@@ -349,12 +349,12 @@ fun ReportsScreen(
                                     chartModelProducer = uiState.incomeBreakdownData,
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                         guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
                                     ),
                                     bottomAxis = rememberBottomAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                         guideline = null
                                     ),
                                     isZoomEnabled = false,
@@ -400,12 +400,12 @@ fun ReportsScreen(
                                 chartModelProducer = uiState.expenseBreakdownData,
                                 startAxis = rememberStartAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                     guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
                                 ),
                                 bottomAxis = rememberBottomAxis(
                                     label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                    axis = axisLineComponent(color = Color(0xFF374151)),
+                                    axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                     guideline = null
                                 ),
                                 isZoomEnabled = false,
@@ -438,12 +438,12 @@ fun ReportsScreen(
                                     chartModelProducer = uiState.comparisonData,
                                     startAxis = rememberStartAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                         guideline = axisGuidelineComponent(color = Color(0xFF374151).copy(alpha = 0.3f))
                                     ),
                                     bottomAxis = rememberBottomAxis(
                                         label = axisLabelComponent(color = Color(0xFF9CA3AF), textSize = 10.sp),
-                                        axis = axisLineComponent(color = Color(0xFF374151)),
+                                        axis = axisLineComponent(color = Color(0xFF374151), brush = null),
                                         guideline = null
                                     ),
                                     isZoomEnabled = false,
