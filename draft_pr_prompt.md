@@ -2,561 +2,493 @@
 
 You are an AI assistant helping to create a Pull Request description.
     
-TASK: [Feature] Report Filter: Multi-Select Categories & Accounts
+TASK: [Web | Android] Financial Reports & Data Export
 ISSUE: {
-  "title": "[Feature] Report Filter: Multi-Select Categories & Accounts",
-  "number": 68,
-  "body": "# \ud83c\udfaf Objective\nEnable users to filter reports and charts by selecting specific categories (Jars) and accounts (Wallets) via multi-select checkboxes.\n\n## \ud83d\udcdd Specifications\n\n### UI Components\n- [ ] **Filter Panel**: Collapsible sidebar or modal with checkbox tree\n- [ ] **Category Checkboxes**: Select/deselect individual Jars (including sub-jars if HIER-01 is done)\n- [ ] **Account Checkboxes**: Select/deselect individual Wallets (including sub-wallets if HIER-01 is done)\n- [ ] **Select All / Clear All**: Quick actions\n- [ ] **Remember Selection**: Persist filter state per session or per report type\n\n### Behavior\n- [ ] **Real-time Update**: Charts/reports update as checkboxes change (or Apply button)\n- [ ] **Count Display**: Show number of transactions matching current filter\n- [ ] **Visual Indicator**: Badge showing active filter count\n\n## \ud83d\udd17 References\n- Depends on #67 (Hierarchical Accounts & Categories) for sub-item support\n- Related to #59 (Reports & Data Export)\n- Feature ID: `REPORT-02`\n\n## \ud83c\udfd7\ufe0f Technical Notes\n- Use bitmasking or array-based filtering on transaction queries\n- Consider performance with large transaction sets (pagination/lazy load)"
+  "title": "[Web | Android] Financial Reports & Data Export",
+  "number": 59,
+  "body": "# \ud83c\udfaf Objective\nImplement comprehensive financial reporting with charts, graphs, and data export capabilities.\n\n## \ud83e\udde0 AI Brain Context\n- [task.md](https://raw.githubusercontent.com/oatrice/JarWise-Android/feat/59-financial-reports-export/docs/features/59_issue-59/ai_brain/task.md)\n- [walkthrough.md](https://raw.githubusercontent.com/oatrice/JarWise-Android/feat/59-financial-reports-export/docs/features/59_issue-59/ai_brain/walkthrough.md)\n- [implementation_plan.md](https://raw.githubusercontent.com/oatrice/JarWise-Android/feat/59-financial-reports-export/docs/features/59_issue-59/ai_brain/implementation_plan.md)\n\n\nCloses #59",
+  "url": "https://github.com/oatrice/JarWise-Root/issues/59"
 }
 
 GIT CONTEXT:
 COMMITS:
-3158de2 feat: add transaction filtering and bump version to 1.10.0
-7cd2c58 feat(db): add database schema v8 with transactions, jars and allocations
-38b945f refactor(room): Migrate from KSP to KAPT for Room compiler
-b514b4f refactor(build): Update Kotlin and AGP configurations
-4e6ef2f chore(deps): Update Gradle and Compose versions
-51a3fe6 Add wallet count query
-2e95fce Remove JarConfigViewModel dep
-69e9f07 Add JarConfigSource interface
+09bd185 docs: sync AI brain artifacts
+d7f70fa ✨ feat(reports): Enhance financial reporting features
+413cf60 ✨ feat(reports): Enhance error handling and date range options
+2b03bb8 feat(reports): add chart legends for income, expense, and comparison charts
+61744c4 refactor(ui): use AxisValuesOverrider for chart axes
+b0fbbb7 ✨ feat(reports): Improve chart axis scaling
+9f96048 ✨ feat(reports): Enhance chart axis formatting
+8ac0288 fix(reports): remove gradient brush from chart axis lines
+2ea2a5b refactor: update chart axis styling for improved readability and add pie chart colors
+a0abdba refactor: update vico chart implementation and simplify report filters
+0cda76d ✨ feat(reports): Enhance financial reporting UI and data
+4c4163f feat(reports): add 7-day and 30-day time range options and custom range display
+3015c16 ✨ feat(reports): Add custom date range filtering
+ddc790e refactor(reports): Replace ViewModel with Koin injection
+db3e4eb feat: add modifier parameter to BottomNav component
+2647d6a ✨ feat(reports): Add CSV export functionality
+3ca5fc9 ✨ feat(reports): Implement financial reporting feature
 
 STATS:
-CHANGELOG.md                                       |   7 +
- app/build.gradle.kts                               |  42 +--
- .../com.oatrice.jarwise.data.AppDatabase/8.json    | 343 +++++++++++++++++++++
- .../java/com/oatrice/jarwise/data/AppDatabase.kt   |  18 +-
- .../com/oatrice/jarwise/data/GeneratedMockData.kt  |  47 +--
- .../com/oatrice/jarwise/data/SubTransaction.kt     |  25 ++
- .../com/oatrice/jarwise/data/SubTransactionDao.kt  |  22 ++
- .../java/com/oatrice/jarwise/data/WalletDao.kt     |   5 +-
- .../jarwise/data/repository/JarConfigRepository.kt |   6 +-
- .../jarwise/data/repository/JarConfigSource.kt     |   8 +
- .../jarwise/data/repository/WalletRepository.kt    |  11 +-
- .../jarwise/data/repository/WalletSource.kt        |   8 +
- .../main/java/com/oatrice/jarwise/di/DataModule.kt |   4 +-
- .../com/oatrice/jarwise/di/RepositoryModule.kt     |   2 +
- .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   2 +
- .../oatrice/jarwise/ui/TransactionHistoryScreen.kt | 102 +++++-
- .../jarwise/ui/reportfilter/ReportFilterSheet.kt   | 184 +++++++++++
- .../jarwise/ui/reportfilter/ReportFilterUiState.kt |  13 +
- .../ui/reportfilter/ReportFilterViewModel.kt       |  89 ++++++
- .../ui/reportfilter/ReportFilterViewModelTest.kt   | 166 ++++++++++
- .../com/oatrice/jarwise/util/MainDispatcherRule.kt |  23 ++
- build.gradle.kts                                   |  14 +-
- code_review.md                                     | 129 +-------
- gradle/libs.versions.toml                          |  10 +-
- gradle/wrapper/gradle-wrapper.properties           |   2 +-
- scripts/build_android.sh                           |   6 +-
- 26 files changed, 1077 insertions(+), 211 deletions(-)
+CHANGELOG.md                                       |  19 +
+ app/build.gradle.kts                               |   2 +-
+ .../java/com/oatrice/jarwise/data/api/ReportApi.kt |  24 +
+ .../com/oatrice/jarwise/data/model/ReportDto.kt    |  48 ++
+ .../jarwise/data/repository/ReportRepository.kt    |  36 +
+ .../java/com/oatrice/jarwise/di/NetworkModule.kt   |   1 +
+ .../com/oatrice/jarwise/di/RepositoryModule.kt     |   1 +
+ .../java/com/oatrice/jarwise/di/ViewModelModule.kt |   2 +-
+ .../com/oatrice/jarwise/ui/components/BottomNav.kt |   3 +-
+ .../oatrice/jarwise/ui/reports/ReportsScreen.kt    | 783 +++++++++++++++++----
+ .../oatrice/jarwise/ui/reports/ReportsViewModel.kt | 241 +++++--
+ .../jarwise/ui/reports/ReportsViewModelTest.kt     |  86 +++
+ .../59_issue-59/ai_brain/implementation_plan.md    |  51 ++
+ docs/features/59_issue-59/ai_brain/task.md         |  13 +
+ docs/features/59_issue-59/ai_brain/walkthrough.md  |  42 ++
+ 15 files changed, 1166 insertions(+), 186 deletions(-)
 
 KEY FILE DIFFS:
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
-index 1ac022a..0af0e7f 100644
+index b79cffa..ddf1133 100644
 --- a/app/build.gradle.kts
 +++ b/app/build.gradle.kts
-@@ -1,32 +1,28 @@
-+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-+
- plugins {
-     alias(libs.plugins.android.application)
--    alias(libs.plugins.jetbrains.kotlin.android)
--    alias(libs.plugins.ksp)
-+    alias(libs.plugins.compose.compiler)
-+    alias(libs.plugins.android.legacy.kapt)
-     alias(libs.plugins.google.services)
- }
- 
- android {
-     namespace = "com.oatrice.jarwise"
-     compileSdk = 34
--    buildToolsVersion = "34.0.0"
- 
-     defaultConfig {
-         applicationId = "com.oatrice.jarwise"
+@@ -16,7 +16,7 @@ android {
          minSdk = 24
          targetSdk = 34
          versionCode = 1
--        versionName = "1.9.0"
-+        versionName = "1.10.0"
+-        versionName = "1.11.0"
++        versionName = "1.12.0"
  
          testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
          vectorDrawables {
-             useSupportLibrary = true
-         }
- 
--        javaCompileOptions {
--            annotationProcessorOptions {
--                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
--            }
--        }
-     }
- 
-     buildTypes {
-@@ -42,15 +38,9 @@ android {
-         sourceCompatibility = JavaVersion.VERSION_17
-         targetCompatibility = JavaVersion.VERSION_17
-     }
--    kotlinOptions {
--        jvmTarget = "17"
--    }
-     buildFeatures {
-         compose = true
-     }
--    composeOptions {
--        kotlinCompilerExtensionVersion = "1.5.14"
--    }
-     packaging {
-         resources {
-             excludes += "/META-INF/{AL2.0,LGPL2.1}"
-@@ -71,18 +61,26 @@ android {
-     }
- 
-     sourceSets {
-+        val roomSchemas = file("$projectDir/schemas").path
-         getByName("test") {
--            assets.srcDirs("$projectDir/schemas")
-+            assets.directories.add(roomSchemas)
-         }
-         getByName("androidTest") {
--            assets.srcDirs("$projectDir/schemas")
-+            assets.directories.add(roomSchemas)
-         }
-         getByName("release") {
--            assets.srcDirs("$projectDir/schemas")
-+            assets.directories.add(roomSchemas)
-         }
-     }
- }
- 
-+// Kotlin compiler options moved to the new DSL.
-+kotlin {
-+    compilerOptions {
-+        jvmTarget.set(JvmTarget.JVM_17)
-+    }
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/api/ReportApi.kt b/app/src/main/java/com/oatrice/jarwise/data/api/ReportApi.kt
+new file mode 100644
+index 0000000..b59a437
+--- /dev/null
++++ b/app/src/main/java/com/oatrice/jarwise/data/api/ReportApi.kt
+@@ -0,0 +1,24 @@
++package com.oatrice.jarwise.data.api
++
++import com.oatrice.jarwise.data.model.ReportResponse
++import okhttp3.ResponseBody
++import retrofit2.http.GET
++import retrofit2.http.Query
++import retrofit2.http.Streaming
++
++interface ReportApi {
++    @GET("api/v1/reports")
++    suspend fun getReport(
++        @Query("start_date") startDate: String,
++        @Query("end_date") endDate: String,
++        @Query("jar_id") jarId: String? = null
++    ): ReportResponse
++
++    @Streaming
++    @GET("api/v1/reports/export")
++    suspend fun exportReport(
++        @Query("start_date") startDate: String,
++        @Query("end_date") endDate: String,
++        @Query("jar_id") jarId: String? = null
++    ): ResponseBody
 +}
-+
- dependencies {
- 
-     implementation(libs.androidx.core.ktx)
-@@ -90,7 +88,7 @@ dependencies {
-     implementation(libs.androidx.lifecycle.viewmodel.compose)
-     implementation(libs.androidx.room.runtime)
-     implementation(libs.androidx.room.ktx)
--    ksp(libs.androidx.room.compiler)
-+    kapt(libs.androidx.room.compiler)
-     implementation(libs.androidx.activity.compose)
-     implementation(platform(libs.androidx.compose.bom))
-     implementation(libs.androidx.ui)
-@@ -155,6 +153,8 @@ dependencies {
-     implementation(libs.logging.interceptor)
- }
- 
--ksp {
--    arg("room.schemaLocation", "$projectDir/schemas")
-+kapt {
-+    arguments {
-+        arg("room.schemaLocation", "$projectDir/schemas")
-+    }
- }
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-index 652f7a4..527bb97 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/AppDatabase.kt
-@@ -5,12 +5,13 @@ import androidx.room.RoomDatabase
- import androidx.room.migration.Migration
- import androidx.sqlite.db.SupportSQLiteDatabase
- 
--@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class], version = 7, exportSchema = true)
-+@Database(entities = [Transaction::class, JarConfig::class, Allocation::class, WalletEntity::class, SubTransaction::class], version = 8, exportSchema = true)
- abstract class AppDatabase : RoomDatabase() {
-     abstract fun transactionDao(): TransactionDao
-     abstract fun jarConfigDao(): JarConfigDao
-     abstract fun allocationDao(): AllocationDao
-     abstract fun walletDao(): WalletDao
-+    abstract fun subTransactionDao(): SubTransactionDao
- 
-     companion object {
-         val MIGRATION_1_2 = object : Migration(1, 2) {
-@@ -105,6 +106,21 @@ abstract class AppDatabase : RoomDatabase() {
-             }
-         }
- 
-+        val MIGRATION_7_8 = object : Migration(7, 8) {
-+            override fun migrate(db: SupportSQLiteDatabase) {
-+                db.execSQL("""
-+                    CREATE TABLE IF NOT EXISTS `sub_transactions` (
-+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, 
-+                        `parentId` INTEGER NOT NULL, 
-+                        `description` TEXT NOT NULL, 
-+                        `amount` REAL NOT NULL, 
-+                        FOREIGN KEY(`parentId`) REFERENCES `transactions`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
-+                    )
-+                """.trimIndent())
-+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_sub_transactions_parentId` ON `sub_transactions` (`parentId`)")
-+            }
-+        }
-+
-         val SEED_CALLBACK = object : RoomDatabase.Callback() {
-             override fun onCreate(db: SupportSQLiteDatabase) {
-                 super.onCreate(db)
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-index 2c96ade..46c9e65 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/GeneratedMockData.kt
-@@ -8,48 +8,9 @@ import com.oatrice.jarwise.ui.theme.*
- 
- // WARNING: This file is auto-generated. Do not edit directly.
- // Generated from: shared-spec/data/mockData.json
--// Generated at: 2026-01-31T11:24:59.073Z
-+// Generated at: 2026-02-06T07:25:19.853Z
- 
- object GeneratedMockData {
--    val wallets = listOf(
--        com.oatrice.jarwise.model.Wallet(
--            id = "101",
--            name = "Bank Account",
--            balance = 15430.00,
--            color = Blue500,
--            icon = Icons.Rounded.AccountBalance,
--            parentId = null,
--            level = 0
--        ),
--        com.oatrice.jarwise.model.Wallet(
--            id = "102",
--            name = "K-Bank Savings",
--            balance = 12000.00,
--            color = Green500,
--            icon = Icons.Rounded.Savings,
--            parentId = "101",
--            level = 1
--        ),
--        com.oatrice.jarwise.model.Wallet(
--            id = "103",
--            name = "SCB Checking",
--            balance = 3430.00,
--            color = Purple500,
--            icon = Icons.Rounded.CreditCard,
--            parentId = "101",
--            level = 1
--        ),
--        com.oatrice.jarwise.model.Wallet(
--            id = "104",
--            name = "Cash Wallet",
--            balance = 1250.00,
--            color = Yellow500,
--            icon = Icons.Rounded.Wallet,
--            parentId = null,
--            level = 0
--        )
--    )
--
-     val jars = listOf(
-         Jar(
-             id = "1",
-@@ -123,7 +84,7 @@ object GeneratedMockData {
-         Transaction(
-             id = "1",
-             merchant = "Spotify Premium",
--            amount = 12.99,
-+            amount = -12.99,
-             category = "Play",
-             date = "Today, 10:43 AM",
-             icon = Icons.Rounded.Headphones,
-@@ -133,7 +94,7 @@ object GeneratedMockData {
-         Transaction(
-             id = "2",
-             merchant = "Whole Foods Market",
--            amount = 142.5,
-+            amount = -142.5,
-             category = "Necessities",
-             date = "Yesterday, 6:30 PM",
-             icon = Icons.Rounded.ShoppingBag,
-@@ -143,7 +104,7 @@ object GeneratedMockData {
-         Transaction(
-             id = "3",
-             merchant = "Udemy Course",
--            amount = 24.99,
-+            amount = -24.99,
-             category = "Education",
-             date = "Dec 28, 2025",
-             icon = Icons.Rounded.School,
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/SubTransaction.kt b/app/src/main/java/com/oatrice/jarwise/data/SubTransaction.kt
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/model/ReportDto.kt b/app/src/main/java/com/oatrice/jarwise/data/model/ReportDto.kt
 new file mode 100644
-index 0000000..fadac6c
+index 0000000..dda9315
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/SubTransaction.kt
-@@ -0,0 +1,25 @@
-+package com.oatrice.jarwise.data
++++ b/app/src/main/java/com/oatrice/jarwise/data/model/ReportDto.kt
+@@ -0,0 +1,48 @@
++package com.oatrice.jarwise.data.model
 +
-+import androidx.room.Entity
-+import androidx.room.ForeignKey
-+import androidx.room.Index
-+import androidx.room.PrimaryKey
++import com.google.gson.annotations.SerializedName
 +
-+@Entity(
-+    tableName = "sub_transactions",
-+    foreignKeys = [
-+        ForeignKey(
-+            entity = Transaction::class,
-+            parentColumns = ["id"],
-+            childColumns = ["parentId"],
-+            onDelete = ForeignKey.CASCADE
-+        )
-+    ],
-+    indices = [Index(value = ["parentId"])]
++data class ReportResponse(
++    @SerializedName("summary") val summary: ChartSummaryDto,
++    @SerializedName("trend") val trend: List<TrendPointDto>,
++    @SerializedName("by_category") val byCategory: List<CategoryAmountDto>,
++    @SerializedName("by_jar") val byJar: List<JarAmountDto>,
++    @SerializedName("comparison") val comparison: ComparisonDataDto? = null
 +)
-+data class SubTransaction(
-+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-+    val parentId: Long,
-+    val description: String,
-+    val amount: Double
++
++data class ChartSummaryDto(
++    @SerializedName("income") val income: Double,
++    @SerializedName("expense") val expense: Double,
++    @SerializedName("net") val net: Double
 +)
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/SubTransactionDao.kt b/app/src/main/java/com/oatrice/jarwise/data/SubTransactionDao.kt
++
++data class TrendPointDto(
++    @SerializedName("date") val date: String,
++    @SerializedName("income") val income: Double,
++    @SerializedName("expense") val expense: Double
++)
++
++data class CategoryAmountDto(
++    @SerializedName("id") val id: String,
++    @SerializedName("name") val name: String,
++    @SerializedName("income") val income: Double,
++    @SerializedName("expense") val expense: Double,
++    @SerializedName("amount") val amount: Double,
++    @SerializedName("prev_income") val prevIncome: Double = 0.0,
++    @SerializedName("prev_expense") val prevExpense: Double = 0.0
++)
++
++data class JarAmountDto(
++    @SerializedName("id") val id: String,
++    @SerializedName("name") val name: String,
++    @SerializedName("income") val income: Double,
++    @SerializedName("expense") val expense: Double,
++    @SerializedName("amount") val amount: Double,
++    @SerializedName("prev_income") val prevIncome: Double = 0.0,
++    @SerializedName("prev_expense") val prevExpense: Double = 0.0
++)
++
++data class ComparisonDataDto(
++    @SerializedName("current") val current: ChartSummaryDto,
++    @SerializedName("previous") val previous: ChartSummaryDto
++)
+diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/ReportRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/ReportRepository.kt
 new file mode 100644
-index 0000000..5894cac
+index 0000000..7844b26
 --- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/SubTransactionDao.kt
-@@ -0,0 +1,22 @@
-+package com.oatrice.jarwise.data
++++ b/app/src/main/java/com/oatrice/jarwise/data/repository/ReportRepository.kt
+@@ -0,0 +1,36 @@
++package com.oatrice.jarwise.data.repository
 +
-+import androidx.room.Dao
-+import androidx.room.Delete
-+import androidx.room.Insert
-+import androidx.room.Query
++import com.oatrice.jarwise.data.api.ReportApi
++import com.oatrice.jarwise.data.model.ReportResponse
 +import kotlinx.coroutines.flow.Flow
++import kotlinx.coroutines.flow.flow
 +
-+@Dao
-+interface SubTransactionDao {
-+    @Query("SELECT * FROM sub_transactions WHERE parentId = :parentId")
-+    fun getByParentId(parentId: Long): Flow<List<SubTransaction>>
-+
-+    @Insert
-+    suspend fun insert(subTransaction: SubTransaction): Long
-+
-+    @Delete
-+    suspend fun delete(subTransaction: SubTransaction)
-+
-+    @Query("DELETE FROM sub_transactions WHERE parentId = :parentId")
-+    suspend fun deleteAllByParentId(parentId: Long)
++interface ReportRepository {
++    fun getReport(startDate: String, endDate: String, jarId: String? = null): Flow<ReportResponse?>
++    fun exportReport(startDate: String, endDate: String, jarId: String? = null): Flow<okhttp3.ResponseBody?>
 +}
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt b/app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt
-index d4dfd06..df1f98d 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/WalletDao.kt
-@@ -20,7 +20,10 @@ interface WalletDao {
- 
-     @Query("DELETE FROM wallets WHERE id = :id")
-     suspend fun deleteWallet(id: String)
--    
 +
-+    @Query("SELECT COUNT(*) FROM wallets")
-+    suspend fun count(): Int
++class ReportRepositoryImpl(
++    private val api: ReportApi
++) : ReportRepository {
 +
-     @Query("DELETE FROM wallets")
-     suspend fun clearAll()
- }
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt
-index 206d273..bc145ed 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigRepository.kt
-@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.Flow
- /**
-  * Repository for managing jar configurations
-  */
--class JarConfigRepository(private val jarConfigDao: JarConfigDao) {
-+class JarConfigRepository(private val jarConfigDao: JarConfigDao) : JarConfigSource {
-     
-     /**
-      * Get all jar configs as Flow (reactive updates)
-@@ -17,7 +17,7 @@ class JarConfigRepository(private val jarConfigDao: JarConfigDao) {
-     /**
-      * Get all jar configs (one-shot)
-      */
--    suspend fun getAllJarConfigs(): List<JarConfig> = jarConfigDao.getAll()
-+    override suspend fun getAllJarConfigs(): List<JarConfig> = jarConfigDao.getAll()
-     
-     /**
-      * Get jar config by ID
-@@ -45,7 +45,7 @@ class JarConfigRepository(private val jarConfigDao: JarConfigDao) {
-     /**
-      * Initialize default jars if database is empty
-      */
--    suspend fun initializeDefaultsIfEmpty() {
-+    override suspend fun initializeDefaultsIfEmpty() {
-         if (jarConfigDao.count() == 0) {
-             jarConfigDao.insertAll(JarConfig.DEFAULTS)
-         }
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigSource.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigSource.kt
-new file mode 100644
-index 0000000..3c55259
---- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/repository/JarConfigSource.kt
-@@ -0,0 +1,8 @@
-+package com.oatrice.jarwise.data.repository
-+
-+import com.oatrice.jarwise.data.JarConfig
-+
-+interface JarConfigSource {
-+    suspend fun getAllJarConfigs(): List<JarConfig>
-+    suspend fun initializeDefaultsIfEmpty()
-+}
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt
-index b2d3799..b1bbb5c 100644
---- a/app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/data/repository/WalletRepository.kt
-@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
- import kotlinx.coroutines.flow.map
- import kotlinx.coroutines.flow.first
- 
--open class WalletRepository(private val walletDao: WalletDao) {
-+open class WalletRepository(private val walletDao: WalletDao) : WalletSource {
- 
-     open val wallets: Flow<List<Wallet>> = walletDao.getAllWallets().map { entities ->
-         entities.map { it.toWallet() }
-@@ -76,9 +76,8 @@ open class WalletRepository(private val walletDao: WalletDao) {
-     /**
-      * Initialize default wallets if database is empty
-      */
--    suspend open fun initializeDefaultsIfEmpty() {
--        val currentWallets = walletDao.getAllWallets().first()
--        if (currentWallets.isEmpty()) { 
-+    override suspend fun initializeDefaultsIfEmpty() {
-+        if (walletDao.count() == 0) {
-              val defaults = listOf(
-                  Wallet(id = "wallet-cash", name = "Cash", balance = 0.0, color = Color(0xFF22C55E), icon = Icons.Default.AccountBalanceWallet),
-                  Wallet(id = "wallet-bank", name = "Bank Account", balance = 0.0, color = Color(0xFF3B82F6), icon = Icons.Default.AccountBalance),
-@@ -88,4 +87,8 @@ open class WalletRepository(private val walletDao: WalletDao) {
-              defaults.forEach { insertWallet(it) }
-         }
-     }
-+
-+    override suspend fun getAllWallets(): List<Wallet> {
-+        return wallets.first()
++    override fun getReport(startDate: String, endDate: String, jarId: String?): Flow<ReportResponse?> = flow {
++        try {
++            val response = api.getReport(startDate, endDate, jarId)
++            emit(response)
++        } catch (e: Exception) {
++            e.printStackTrace()
++            emit(null)
++        }
 +    }
- }
-diff --git a/app/src/main/java/com/oatrice/jarwise/data/repository/WalletSource.kt b/app/src/main/java/com/oatrice/jarwise/data/repository/WalletSource.kt
-new file mode 100644
-index 0000000..950770d
---- /dev/null
-+++ b/app/src/main/java/com/oatrice/jarwise/data/repository/WalletSource.kt
-@@ -0,0 +1,8 @@
-+package com.oatrice.jarwise.data.repository
 +
-+import com.oatrice.jarwise.model.Wallet
-+
-+interface WalletSource {
-+    suspend fun getAllWallets(): List<Wallet>
-+    suspend fun initializeDefaultsIfEmpty()
++    override fun exportReport(startDate: String, endDate: String, jarId: String?): Flow<okhttp3.ResponseBody?> = flow {
++        try {
++            val response = api.exportReport(startDate, endDate, jarId)
++            emit(response)
++        } catch (e: Exception) {
++            e.printStackTrace()
++            emit(null)
++        }
++    }
 +}
-diff --git a/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt b/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt
-index 232de89..a7080b6 100644
---- a/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/di/DataModule.kt
-@@ -20,7 +20,8 @@ val dataModule = module {
-                 AppDatabase.MIGRATION_3_4,
-                 AppDatabase.MIGRATION_4_5,
-                 AppDatabase.MIGRATION_5_6,
--                AppDatabase.MIGRATION_6_7
-+                AppDatabase.MIGRATION_6_7,
-+                AppDatabase.MIGRATION_7_8
-             )
-             .addCallback(AppDatabase.SEED_CALLBACK)
-             .fallbackToDestructiveMigration()
-@@ -32,6 +33,7 @@ val dataModule = module {
-     single { get<AppDatabase>().jarConfigDao() }
-     single { get<AppDatabase>().allocationDao() }
-     single { get<AppDatabase>().walletDao() }
-+    single { get<AppDatabase>().subTransactionDao() }
+diff --git a/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt b/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt
+index ee89744..1432470 100644
+--- a/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt
++++ b/app/src/main/java/com/oatrice/jarwise/di/NetworkModule.kt
+@@ -34,4 +34,5 @@ val networkModule = module {
  
-     // Services
-     single<SlipDetectorService> { SlipDetectorServiceImpl(androidContext()) }
+     single { get<Retrofit>().create(MigrationApi::class.java) }
+     single { get<Retrofit>().create(com.oatrice.jarwise.data.api.GraphApi::class.java) }
++    single { get<Retrofit>().create(com.oatrice.jarwise.data.api.ReportApi::class.java) }
+ }
 diff --git a/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt b/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
-index f2ba044..1945bc4 100644
+index 5b813c6..84a49ab 100644
 --- a/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/di/RepositoryModule.kt
-@@ -8,7 +8,9 @@ val repositoryModule = module {
-     single { UserPreferencesRepository(androidContext()) }
-     single { CurrencyRepository(get()) }
-     single { JarConfigRepository(get()) }
-+    single<JarConfigSource> { get<JarConfigRepository>() }
-     single { WalletRepository(get()) }
-+    single<WalletSource> { get<WalletRepository>() }
-     single { SlipRepository(androidContext()) }
+@@ -15,4 +15,5 @@ val repositoryModule = module {
      single { MigrationRepository(get(), androidContext()) }
      single<TransactionRepository> { TransactionRepositoryImpl(get(), get()) }
+     single<GraphRepository> { GraphRepositoryImpl(get()) }
++    single<ReportRepository> { ReportRepositoryImpl(get()) }
+ }
 diff --git a/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt b/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
-index 621c409..8672890 100644
+index 2742c4a..a4881ed 100644
 --- a/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
 +++ b/app/src/main/java/com/oatrice/jarwise/di/ViewModelModule.kt
-@@ -7,6 +7,7 @@ import com.oatrice.jarwise.ui.managewallets.ManageWalletsViewModel
- import com.oatrice.jarwise.ui.login.LoginViewModel
- import com.oatrice.jarwise.ui.settings.SettingsViewModel
- import com.oatrice.jarwise.ui.migration.MigrationViewModel
-+import com.oatrice.jarwise.ui.reportfilter.ReportFilterViewModel
- import org.koin.androidx.viewmodel.dsl.viewModel
- import org.koin.dsl.module
- 
-@@ -18,4 +19,5 @@ val viewModelModule = module {
-     viewModel { LoginViewModel(get(), get()) }
+@@ -20,5 +20,5 @@ val viewModelModule = module {
      viewModel { SettingsViewModel(get(), get()) }
      viewModel { MigrationViewModel(get(), get()) }
-+    viewModel { ReportFilterViewModel(get()) }
+     viewModel { ReportFilterViewModel(get()) }
+-    viewModel { com.oatrice.jarwise.ui.reports.ReportsViewModel() }
++    viewModel { com.oatrice.jarwise.ui.reports.ReportsViewModel(get()) }
  }
-diff --git a/app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt
-index ef530b4..90b95f7 100644
---- a/app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt
-+++ b/app/src/main/java/com/oatrice/jarwise/ui/TransactionHistoryScreen.kt
-@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
+diff --git a/app/src/main/java/com/oatrice/jarwise/ui/components/BottomNav.kt b/app/src/main/java/com/oatrice/jarwise/ui/components/BottomNav.kt
+index adcca35..6014d96 100644
+--- a/app/src/main/java/com/oatrice/jarwise/ui/components/BottomNav.kt
++++ b/app/src/main/java/com/oatrice/jarwise/ui/components/BottomNav.kt
+@@ -45,6 +45,7 @@ enum class NavPage {
+ fun BottomNav(
+     activePage: NavPage = NavPage.DASHBOARD,
+     visible: Boolean = true,
++    modifier: Modifier = Modifier,
+     onNavigate: (NavPage) -> Unit
+ ) {
+     // Animate visibility
+@@ -55,7 +56,7 @@ fun BottomNav(
+     )
+     
+     Box(
+-        modifier = Modifier
++        modifier = modifier
+             .fillMaxWidth()
+             .windowInsetsPadding(WindowInsets.navigationBars) // Handle system navigation bar
+             .padding(horizontal = 20.dp)
+diff --git a/app/src/main/java/com/oatrice/jarwise/ui/reports/ReportsScreen.kt b/app/src/main/java/com/oatrice/jarwise/ui/reports/ReportsScreen.kt
+index 25cdd82..20dd356 100644
+--- a/app/src/main/java/com/oatrice/jarwise/ui/reports/ReportsScreen.kt
++++ b/app/src/main/java/com/oatrice/jarwise/ui/reports/ReportsScreen.kt
+@@ -1,5 +1,10 @@
+ package com.oatrice.jarwise.ui.reports
+ 
++import androidx.activity.compose.rememberLauncherForActivityResult
++import androidx.activity.result.contract.ActivityResultContracts
++import androidx.compose.animation.*
++import androidx.compose.animation.core.*
++import androidx.compose.ui.graphics.toArgb
+ import androidx.compose.foundation.background
+ import androidx.compose.foundation.layout.*
+ import androidx.compose.foundation.rememberScrollState
+@@ -7,22 +12,30 @@ import androidx.compose.foundation.shape.RoundedCornerShape
+ import androidx.compose.foundation.verticalScroll
  import androidx.compose.material.icons.Icons
- import androidx.compose.material.icons.rounded.ArrowBack
- import androidx.compose.material.icons.rounded.CalendarMonth
-+import androidx.compose.material.icons.rounded.FilterList
- import androidx.compose.material.icons.rounded.Search
- import androidx.compose.material3.ExperimentalMaterial3Api
- import androidx.compose.material3.Icon
-@@ -26,6 +27,7 @@ import androidx.compose.material3.Text
- import androidx.compose.material3.TopAppBar
- import androidx.compose.material3.TopAppBarDefaults
- import androidx.compose.runtime.Composable
-+import androidx.compose.runtime.LaunchedEffect
+ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
++import androidx.compose.material.icons.rounded.FileDownload
+ import androidx.compose.material.icons.rounded.TrendingDown
+ import androidx.compose.material.icons.rounded.TrendingUp
+ import androidx.compose.material.icons.rounded.Wallet
+ import androidx.compose.material3.*
+-import androidx.compose.runtime.Composable
+-import androidx.compose.runtime.collectAsState
+-import androidx.compose.runtime.getValue
++import androidx.compose.runtime.*
  import androidx.compose.ui.Alignment
  import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
++import androidx.compose.ui.graphics.Brush
  import androidx.compose.ui.graphics.Color
-@@ -49,11 +51,17 @@ import com.oatrice.jarwise.ui.components.BottomNav
- import com.oatrice.jarwise.ui.components.NavPage
- import androidx.compose.foundation.lazy.rememberLazyListState
- import androidx.compose.runtime.derivedStateOf
-+import androidx.compose.runtime.getValue
-+import androidx.compose.runtime.mutableStateOf
- import androidx.compose.runtime.remember
-+import androidx.compose.runtime.setValue
- import androidx.compose.foundation.layout.Box
- import androidx.compose.material3.MediumTopAppBar
- import androidx.compose.ui.input.nestedscroll.nestedScroll
- import kotlin.math.abs
-+import com.oatrice.jarwise.ui.reportfilter.ReportFilterSheet
-+import com.oatrice.jarwise.ui.reportfilter.ReportFilterViewModel
++import androidx.compose.ui.graphics.SolidColor
+ import androidx.compose.ui.graphics.vector.ImageVector
++import androidx.compose.ui.platform.LocalContext
+ import androidx.compose.ui.text.font.FontWeight
++import androidx.compose.ui.text.style.TextOverflow
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+-import androidx.lifecycle.viewmodel.compose.viewModel
++import androidx.compose.foundation.Canvas
++import androidx.compose.foundation.gestures.detectTapGestures
++import androidx.compose.ui.input.pointer.pointerInput
++import androidx.compose.ui.graphics.drawscope.Stroke
++import java.text.NumberFormat
 +import org.koin.androidx.compose.koinViewModel
+ import com.oatrice.jarwise.ui.theme.Gray900
+ import com.oatrice.jarwise.ui.theme.Gray800
+ import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
+@@ -30,28 +43,127 @@ import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
+ import com.patrykandpatrick.vico.compose.chart.Chart
+ import com.patrykandpatrick.vico.compose.chart.column.columnChart
+ import com.patrykandpatrick.vico.compose.chart.line.lineChart
++import com.patrykandpatrick.vico.compose.chart.layout.fullWidth
++import com.patrykandpatrick.vico.compose.axis.axisLabelComponent
++import com.patrykandpatrick.vico.compose.axis.axisLineComponent
++import com.patrykandpatrick.vico.compose.axis.axisGuidelineComponent
++import com.patrykandpatrick.vico.compose.component.shape.shader.fromBrush
++import com.patrykandpatrick.vico.core.axis.AxisPosition
++import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
++import com.patrykandpatrick.vico.core.axis.vertical.VerticalAxis
++import com.patrykandpatrick.vico.core.axis.AxisItemPlacer
++import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
++import com.patrykandpatrick.vico.core.component.shape.LineComponent
++import com.patrykandpatrick.vico.core.component.shape.Shapes
++import com.patrykandpatrick.vico.core.chart.layout.HorizontalLayout
++import com.patrykandpatrick.vico.core.chart.line.LineChart
++import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShader
++import com.patrykandpatrick.vico.core.component.shape.shader.DynamicShaders
+ import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
+ import com.oatrice.jarwise.ui.components.BottomNav
+ import com.oatrice.jarwise.ui.components.NavPage
++import java.text.SimpleDateFormat
++import java.util.Calendar
++import java.util.Date
++import java.util.Locale
++
++private val PIE_COLORS = listOf(
++    Color(0xFF6366F1), // Indigo
++    Color(0xFF8B5CF6), // Violet
++    Color(0xFFA78BFA), // Purple
++    Color(0xFFC4B5FD), // Lavender
++    Color(0xFF60A5FA), // Blue
++    Color(0xFF93C5FD)  // Light Blue
++)
++
++private val yAxisFormatter = AxisValueFormatter<AxisPosition.Vertical.Start> { value, _ ->
++    if (value >= 1000) "${(value / 1000).toInt()}k" else value.toInt().toString()
++}
  
- /**
-  * Transaction History Screen
-@@ -67,9 +75,34 @@ fun TransactionHistoryScreen(
+ @OptIn(ExperimentalMaterial3Api::class)
+ @Composable
+ fun ReportsScreen(
      onBack: () -> Unit,
-     onNavigate: (NavPage) -> Unit = {}
+     onNavigate: (NavPage) -> Unit,
+-    viewModel: ReportsViewModel = viewModel()
++    viewModel: ReportsViewModel = koinViewModel()
  ) {
-+    val reportFilterViewModel: ReportFilterViewModel = koinViewModel()
-+    var showFilters by remember { mutableStateOf(false) }
-+    var activeJarFilters by remember { mutableStateOf<Set<String>>(emptySet()) }
-+    var activeWalletFilters by remember { mutableStateOf<Set<String>>(emptySet()) }
-+
-+    val hasActiveFilters = activeJarFilters.isNotEmpty() || activeWalletFilters.isNotEmpty()
-+
-+    LaunchedEffect(showFilters) {
-+        if (showFilters) {
-+            reportFilterViewModel.setSelections(activeJarFilters, activeWalletFilters)
+     val uiState by viewModel.uiState.collectAsState()
+     val scrollState = rememberScrollState()
++    var selectedRange by remember { mutableStateOf("month") }
++    
++    // Custom range state
++    var showDatePicker by remember { mutableStateOf(false) }
++    var customStartDate by remember { mutableStateOf<String?>(null) }
++    var customEndDate by remember { mutableStateOf<String?>(null) }
+ 
+-    Box(modifier = Modifier.fillMaxSize()) {
++    if (showDatePicker) {
++        val dateRangePickerState = rememberDateRangePickerState()
++        DatePickerDialog(
++            onDismissRequest = { showDatePicker = false },
++            confirmButton = {
++                TextButton(onClick = {
++                    val start = dateRangePickerState.selectedStartDateMillis
++                    val end = dateRangePickerState.selectedEndDateMillis
++                    if (start != null && end != null) {
++                        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
++                        customStartDate = sdf.format(Date(start))
++                        customEndDate = sdf.format(Date(end))
++                        viewModel.fetchReport("custom", customStartDate, customEndDate)
++                        selectedRange = "custom"
++                    }
++                    showDatePicker = false
++                }) {
++                    Text("Confirm")
++                }
++            },
++            dismissButton = {
++                TextButton(onClick = { showDatePicker = false }) {
++                    Text("Cancel")
++                }
++            }
++        ) {
++            DateRangePicker(
++                state = dateRangePickerState,
++                modifier = Modifier.padding(16.dp).height(500.dp),
++                title = { Text("Select Date Range", modifier = Modifier.padding(16.dp)) }
++            )
 +        }
 +    }
++
++    Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+         Scaffold(
+             topBar = {
+                 TopAppBar(
+-                    title = { Text("Reports", fontWeight = FontWeight.Bold) },
++                    title = { Text("รายงานการเงิน", fontWeight = FontWeight.Bold) },
+                     navigationIcon = {
+                         IconButton(onClick = onBack) {
+-                            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "Back")
++                            Icon(Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "กลับ")
++                        }
++                    },
++                    actions = {
++                        val context = LocalContext.current
++                        var csvBytes by remember { mutableStateOf<ByteArray?>(null) }
++                        
++                        val launcher = rememberLauncherForActivityResult(
++                            contract = ActivityResultContracts.CreateDocument("text/csv")
++                        ) { uri ->
++                            uri?.let {
++                                context.contentResolver.openOutputStream(it)?.use { stream ->
++                                    csvBytes?.let { bytes -> stream.write(bytes) }
++                                }
++                            }
++                        }
++
++                        IconButton(
++                            onClick = {
++                                viewModel.exportReport(selectedRange, customStartDate, customEndDate) { bytes ->
++                                    csvBytes = bytes
++                                    launcher.launch("jarwise-export-${selectedRange}.csv")
++                                }
++                            },
++                            enabled = !uiState.isLoading
++                        ) {
++                            Icon(Icons.Rounded.FileDownload, contentDescription = "Export CSV", tint = Color.White)
+                         }
+                     },
+                     colors = TopAppBarDefaults.topAppBarColors(
+@@ -68,12 +180,12 @@ fun ReportsScreen(
+                     .padding(paddingValues)
+                     .fillMaxSize()
+                     .padding(horizontal = 16.dp)
+-                    .padding(bottom = 100.dp) // Extra padding for BottomNav
++                    .padding(bottom = 80.dp)
+                     .verticalScroll(scrollState)
+             ) {
+                 Spacer(modifier = Modifier.height(16.dp))
+ 
+-                // Date Range (Mock)
++                // Date Range Picker
+                 Row(
+                     modifier = Modifier
+                         .fillMaxWidth()
+@@ -81,134 +193,512 @@ fun ReportsScreen(
+                         .padding(4.dp),
+                     horizontalArrangement = Arrangement.SpaceEvenly
+                 ) {
+-                    FilterChip(selected = true, onClick = {}, label = { Text("Month") })
+-                    FilterChip(selected = false, onClick = {}, label = { Text("Quarter") })
+-                    FilterChip(selected = false, onClick = {}, label = { Text("Year") })
++                    val ranges = listOf(
++                        "month" to "เดือน", 
++                        "quarter" to "ไตรมาส", 
++                        "year" to "ปี",
++                        "7d" to "7 วัน",
++                        "30d" to "30 วัน",
++                        "all" to "ทั้งหมด",
++                        "custom" to "กำหนดเอง"
++                    )
++                    ranges.forEach { (key, label) ->
++                        FilterChip(
++                            selected = selectedRange == key,
++                            onClick = { 
++                                if (key == "custom") {
++                                    showDatePicker = true
++                                } else {
++                                    selectedRange = key
++                                    customStartDate = null
++                                    customEndDate = null
++                                    
++                                    val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
++                                    val nowStr = sdf.format(Date())
++                                    
++                                    when (key) {
++                                        "7d" -> {
++                                            val c = Calendar.getInstance()
++                                            c.add(Calendar.DAY_OF_YEAR, -7)
++                                            viewModel.fetchReport("custom", sdf.format(c.time), nowStr)
++                                        }
++                                        "30d" -> {
++                                            val c = Calendar.getInstance()
++                                            c.add(Calendar.DAY_OF_YEAR, -30)
++                                            viewModel.fetchReport("custom", sdf.format(c.time), nowStr)
++                                        }
++                                        else -> viewModel.fetchReport(key)
++                                    }
++                                }
++                            },
++                            label = { Text(label) },
++                            colors = FilterChipDefaults.filterChipColors(
++                                selectedContainerColor = Color(0xFF6366F1),
++                                selectedLabelColor = Color.White,
++                                labelColor = Color.
 ... (Diff truncated for size) ...
+
 
 PR TEMPLATE:
 # 📋 Summary
@@ -615,4 +547,4 @@ INSTRUCTIONS:
 3. If no template, use a standard structure: Summary, Changes, Impact.
 4. Focus on 'Why' and 'What'.
 5. Do not include 'Here is the PR description' preamble. Just the body.
-6. IMPORTANT: Always use FULL URLs for links to issues and other PRs (e.g., https://github.com/owner/repo/issues/123), do NOT use short syntax (e.g., #123) to ensuring proper linking across platforms.
+6. IMPORTANT: Always use the exact FULL URL for closing issues. You must write `Closes https://github.com/oatrice/JarWise-Root/issues/59`. Do NOT use short syntax (e.g., #123) and do not invent an owner/repo.
