@@ -1,7 +1,5 @@
 # 📋 Summary
-This pull request introduces a multi-select filtering capability for reports and transaction lists, allowing users to precisely control the data they see. Users can now filter transactions by selecting specific Jars (categories) and Wallets (accounts) through a new, intuitive bottom sheet interface.
-
-This feature directly addresses the specifications outlined in issue #68, providing a more powerful and flexible reporting experience.
+This Pull Request introduces a comprehensive Financial Reports feature for both Web and Android platforms. Users can now view various financial reports including summary, trend, and breakdown by category and jar, complete with interactive charts and customizable date range filtering. Additionally, the feature includes the ability to export report data to CSV format.
 
 ## ✅ Checklist
 - [x] 🏗️ I have moved the related issue to "In Progress" on the Kanban board
@@ -10,53 +8,60 @@ This feature directly addresses the specifications outlined in issue #68, provid
 - [ ] 🐛 Bug fix
 - [x] ✨ New feature
 - [ ] ⚡ Performance improvement
-- [x] 🔧 Refactoring
+- [ ] 🔧 Refactoring
 - [x] 🎨 UI Update (Jetpack Compose)
-- [x] 🤖 SDK/Dependency Update
+- [ ] 🤖 SDK/Dependency Update
 - [ ] 💥 Breaking change
 
 # 📱 Android Specific Checks
-- [x] Verified on Emulator
-- [x] Verified on Real Device
-- [x] Screen Orientation Support (Portrait/Landscape)
-- [x] Dark/Light Mode Tested
+- [ ] Verified on Emulator
+- [ ] Verified on Real Device
+- [ ] Screen Orientation Support (Portrait/Landscape)
+- [ ] Dark/Light Mode Tested
 
 # 📝 Changes
-### Feature: Multi-Select Filtering
-- **UI:** A new filter icon (`FilterList`) has been added to the `TransactionHistoryScreen` top app bar. A badge on the icon indicates when filters are active.
-- **Filter Sheet:** A modal bottom sheet (`ReportFilterSheet`) was created, presenting users with multi-select checkboxes for all available Jars and Wallets. It also includes "Select All" and "Clear All" actions for convenience.
-- **State Management:** A new `ReportFilterViewModel` has been introduced to manage the filter state, load Jars/Wallets, and handle user selections. The selected filters are persisted for the user's session.
-- **Real-time Updates:** The transaction list dynamically updates as filters are applied.
+This PR implements the Financial Reports and Data Export feature as outlined in Issue #59.
 
-### Technical & Architectural Improvements
-- **Database Migration:** The database schema has been upgraded to version 8. This includes adding a new `sub_transactions` table to support future itemized transaction features and implementing the corresponding Room `MIGRATION_7_8`.
-- **Repository Refactoring:** The `JarConfigRepository` and `WalletRepository` have been refactored to implement `JarConfigSource` and `WalletSource` interfaces, respectively. This improves decoupling and makes the data layer more testable.
-- **Build System:** Migrated the Room annotation processor from KSP to KAPT to ensure build stability and compatibility.
-- **Testing:** Added comprehensive unit tests for the new `ReportFilterViewModel` to validate its logic for selection, clearing, and state management.
+**Key Changes Include:**
+
+*   **Financial Reports Screen:** A new screen to display various financial insights.
+*   **API Integration:** Added `ReportApi`, `ReportDto`, and `ReportRepository` for fetching report data from the backend.
+*   **Dependency Injection:** Integrated `ReportApi` and `ReportRepository` into Koin modules (`NetworkModule`, `RepositoryModule`, `ViewModelModule`).
+*   **Report Data Display:**
+    *   Summary section showing total income, expense, and net balance.
+    *   Trend chart visualizing income and expense over time using a line chart.
+    *   Breakdown charts by category and jar, typically represented as pie charts, showing proportional distribution of finances.
+    *   Comparison data for current vs. previous periods.
+*   **Date Range Filtering:** Implemented flexible date range selection, including:
+    *   Predefined ranges: Month, Quarter, Year, 7-day, 30-day, All.
+    *   Custom date range selection via a date picker.
+*   **CSV Data Export:** Added functionality to export the displayed report data into a CSV file.
+*   **UI/UX Enhancements:**
+    *   Improved chart axis scaling, formatting, and legends for better readability.
+    *   Updated `BottomNav` component to accept a modifier parameter.
+    *   Visual updates to report cards and overall layout using Jetpack Compose.
+*   **Version Bump:** Incremented the Android app's `versionName` to `1.12.0`.
+*   **Unit Tests:** Added unit tests for `ReportsViewModel` to ensure data fetching and processing logic is correct.
 
 # 📸 UI/UX Screenshots
-| Before | After (Filter Icon) | Filter Sheet |
-|:---:|:---:|:---:|
-| *No filter option available on the transaction screen.* | <img src="https://i.imgur.com/example-before.png" width="250"> | <img src="https://i.imgur.com/example-after.png" width="250"> |
-| | **Transaction screen with the new filter icon and active filter badge.** | **The new bottom sheet for selecting Jars and Wallets.** |
+<!-- Include screenshots from the Android device/emulator. MUST include screenshots for UI changes. -->
+(Please add screenshots here, showing different report views, date range selections, and possibly the export prompt)
 
 # 🧪 Testing
 - [x] `./gradlew build` passes
 - [x] Unit Tests pass
 
 # 🚀 Migration/Deployment
-- [x] Database migration required (Room)
+- [ ] Database migration required (Room)
 - [ ] Environment variables/Secrets updated
-- [x] New Dependencies added
+- [ ] New Dependencies added
 
 ```bash
-# Room migration from v7 to v8 is handled automatically by the app. No manual steps are required.
+# Migration commands if applicable
 ```
 
 # 🔗 Related Issues
-- Closes https://github.com/oatrice/JarWise-Root/issues/68
-- Related to https://github.com/oatrice/JarWise-Root/issues/59
-- Related to https://github.com/oatrice/JarWise-Root/issues/67
+- Closes https://github.com/oatrice/JarWise-Root/issues/59
 
 **Breaking Changes**: No
-**Migration Required**: Yes
+**Migration Required**: No
