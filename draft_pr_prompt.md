@@ -12,6 +12,7 @@ ISSUE: {
 
 GIT CONTEXT:
 COMMITS:
+9f407a1 feat: [Web | Android] Financial Reports & Data Export...
 37af6de feat: [Web | Android] Financial Reports & Data Export...
 09bd185 docs: sync AI brain artifacts
 d7f70fa ✨ feat(reports): Enhance financial reporting features
@@ -47,8 +48,9 @@ CHANGELOG.md                                       |  19 +
  .../59_issue-59/ai_brain/implementation_plan.md    |  51 ++
  docs/features/59_issue-59/ai_brain/task.md         |  13 +
  docs/features/59_issue-59/ai_brain/walkthrough.md  |  42 +
- draft_pr_prompt.md                                 | 916 ++++++++++-----------
- 16 files changed, 1590 insertions(+), 678 deletions(-)
+ draft_pr_body.md                                   |  67 +-
+ draft_pr_prompt.md                                 | 918 ++++++++++-----------
+ 17 files changed, 1628 insertions(+), 709 deletions(-)
 
 KEY FILE DIFFS:
 diff --git a/app/build.gradle.kts b/app/build.gradle.kts
