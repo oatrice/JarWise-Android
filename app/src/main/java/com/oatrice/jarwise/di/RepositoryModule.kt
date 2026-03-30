@@ -15,4 +15,5 @@ val repositoryModule = module {
     single { MigrationRepository(get(), androidContext()) }
     single<TransactionRepository> { TransactionRepositoryImpl(get(), get()) }
     single<GraphRepository> { GraphRepositoryImpl(get()) }
+    single<ReportRepository> { ReportRepositoryImpl(get()) }
 }

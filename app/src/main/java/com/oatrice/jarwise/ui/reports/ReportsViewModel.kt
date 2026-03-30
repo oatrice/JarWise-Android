@@ -2,89 +2,222 @@ package com.oatrice.jarwise.ui.reports
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.oatrice.jarwise.data.model.ReportResponse
+import com.oatrice.jarwise.data.repository.ReportRepository
 import com.patrykandpatrick.vico.core.entry.ChartEntryModelProducer
 import com.patrykandpatrick.vico.core.entry.FloatEntry
-import com.patrykandpatrick.vico.core.entry.entryModelOf
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class ReportsUiState(
-    val income: Double = 45000.0,
-    val expense: Double = 28500.0,
-    val net: Double = 16500.0,
+    val isLoading: Boolean = false,
+    val income: Double = 0.0,
+    val expense: Double = 0.0,
+    val net: Double = 0.0,
     val trendData: ChartEntryModelProducer = ChartEntryModelProducer(),
-    val categoryData: ChartEntryModelProducer = ChartEntryModelProducer(),
-    val jarData: List<JarDistribution> = emptyList(), // Vico doesn't have native Pie yet, will use custom or simple list first
-    val comparisonData: ChartEntryModelProducer = ChartEntryModelProducer()
+    val incomeBreakdownData: ChartEntryModelProducer = ChartEntryModelProducer(),
+    val expenseBreakdownData: ChartEntryModelProducer = ChartEntryModelProducer(),
+    val incomeDistribution: List<JarDistribution> = emptyList(),
+    val expenseDistribution: List<JarDistribution> = emptyList(),
+    val comparisonData: ChartEntryModelProducer = ChartEntryModelProducer(),
+    val trendLabels: List<String> = emptyList(),
+    val incomeLabels: List<String> = emptyList(),
+    val expenseLabels: List<String> = emptyList(),
+    val comparisonLabels: List<String> = listOf("รายรับ", "รายจ่าย", "คงเหลือ"),
+    val trendMaxY: Float = 0f,
+    val incomeMaxY: Float = 0f,
+    val expenseMaxY: Float = 0f,
+    val comparisonMaxY: Float = 0f,
+    val error: String? = null
 )
 
 data class JarDistribution(
+    val id: String,
     val name: String,
     val amount: Double,
     val color: Long
 )
 
-class ReportsViewModel : ViewModel() {
+class ReportsViewModel(
+    private val repository: ReportRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ReportsUiState())
     val uiState: StateFlow<ReportsUiState> = _uiState.asStateFlow()
 
+    private var fetchJob: kotlinx.coroutines.Job? = null
+    private var exportJob: kotlinx.coroutines.Job? = null
+
+    private val colors = listOf(0xFF6366F1, 0xFF8B5CF6, 0xFFA78BFA, 0xFFC4B5FD, 0xFF60A5FA, 0xFF93C5FD)
+
     init {
-        loadMockData()
+        fetchReport("month")
     }
 
-    private fun loadMockData() {
-        viewModelScope.launch {
-            // Trend (Income vs Expense)
-            // Vico Multi-line: need multiple series
-            val incomeEntries = listOf(
-                FloatEntry(0f, 42000f),
-                FloatEntry(1f, 38000f),
-                FloatEntry(2f, 41000f),
-                FloatEntry(3f, 44000f),
-                FloatEntry(4f, 45000f),
-            )
-            val expenseEntries = listOf(
-                FloatEntry(0f, 31000f),
-                FloatEntry(1f, 27000f),
-                FloatEntry(2f, 29500f),
-                FloatEntry(3f, 32000f),
-                FloatEntry(4f, 28500f),
-            )
-            
-            // Category (Bar)
-            val categoryEntries = listOf(
-                FloatEntry(0f, 9500f), // Food
-                FloatEntry(1f, 5200f), // Transport
-                FloatEntry(2f, 4800f), // Shopping
-                FloatEntry(3f, 4000f), // Bills
-                FloatEntry(4f, 2500f), // Health
-            )
+    fun fetchReport(range: String, customStart: String? = null, customEnd: String? = null) {
+        fetchJob?.cancel()
+        fetchJob = viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
 
-            // Comparison (Grouped Bar) - Current vs Previous
-            val currentEntries = listOf(
-                FloatEntry(0f, 45000f), // Income
-                FloatEntry(1f, 28500f), // Expense
-            )
-            val previousEntries = listOf(
-                FloatEntry(0f, 44000f), // Income
-                FloatEntry(1f, 32000f), // Expense
-            )
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
             
-            _uiState.value = ReportsUiState(
-                trendData = ChartEntryModelProducer(listOf(incomeEntries, expenseEntries)),
-                categoryData = ChartEntryModelProducer(listOf(categoryEntries)),
-                comparisonData = ChartEntryModelProducer(listOf(currentEntries, previousEntries)),
-                jarData = listOf(
-                    JarDistribution("Food", 9500.0, 0xFF6366F1),
-                    JarDistribution("Transport", 5200.0, 0xFF8B5CF6),
-                    JarDistribution("Shopping", 4800.0, 0xFFA78BFA),
-                    JarDistribution("Bills", 4000.0, 0xFFC4B5FD),
-                    JarDistribution("Health", 2500.0, 0xFF60A5FA),
-                )
+            val startDateStr: String
+            val endDateStr: String
+
+            if (customStart != null && customEnd != null) {
+                startDateStr = customStart
+                endDateStr = customEnd
+            } else {
+                val now = Calendar.getInstance()
+                val start = Calendar.getInstance()
+
+                when (range) {
+                    "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
+                    "quarter" -> start.add(Calendar.MONTH, -3)
+                    "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+                    "all" -> start.set(2000, 0, 1) // Default "All Time" to year 2000
+                }
+                
+                startDateStr = sdf.format(start.time)
+                endDateStr = sdf.format(now.time)
+            }
+
+            repository.getReport(startDateStr, endDateStr).collect { response ->
+                if (response != null) {
+                    updateUiState(response)
+                } else {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false, 
+                        error = "ไม่สามารถโหลดข้อมูลรายงานได้"
+                    )
+                }
+            }
+        }
+    }
+
+    private fun updateUiState(report: ReportResponse) {
+        val incomeTrend = report.trend.mapIndexed { i, p -> FloatEntry(i.toFloat(), p.income.toFloat()) }
+        val expenseTrend = report.trend.mapIndexed { i, p -> FloatEntry(i.toFloat(), p.expense.toFloat()) }
+
+        // Filter and process income categories
+        val incomeCategories = report.byCategory.filter { it.income > 0.01 }
+        val incomeBreakdownEntries = listOf(
+            incomeCategories.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.income.toFloat()) },
+            incomeCategories.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.prevIncome.toFloat()) }
+        )
+        val incomeDist = incomeCategories.mapIndexed { i, c ->
+            JarDistribution(c.id, c.name, c.income, colors[i % colors.size])
+        }
+        val incomeLabels = incomeCategories.map { it.name }
+
+        // Process expense categories
+        val expenseBreakdownEntries = listOf(
+            report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.expense.toFloat()) },
+            report.byCategory.mapIndexed { i, c -> FloatEntry(i.toFloat(), c.prevExpense.toFloat()) }
+        )
+        val expenseLabels = report.byCategory.map { it.name }
+        
+        // Distribution by Jar (Expense focus)
+        val expenseDist = report.byJar.mapIndexed { i, j ->
+            JarDistribution(j.id, j.name, j.amount, colors[i % colors.size])
+        }
+
+        val trendLabels = report.trend.map { p ->
+            try {
+                val inputSdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+                val outputSdf = SimpleDateFormat("dd/MM", Locale.US)
+                val date = inputSdf.parse(p.date)
+                outputSdf.format(date ?: Date())
+            } catch (e: Exception) {
+                ""
+            }
+        }
+
+        val comparisonEntries = report.comparison?.let {
+            val current = listOf(
+                FloatEntry(0f, it.current.income.toFloat()),
+                FloatEntry(1f, it.current.expense.toFloat()),
+                FloatEntry(2f, it.current.net.toFloat())
             )
+            val previous = listOf(
+                FloatEntry(0f, it.previous.income.toFloat()),
+                FloatEntry(1f, it.previous.expense.toFloat()),
+                FloatEntry(2f, it.previous.net.toFloat())
+            )
+            listOf(current, previous)
+        } ?: emptyList()
+
+        _uiState.value = ReportsUiState(
+            isLoading = false,
+            income = report.summary.income,
+            expense = report.summary.expense,
+            net = report.summary.net,
+            trendData = ChartEntryModelProducer(listOf(incomeTrend, expenseTrend)),
+            incomeBreakdownData = ChartEntryModelProducer(incomeBreakdownEntries),
+            expenseBreakdownData = ChartEntryModelProducer(expenseBreakdownEntries),
+            incomeDistribution = incomeDist,
+            expenseDistribution = expenseDist,
+            comparisonData = ChartEntryModelProducer(comparisonEntries),
+            trendLabels = trendLabels,
+            incomeLabels = incomeLabels,
+            expenseLabels = expenseLabels,
+            trendMaxY = roundUpAxisMax(report.trend.map { Math.max(it.income, it.expense) }.maxOrNull() ?: 0.0),
+            incomeMaxY = roundUpAxisMax(incomeCategories.map { Math.max(it.income, it.prevIncome) }.maxOrNull() ?: 0.0),
+            expenseMaxY = roundUpAxisMax(report.byCategory.map { Math.max(it.expense, it.prevExpense) }.maxOrNull() ?: 0.0),
+            comparisonMaxY = roundUpAxisMax(report.comparison?.let { 
+                listOf(it.current.income, it.current.expense, it.current.net, it.previous.income, it.previous.expense, it.previous.net).maxOrNull() 
+            } ?: 0.0)
+        )
+    }
+
+    private fun roundUpAxisMax(max: Double): Float {
+        if (max <= 0.0) return 100f
+        val power = Math.pow(10.0, Math.floor(Math.log10(max)))
+        val normalized = max / power
+        val roundedNormalized = when {
+            normalized <= 1.0 -> 1.0
+            normalized <= 2.0 -> 2.0
+            normalized <= 2.5 -> 2.5
+            normalized <= 5.0 -> 5.0
+            normalized <= 7.5 -> 7.5
+            else -> 10.0
+        }
+        return (roundedNormalized * power).toFloat()
+    }
+
+    fun exportReport(range: String, customStart: String? = null, customEnd: String? = null, onResult: (ByteArray?) -> Unit) {
+        exportJob?.cancel()
+        exportJob = viewModelScope.launch {
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
+            
+            val startDateStr: String
+            val endDateStr: String
+
+            if (customStart != null && customEnd != null) {
+                startDateStr = customStart
+                endDateStr = customEnd
+            } else {
+                val now = Calendar.getInstance()
+                val start = Calendar.getInstance()
+
+                when (range) {
+                    "month" -> start.set(Calendar.DAY_OF_MONTH, 1)
+                    "quarter" -> start.add(Calendar.MONTH, -3)
+                    "year" -> start.set(Calendar.DAY_OF_YEAR, 1)
+                    "all" -> start.set(2000, 0, 1)
+                }
+                
+                startDateStr = sdf.format(start.time)
+                endDateStr = sdf.format(now.time)
+            }
+
+            repository.exportReport(startDateStr, endDateStr).collect { response ->
+                onResult(response?.bytes())
+            }
         }
     }
 }
